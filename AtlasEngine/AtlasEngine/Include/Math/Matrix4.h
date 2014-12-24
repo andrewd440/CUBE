@@ -84,7 +84,16 @@ struct FMatrix4
 	FMatrix4 Transpose() const;
 
 	/**
+	* Used to transform a surface normal. The transformed normal
+	* is robust against non-uniform scaling factors.
+	* @param Normal to transform
+	*/
+	Vector3f TransformNormal(const Vector3f& Normal) const;
+
+	/**
 	* Transforms a vector without taking translation into account.
+	* (For transforming normals with non-uniform scale, use TransformNormal)
+	* @param Direction to transform
 	*/
 	Vector3f TransformDirection(const Vector3f& Direction) const;
 
@@ -335,6 +344,11 @@ inline FMatrix4 FMatrix4::Transpose() const
 		M[0][2], M[1][2], M[2][2], M[3][2],
 		M[0][3], M[1][3], M[2][3], M[3][3]
 	};
+}
+
+inline Vector3f FMatrix4::TransformNormal(const Vector3f& Normal) const
+{
+	return GetInverse().Transpose().TransformDirection(Normal);
 }
 
 inline Vector3f FMatrix4::TransformDirection(const Vector3f& Direction) const

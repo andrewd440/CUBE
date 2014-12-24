@@ -96,11 +96,45 @@ public:
 	float Length3() const;
 
 	/**
+	* Calculates the length squared of all four components of the vector.
+	* When an absolute length is not need, such as
+	* when vector-vector comparisions, use this instead of
+	* Lenght() to aviod squareroot calculation.
+	*/
+	float LengthSquared4() const;
+
+	/**
+	* Calculates the length squared of three components of the vector.
+	* When an absolute length is not need, such as
+	* when vector-vector comparisions, use this instead of
+	* Lenght() to aviod squareroot calculation.
+	*/
+	float LengthSquared3() const;
+
+	/**
 	* Reflects the vector against a normal.
 	* @param Normal the normal being reflected by
 	* @return Reflected vector
 	*/
 	TVector4<T> Reflect3(const TVector4<T>& Normal) const;
+
+	/**
+	* Projects this vector onto the axis of another vector. This does not
+	* assume that Vector is normalized, use ProjectedOnNormal
+	* if Vector is already normalized.
+	* @param Vector to project upon
+	* @return The projected vector.
+	*/
+	TVector4<T> ProjectedOnVector(const TVector4<T>& Vector) const;
+
+	/**
+	* Projects this vector onto the axis of normalized vector. This assumes
+	* that Vector is normalized, use ProjectedOnVector if Vector
+	* is not already normalized.
+	* @param Vector to project upon
+	* @return The projected vector.
+	*/
+	TVector4<T> ProjectedOnNormal(const TVector4<T>& Normal) const;
 
 	/* Returns string representation of the vector */
 	const std::string ToString() const;
@@ -265,9 +299,33 @@ inline float TVector4<T>::Length3() const
 }
 
 template <typename T>
+inline float TVector4<T>::LengthSquared4() const
+{
+	return (x*x + y*y + z*z + w*w);
+}
+
+template <typename T>
+inline float TVector4<T>::LengthSquared3() const
+{
+	return (x*x + y*y + z*z);
+}
+
+template <typename T>
 inline TVector4<T> TVector4<T>::Reflect3(const TVector4<T>& Normal) const
 {
 	return 2.0f * Dot3(*this, Normal) * Normal - *this;
+}
+
+template <typename T>
+inline TVector4<T> TVector4<T>::ProjectedOnVector(const TVector4<T>& Vector) const
+{
+	return Vector * (TVector4<T>::Dot3(*this, Vector) / Vector.LengthSquared3());
+}
+
+template <typename T>
+inline TVector4<T> TVector4<T>::ProjectedOnNormal(const TVector4<T>& Normal) const
+{
+	return Normal * TVector4<T>::Dot3(*this, Normal);
 }
 
 template <typename T>

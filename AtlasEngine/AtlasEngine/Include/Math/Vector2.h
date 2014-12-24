@@ -80,10 +80,36 @@ public:
 	float Length();
 
 	/**
+	* Calculates the length squared of the vector.
+	* When an absolute length is not need, such as
+	* when vector-vector comparisions, use this instead of
+	* Lenght() to aviod squareroot calculation.
+	*/
+	float LengthSquared() const;
+
+	/**
 	* Reflects the vector across a normal.
 	* @return Reflected vector
 	*/
 	TVector2<T> Reflect(const TVector2<T>& Normal) const;
+
+	/**
+	* Projects this vector onto the axis of another vector. This does not
+	* assume that Vector is normalized, use ProjectedOnNormal
+	* if Vector is already normalized.
+	* @param Vector to project upon
+	* @return The projected vector.
+	*/
+	TVector2<T> ProjectedOnVector(const TVector2<T>& Vector) const;
+
+	/**
+	* Projects this vector onto the axis of normalized vector. This assumes
+	* that Vector is normalized, use ProjectedOnVector if Vector
+	* is not already normalized.
+	* @param Vector to project upon
+	* @return The projected vector.
+	*/
+	TVector2<T> ProjectedOnNormal(const TVector2<T>& Normal) const;
 
 	/* Returns string representation of the vector */
 	const std::string ToString() const;
@@ -206,6 +232,24 @@ template <typename T>
 inline float TVector2<T>::Length()
 {
 	return std::sqrt(x*x + y*y);
+}
+
+template <typename T>
+inline float TVector2<T>::LengthSquared() const
+{
+	return (x*x + y*y);
+}
+
+template <typename T>
+inline TVector2<T> TVector2<T>::ProjectedOnVector(const TVector2<T>& Vector) const
+{
+	return Vector * (TVector2<T>::Dot(*this, Vector) / Vector.LengthSquared());
+}
+
+template <typename T>
+inline TVector2<T> TVector2<T>::ProjectedOnNormal(const TVector2<T>& Normal) const
+{
+	return Normal * TVector2<T>::Dot(*this, Normal);
 }
 
 template <typename T>
