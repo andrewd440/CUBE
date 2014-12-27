@@ -1,8 +1,10 @@
 #pragma once
+#include <cstdint>
 
+#include <algorithm>
 #include <cstdio>
 
-#include "Common.h"
+#include "Misc\Assertions.h"
 
 /* Class for representing and manipulating RGB values */
 class FColor

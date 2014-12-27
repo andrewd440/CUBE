@@ -1,6 +1,6 @@
 #pragma once
-#include "Common.h"
 #include <iostream>
+#include <cstdint>
 
 #if ASSERTIONS_ENABLED
  

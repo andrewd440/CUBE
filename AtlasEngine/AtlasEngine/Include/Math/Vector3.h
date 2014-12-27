@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
-#include "Common.h"
+
+#include "Misc\Assertions.h"
 
 template <typename T>
 /**
@@ -136,6 +138,27 @@ public:
 	* @return The cross product vector.
 	*/
 	static TVector3<T> Cross(const TVector3<T>& lhs, const TVector3<T>& rhs);
+
+	/**
+	* Checks if two directions are perpendicular, or orthogonal, to one another,
+	* within a certain threshold. The normals given are assumed to be unit length.
+	* @param Normal1 Direction to check
+	* @param Normal2 Direction to check
+	* @param CosineThreshold Threshold to test against
+	* @return True if the cosine of the angle between the direction is within the threshold
+	*/
+	static bool Perpendicular(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold);
+
+	/**
+	* Checks if two directions are parallel, to one another.  The normals given are assumed to be unit length.
+	* This test ignores checking if the directions point in this same direction,
+	* it checks if the angle between them is within a certain threshold.
+	* @param Normal1 Direction to check
+	* @param Normal2 Direction to check
+	* @param CosineThreshold Threshold to test against
+	* @return True if the cosine of the angle between the direction is within the threshold
+	*/
+	static bool Parallel(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold);
 
 public:
 	T x; /* X coordinate of the vector */
@@ -315,6 +338,20 @@ inline TVector3<T> TVector3<T>::Cross(const TVector3<T>& lhs, const TVector3<T>&
 	return TVector3<T>(	(lhs.y * rhs.z) - (lhs.z * rhs.y),
 						(lhs.z * rhs.x) - (lhs.x * rhs.z),
 						(lhs.x * rhs.y) - (lhs.y * rhs.x));
+}
+
+template <typename T>
+inline bool TVector3<T>::Perpendicular(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold)
+{
+	const float Dot = TVector3<T>::Dot(Normal1, Normal2);
+	return std::abs(Dot) <= CosineThreshold;
+}
+
+template <typename T>
+inline bool TVector3<T>::Parallel(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold)
+{
+	const float Dot = TVector3<T>::Dot(Normal1, Normal2);
+	return std::abs(Dot) >= CosineThreshold;
 }
 
 /////////////////////////////////////////////////////////////////////

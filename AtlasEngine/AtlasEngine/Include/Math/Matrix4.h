@@ -1,11 +1,14 @@
 #pragma once
 
 #include <initializer_list>
+#include <algorithm>
+#include <cstdint>
 
-#include "Common.h"
-#include "Vector3.h"
-#include "Vector4.h"
-#include "Ray.h"
+#include "Math\Vector3.h"
+#include "Math\Vector4.h"
+#include "Misc\Assertions.h"
+#include "FMath.h"
+
 
 /**
 *	4x4 floating-point column-matrix
@@ -82,6 +85,11 @@ struct FMatrix4
 	* Get the transpose of the matrix.
 	*/
 	FMatrix4 Transpose() const;
+
+	/**
+	* Calculates the determinant of the matrix.
+	*/
+	float Determinant() const;
 
 	/**
 	* Used to transform a surface normal. The transformed normal
@@ -344,6 +352,13 @@ inline FMatrix4 FMatrix4::Transpose() const
 		M[0][2], M[1][2], M[2][2], M[3][2],
 		M[0][3], M[1][3], M[2][3], M[3][3]
 	};
+}
+
+inline float FMatrix4::Determinant() const
+{
+	return M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1])
+		- M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0])
+		- M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
 }
 
 inline Vector3f FMatrix4::TransformNormal(const Vector3f& Normal) const

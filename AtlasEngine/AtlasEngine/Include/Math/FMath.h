@@ -1,9 +1,8 @@
 #pragma once
-
 #include "Vector3.h"
 
-#define _PI 3.14159265f
-#define _EPSILON 0.00001f
+const float _PI = 3.14159265f;
+const float _EPSILON = 0.00001f;
 
 enum class EAxis
 {
@@ -84,5 +83,23 @@ namespace FMath
 		BOut[0] = Vector3f::Dot(Vector3f::Cross(e1, d3), Normal) * Denom;
 		BOut[1] = Vector3f::Dot(Vector3f::Cross(e2, d1), Normal) * Denom;
 		BOut[2] = Vector3f::Dot(Vector3f::Cross(e3, d2), Normal) * Denom;
+	}
+
+	/**
+	* Converts degrees to radians.
+	*/
+	inline float ToRadians(float Degrees)
+	{
+		static const float PiOverOneEighty = _PI / 180.0f;
+		return Degrees * PiOverOneEighty;
+	}
+
+	/**
+	* Converts radians to degrees.
+	*/
+	inline float ToDegrees(float Radians)
+	{
+		static const float OneEightyOverPi = 180.0f / _PI;
+		return Radians * OneEightyOverPi;
 	}
 }

@@ -54,6 +54,8 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>include/</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -85,6 +87,7 @@
     <ClInclude Include="Include\Math\Color.h" />
     <ClInclude Include="Include\Math\FMath.h" />
     <ClInclude Include="Include\Math\Matrix4.h" />
+    <ClInclude Include="Include\Math\Quaternion.h" />
     <ClInclude Include="Include\Math\Ray.h" />
     <ClInclude Include="Include\Math\Vector2.h" />
     <ClInclude Include="Include\Math\Vector3.h" />
@@ -94,6 +97,7 @@
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Math\Color.cpp" />
+    <ClCompile Include="Src\Math\FQuaternion.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

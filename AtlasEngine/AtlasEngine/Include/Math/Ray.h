@@ -1,6 +1,6 @@
 #pragma once
-#include "Vector3.h"
-#include <limits>
+
+#include "Math\Vector3.h"
 
 /**
 * Class for representing a ray in 3D space.

@@ -1,7 +1,10 @@
 #pragma once
+
+#include <cstdint>
 #include <cstdio>
-#include "Common.h"
-#include "Vector3.h"
+
+#include "Math\Vector3.h"
+#include "Misc\Assertions.h"
 
 template <typename T>
 /**
@@ -163,6 +166,28 @@ public:
 	* @return The cross product vector.
 	*/
 	static TVector4<T> Cross(const TVector4<T>& lhs, const TVector4<T>& rhs);
+
+	/**
+	* Checks if two directions, (X Y Z) components, are perpendicular, or orthogonal, to one another,
+	* within a certain threshold. The normals given are assumed to be unit length.
+	* @param Normal1 Direction to check
+	* @param Normal2 Direction to check
+	* @param CosineThreshold Threshold to test against
+	* @return True if the cosine of the angle between the direction is within the threshold
+	*/
+	static bool Perpendicular(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold);
+
+	/**
+	* Checks if two directions, (X Y Z) components, are parallel, to one another.  The normals given are 
+	* assumed to be unit length.
+	* This test ignores checking if the directions point in this same direction,
+	* it checks if the angle between them is within a certain threshold.
+	* @param Normal1 Direction to check
+	* @param Normal2 Direction to check
+	* @param CosineThreshold Threshold to test against
+	* @return True if the cosine of the angle between the direction is within the threshold
+	*/
+	static bool Parallel(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold);
 
 public:
 	T x; /* X component of the vector */
@@ -326,6 +351,20 @@ template <typename T>
 inline TVector4<T> TVector4<T>::ProjectedOnNormal(const TVector4<T>& Normal) const
 {
 	return Normal * TVector4<T>::Dot3(*this, Normal);
+}
+
+template <typename T>
+inline bool TVector4<T>::Perpendicular(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
+{
+	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
+	return std::abs(Dot) <= CosineThreshold;
+}
+
+template <typename T>
+inline bool TVector4<T>::Parallel(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
+{
+	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
+	return std::abs(Dot) >= CosineThreshold;
 }
 
 template <typename T>
