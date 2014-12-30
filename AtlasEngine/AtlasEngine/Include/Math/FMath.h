@@ -4,6 +4,8 @@
 const float _PI = 3.14159265f;
 const float _EPSILON = 0.00001f;
 
+#define WIN_ALIGN(Size) __declspec(align(16))
+
 enum class EAxis
 {
 	X, 

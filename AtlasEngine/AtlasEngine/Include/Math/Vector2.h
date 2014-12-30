@@ -19,6 +19,16 @@ public:
 	*/
 	TVector2(T X = 0, T Y = 0);
 
+	/**
+	* Default copy constructor.
+	*/
+	TVector2(const TVector2<T>& Other) = default;
+
+	/**
+	* Default copy assignment.
+	*/
+	TVector2<T>& operator=(const TVector2<T>& Other) = default;
+
 	template <typename U>
 	/**
 	* Performs vector-scalar multiplication.

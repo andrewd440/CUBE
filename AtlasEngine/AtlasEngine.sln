@@ -5,18 +5,33 @@ VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AtlasEngine", "AtlasEngine\AtlasEngine.vcxproj", "{D9327CC9-EE72-4A32-9D99-CC878E51643A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{41F8BA97-17B5-492D-A4CC-82734B9D7B8D}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+		Performance2.psess = Performance2.psess
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Debug|Win32.Build.0 = Debug|Win32
+		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Debug|x64.ActiveCfg = Debug|x64
+		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Debug|x64.Build.0 = Debug|x64
 		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Release|Win32.ActiveCfg = Release|Win32
 		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Release|Win32.Build.0 = Release|Win32
+		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Release|x64.ActiveCfg = Release|x64
+		{D9327CC9-EE72-4A32-9D99-CC878E51643A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

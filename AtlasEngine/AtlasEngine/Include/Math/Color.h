@@ -33,7 +33,17 @@ public:
 	FColor(float R, float G, float B, float A);
 
 	/**
-	* Copy assignment
+	* Default copy ctor.
+	*/
+	FColor(const FColor& Other) = default;
+
+	/**
+	* Default destructor.
+	*/
+	~FColor() = default;
+
+	/**
+	* Default copy assignment
 	* @param rhs - FColor to be copied
 	* @return The resulting color
 	*/

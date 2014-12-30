@@ -14,12 +14,14 @@
 *	4x4 floating-point column-matrix
 *	Elements are access by [row][col]
 */
+WIN_ALIGN(16)
 struct FMatrix4
 {
 	/** 
 	* Each row in the matrix is a vector.
 	*/
 	float M[4][4];
+
 
 	/**
 	* Constructs identity matrix.
@@ -45,6 +47,11 @@ struct FMatrix4
 	*/
 	FMatrix4(const FMatrix4& Other);
 	
+	/**
+	* Default destructor.
+	*/
+	~FMatrix4() = default;
+
 	/**
 	* Copy assignment
 	*/
@@ -199,24 +206,48 @@ struct FMatrix4
 ////////////////// Non Member Functions ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-inline FMatrix4 operator*(FMatrix4 Lhs, float Scalar)
+inline FMatrix4 operator*(const FMatrix4& Lhs, const float Scalar)
 {
-	return Lhs *= Scalar;
+	FMatrix4 Result;
+	for (int row = 0; row < 4; row++)
+	{
+		for (int col = 0; col < 4; col++)
+		{
+			Result.M[row][col] = Lhs.M[row][col] * Scalar;
+		}
+	}
+	return Result;
 }
 
-inline FMatrix4 operator*(float Scalar, FMatrix4 Lhs)
+inline FMatrix4 operator*(const float Scalar, const FMatrix4& Lhs)
 {
-	return Lhs *= Scalar;
+	return Lhs * Scalar;
 }
 
-inline FMatrix4 operator+(FMatrix4 Lhs, const FMatrix4& Rhs)
+inline FMatrix4 operator+(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
-	return Lhs += Rhs;
+	FMatrix4 Result;
+	for (int row = 0; row < 4; row++)
+	{
+		for (int col = 0; col < 4; col++)
+		{
+			Result.M[row][col] = Lhs.M[row][col] + Rhs.M[row][col];
+		}
+	}
+	return Result;
 }
 
-inline FMatrix4 operator*(FMatrix4 Lhs, const FMatrix4& Rhs)
+inline FMatrix4 operator*(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
-	return (Lhs *= Rhs);
+	FMatrix4 Result;
+	for (int row = 0; row < 4; row++)
+	{
+		for (int col = 0; col < 4; col++)
+		{
+			Result.M[row][col] = Vector4f::Dot4(Lhs.GetRow(row), Rhs.GetColumn(col));
+		}
+	}
+	return Result;
 }
 
 ///////////////////////////////////////////////////////////////////////////

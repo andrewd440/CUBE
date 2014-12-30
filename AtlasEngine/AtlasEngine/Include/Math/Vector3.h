@@ -20,6 +20,16 @@ public:
 	*/
 	TVector3(T X = 0, T Y = 0, T Z = 0);
 
+	/**
+	* Default copy constructor.
+	*/
+	TVector3(const TVector3<T>& Other) = default;
+
+	/**
+	* Default copy assignment.
+	*/
+	TVector3<T>& operator=(const TVector3<T>& Other) = default;
+
 	template <typename U>
 	/**
 	* Performs vector-scalar multiplication.

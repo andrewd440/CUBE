@@ -5,12 +5,13 @@
 
 #include "Math\Vector3.h"
 #include "Misc\Assertions.h"
+#include "FMath.h"
 
 template <typename T>
 /**
 * Class of manipulating a 4 component vector.
 */
-class TVector4
+class WIN_ALIGN(16) TVector4
 {
 public:
 	/**
@@ -21,6 +22,16 @@ public:
 	* @param W - value of W component
 	*/
 	TVector4(T X = 0, T Y = 0, T Z = 0, T W = 1);
+
+	/**
+	* Default copy constructor.
+	*/
+	TVector4(const TVector4<T>& Other) = default;
+
+	/**
+	* Default copy assignment.
+	*/
+	TVector4<T>& operator=(const TVector4<T>& Other) = default;
 
 	/**
 	* Constructs vector with first 3 components of

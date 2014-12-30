@@ -66,12 +66,12 @@ public:
 	FMatrix4 ToMatrix4() const;
 
 	/**
-	* Calculate the magnatude of the quaternion.
+	* Calculate the magnitude of the quaternion.
 	*/
 	float Length() const;
 
 	/**
-	* Computes a quaternion dot product with to rotation.
+	* Computes a quaternion dot product.
 	* This can be used to check how similar to quaternion rotations'
 	* angular displacements are. The larger the return values' absolute
 	* value, the more similar the angular displacements of the two quaternions
