@@ -184,7 +184,6 @@ using Vector3f = TVector3<float>; /* Vector type for floats */
 //////////// Inlined Member Functions ///////////////
 /////////////////////////////////////////////////////
 
-
 template <typename T>
 inline TVector3<T>::TVector3(T X, T Y, T Z)
 	: x(X), y(Y), z(Z) {}

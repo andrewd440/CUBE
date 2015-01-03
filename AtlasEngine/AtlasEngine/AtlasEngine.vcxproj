@@ -173,13 +173,18 @@
     <ClInclude Include="Include\Math\Vector2.h" />
     <ClInclude Include="Include\Math\Vector3.h" />
     <ClInclude Include="Include\Math\Vector4.h" />
+    <ClInclude Include="Include\Memory\MemoryUtil.h" />
+    <ClInclude Include="Include\Memory\PoolAllocator.h" />
     <ClInclude Include="Include\Misc\Assertions.h" />
     <ClInclude Include="Include\Math\SSEMath.h" />
+    <ClInclude Include="Include\Singleton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Math\Color.cpp" />
     <ClCompile Include="Src\Math\FQuaternion.cpp" />
+    <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
+    <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -51,6 +51,18 @@
     <ClInclude Include="Include\Math\SSEMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Math\Random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Memory\PoolAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Memory\MemoryUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -60,6 +72,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Math\FQuaternion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Memory\PoolAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Memory\MemoryUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -43,3 +43,6 @@ Temporary Items
 .apdisk
 /AtlasEngine/AtlasEngine/Debug
 /AtlasEngine/ipch/atlasengine-258d178c
+/AtlasEngine/AtlasEngine/Release
+/AtlasEngine/Release
+/AtlasEngine/x64/Release
