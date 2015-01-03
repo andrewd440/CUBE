@@ -4,6 +4,8 @@
 #include "Misc/Assertions.h"
 #include "MemoryUtil.h"
 
+#include <algorithm>
+
 template <uint32_t ElementSize, uint32_t BlockSize>
 /**
 * Fixed size pool allocator that uses a singly-linked free list
@@ -19,19 +21,27 @@ template <uint32_t ElementSize, uint32_t BlockSize>
 class FPoolAllocator
 {
 public:
-	FPoolAllocator()
+	/**
+	* Ctor
+	* Constructs a fixed size pool allocator with specified alignment.
+	* @param Alignment for each allocation
+	*/
+	FPoolAllocator(uint32_t Alignment)
 	{
 		ASSERT(0 < BlockSize && "BlockSize must be larger that 0");
 		ASSERT(ElementSize >= sizeof(PoolElement) && "ElementSize must at least the size of a standard pointer type.");
 
+		// The byte gap between each allocation
+		const uint32_t BlockGap = std::max(ElementSize, Alignment);
+
 		// Obtain a block of memory
-		uint8_t* RawMem = new uint8_t[ElementSize * BlockSize];
+		uint8_t* RawMem = (uint8_t*)FMemory::AllocateAligned(BlockGap * BlockSize, Alignment);
 		mNextFreeBlock = (PoolElement*)RawMem;
 
 		// Link the blocks of memory together
 		for (int i = 1; i < BlockSize; i++)
 		{
-			mNextFreeBlock->Next = (PoolElement*)(&RawMem[i * ElementSize]);
+			mNextFreeBlock->Next = (PoolElement*)(&RawMem[i * BlockGap]);
 			mNextFreeBlock = mNextFreeBlock->Next;
 		}
 
@@ -44,18 +54,16 @@ public:
 	{
 		ASSERT(mObjectsConstructed == 0 && "All objects should be back in the pool on destruction.");
 
-		// Find the start of the allocated chunck of memory
+		// Find the start of the allocated chunk of memory
 		PoolElement* MemoryStart = mNextFreeBlock;
 		mNextFreeBlock = mNextFreeBlock->Next;
 		while (mNextFreeBlock)
 		{
-			if (mNextFreeBlock < MemoryStart)
-				MemoryStart = mNextFreeBlock;
-
+			MemoryStart = std::min(MemoryStart, mNextFreeBlock);
 			mNextFreeBlock = mNextFreeBlock->Next;
 		}
 
-		delete[] (uint8_t*)MemoryStart;
+		FMemory::FreeAligned(MemoryStart);
 	}
 
 	/**
@@ -88,11 +96,11 @@ public:
 
 	/**
 	* Gets the max number of objects that can be
-	* allocated at the current state of the pool.
+	* allocated from the pool.
 	*/
-	uint32_t FreeSlotsLeft() const
+	uint32_t Capacity() const
 	{
-		return BlockSize - mObjectsConstructed;
+		return BlockSize;
 	}
 
 	/**
@@ -134,8 +142,8 @@ template <typename ElementType, uint32_t BlockSize>
 class FPoolAllocatorType : private FPoolAllocator<sizeof(ElementType), BlockSize>
 {
 public:
-	FPoolAllocatorType()
-		:FPoolAllocator()
+	FPoolAllocatorType(uint8_t Alignment)
+		:FPoolAllocator(Alignment)
 	{
 
 	}
@@ -161,11 +169,11 @@ public:
 
 	/**
 	* Gets the max number of objects that can be
-	* allocated at the current state of the pool.
+	* allocated from the pool.
 	*/
-	uint32_t FreeSlotsLeft() const
+	uint32_t Capacity() const
 	{
-		return FPoolAllocator::FreeSlotsLeft();
+		return FPoolAllocator::Capacity();
 	}
 
 	/**

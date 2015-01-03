@@ -63,6 +63,9 @@
     <ClInclude Include="Include\Memory\MemoryUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Memory\StackAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -78,6 +81,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Memory\MemoryUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Memory\StackAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

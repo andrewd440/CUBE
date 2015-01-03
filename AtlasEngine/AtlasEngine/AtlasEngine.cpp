@@ -14,52 +14,50 @@
 #include "Include\Singleton.h"
 #include "Include\Memory\PoolAllocator.h"
 #include <vector>
-
-class Single : public TSingleton < Single >
+#include "Include\Memory\StackAllocator.h"
+template <uint32_t N>
+struct Fact
 {
-public:
-	Single()
-		: TSingleton<Single>()
-	{
-	
-	}
+	static const uint64_t Value = N * Fact<N-1>::Value;
+};
 
+template <>
+struct Fact < 0 >
+{
+	static const uint64_t Value = 1;
 };
 
 //Single* Single::Instance = nullptr;
 
 int main()
 {
-
 	clock_t t1, t2;
 	t1 = clock();
 
-	FPoolAllocator<16, 100> VecPool;
-	int* thisthat = new int;
-	//FPoolAllocatorType<Vector4f, 100> VecPool;
-	Vector4f* Vecs[100];
-	for (int i = 0; i < 100; i++)
-	{
-		std::cout << VecPool.FreeSlotsLeft() << std::endl;
-		Vecs[i] = (Vector4f*)VecPool.Allocate();
-		*Vecs[i] = Vector4f(i, i, i);
-	}
+	//int* thisthat = new int;
+	//FPoolAllocatorType<Vector4f, 100> VecPool(16);
+	//Vector4f* Vecs[100];
+	//for (int i = 0; i < 100; i++)
+	//{
+	//	Vecs[i] = (Vector4f*)VecPool.Allocate();
+	//	*Vecs[i] = Vector4f(i, i, i);
+	//}
 
-	FMatrix4* Mat = (FMatrix4*) FMemory::AllocateAligned(sizeof(FMatrix4), 16);
-	FMemory::FreeAligned(Mat);
-	VecPool.Free(Vecs[20]);
-	VecPool.Free(Vecs[21]);
+	//FMatrix4* Mat = (FMatrix4*) FMemory::AllocateAligned(sizeof(FMatrix4), 16);
+	//FMemory::FreeAligned(Mat);
+	//VecPool.Free(Vecs[20]);
+	//VecPool.Free(Vecs[21]);
 
-	for (int i = 0; i < 100; i++)
-	{
-		if (i != 20 && i != 21)
-		{
-			std::cout << Vecs[i]->ToString() << std::endl;
-			VecPool.Free(Vecs[i]);
-		}
-	}
+	//for (int i = 0; i < 100; i++)
+	//{
+	//	if (i != 20 && i != 21)
+	//	{
+	//		std::cout << Vecs[i]->ToString() << std::endl;
+	//		VecPool.Free(Vecs[i]);
+	//	}
+	//}
 
-	delete thisthat;
+	//delete thisthat;
 
 	t2 = clock();
 	std::cout << ((float)t2 - (float)t1) / CLOCKS_PER_SEC << std::endl;
