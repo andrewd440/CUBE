@@ -23,17 +23,17 @@ struct FRay
 	*/
 	Vector3f GetPointAtParameter(float t);
 
-	Vector3f origin;		/* Origin or ray */
-	Vector3f direction;		/* Direction of ray */
+	Vector3f Origin;		/* Origin or ray */
+	Vector3f Direction;		/* Direction of ray */
 };
 
 inline FRay::FRay(Vector3f OriginPoint, Vector3f DirectionVector)
-	: origin(OriginPoint)
-	, direction(DirectionVector)
+	: Origin(OriginPoint)
+	, Direction(DirectionVector)
 {
 }
 
 inline Vector3f FRay::GetPointAtParameter(float t)
 {
-	return origin + direction * t;
+	return Origin + Direction * t;
 }

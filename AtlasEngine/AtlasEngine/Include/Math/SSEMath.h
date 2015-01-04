@@ -3,6 +3,24 @@
 #include "Matrix4.h"
 #include <emmintrin.h>
 
+#define SHUFFLE_PARAM(x, y, z, w) \
+	((x) | ((y) << 2) | ((z) << 4) | ((w) << 6))
+
+#define _mm_replicate_x_ps(v) \
+	_mm_shuffle_ps((v), (v), SHUFFLE_PARAM(0, 0, 0, 0))
+
+#define _mm_replicate_y_ps(v) \
+	_mm_shuffle_ps((v), (v), SHUFFLE_PARAM(1, 1, 1, 1))
+
+#define _mm_replicate_z_ps(v) \
+	_mm_shuffle_ps((v), (v), SHUFFLE_PARAM(2, 2, 2, 2))
+
+#define _mm_replicate_w_ps(v) \
+	_mm_shuffle_ps((v), (v), SHUFFLE_PARAM(3, 3, 3, 3))
+
+#define _mm_madd_ps(a, b, c) \
+	_mm_add_ps(_mm_mul_ps((a), (b)), (c))
+
 namespace SSEMath
 {
 	/**
@@ -35,6 +53,43 @@ namespace SSEMath
 
 		// Store the result
 		_mm_store_ps(&ResultOut.x, Result);
+	}
+
+	__forceinline void MultMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, FMatrix4& ResultOut)
+	{
+		const __m128* M1 = (const __m128*)&Mat1;
+		const __m128* M2 = (const __m128*)&Mat2;
+		__m128* Result = (__m128*)&ResultOut;
+
+		// Mat1[0] * Mat2
+		__m128 R0 = _mm_mul_ps(_mm_replicate_x_ps(M1[0]), M2[0]);
+		R0 = _mm_madd_ps(_mm_replicate_y_ps(M1[0]), M2[1], R0);
+		R0 = _mm_madd_ps(_mm_replicate_z_ps(M1[0]), M2[2], R0);
+		R0 = _mm_madd_ps(_mm_replicate_w_ps(M1[0]), M2[3], R0);
+
+		// Mat1[1] * Mat2
+		__m128 R1 = _mm_mul_ps(_mm_replicate_x_ps(M1[1]), M2[0]);
+		R1 = _mm_madd_ps(_mm_replicate_y_ps(M1[1]), M2[1], R1);
+		R1 = _mm_madd_ps(_mm_replicate_z_ps(M1[1]), M2[2], R1);
+		R1 = _mm_madd_ps(_mm_replicate_w_ps(M1[1]), M2[3], R1);
+
+		// Mat1[2] * Mat2
+		__m128 R2 = _mm_mul_ps(_mm_replicate_x_ps(M1[2]), M2[0]);
+		R2 = _mm_madd_ps(_mm_replicate_y_ps(M1[2]), M2[1], R2);
+		R2 = _mm_madd_ps(_mm_replicate_z_ps(M1[2]), M2[2], R2);
+		R2 = _mm_madd_ps(_mm_replicate_w_ps(M1[2]), M2[3], R2);
+
+		// Mat1[3] * Mat2
+		__m128 R3 = _mm_mul_ps(_mm_replicate_x_ps(M1[3]), M2[0]);
+		R3 = _mm_madd_ps(_mm_replicate_y_ps(M1[3]), M2[1], R3);
+		R3 = _mm_madd_ps(_mm_replicate_z_ps(M1[3]), M2[2], R3);
+		R3 = _mm_madd_ps(_mm_replicate_w_ps(M1[3]), M2[3], R3);
+
+		// Store the result
+		Result[0] = R0;
+		Result[1] = R1;
+		Result[2] = R2;
+		Result[3] = R3;
 	}
 }
 

@@ -50,7 +50,7 @@ void FStackAllocator::ClearToMarker(const UMarker Marker)
 
 void FStackAllocator::AlignData(const uint32_t Alignment)
 {
-	ASSERT(Alignment & (Alignment - 1) && "Alignments must be a power of 2.");
+	ASSERT((Alignment & (Alignment - 1)) == 0x0 && "Alignments must be a power of 2.");
 	ASSERT(Alignment > 0 && "Alignments must be greater than 0.");
 
 	// Determine how must we a misaligned

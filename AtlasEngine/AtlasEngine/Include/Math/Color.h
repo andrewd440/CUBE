@@ -231,8 +231,14 @@ inline FColor& FColor::Clamp()
 inline const std::string FColor::ToString() const
 {
 	char buffer[100];
+
+#if NDEBUG
+	sprintf_s(buffer, "FColor: r:%.3f g:%.3f b:%.3f a:%.3f", R, G, B, A);
+#else
 	int32_t n = sprintf_s(buffer, "FColor: r:%.3f g:%.3f b:%.3f a:%.3f", R, G, B, A);
 	ASSERT(n >= 0 && "sprintf failed to write string.");
+#endif
+
 	return std::string(buffer);
 }
 
