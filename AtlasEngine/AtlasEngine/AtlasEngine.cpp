@@ -15,39 +15,41 @@
 #include "Include\Memory\PoolAllocator.h"
 #include <vector>
 #include "Include\Memory\StackAllocator.h"
-
-template <uint32_t N>
-struct Fact
-{
-	static const uint64_t Value = N * Fact<N-1>::Value;
-};
-
-template <>
-struct Fact < 0 >
-{
-	static const uint64_t Value = 1;
-};
+#include "Include\Misc\StringUtil.h"
 
 int main()
 {
 	clock_t t1, t2;
 	t1 = clock();
 
-	FMatrix4 Mat1;
-	Mat1.Rotate(Vector3f(5, 100, 10));
+	FMatrix4 Mat1{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+	//Mat1.Rotate(Vector3f(5, 100, 10));
 
-	FMatrix4 Mat2;
-	Mat2.SetOrigin(Vector3f(5, 0, 1));
-	Mat2.Rotate(Vector3f(50, 5, 10));
+	FMatrix4 Mat2{ 1, 2.5f, 3, 4.75f, 5, 6, 7, 8, 9, 10, 11.22f, 12, 13, 14, 15, 16 };
+	//Mat2.SetOrigin(Vector3f(5, 0, 1));
+	//Mat2.Rotate(Vector3f(50, 5, 10));
+
+	Vector4f Res = Mat1.TransformVector(Vector4f(1, 2, 3, 4));
+
+	uint8_t Char = 0x6F;
 
 	FMatrix4 Res1;
 
+	Res1 = Mat1 * Mat2;
+
+	std::cout << FString::HashCRC32("This") << std::endl;
+	std::cout << FString::HashCRC32("Tis") << std::endl;
+	std::cout << FString::HashCRC32("GoAndSees") << std::endl;
+	std::cout << FString::HashCRC32("Beast") << std::endl;
+
 	//for (int i = 0; i < 1000000; i++)
 	//{
-	//	//Res1 = Mat2 * Mat1;
-	//	SSEMath::MultMatrixMatrix(Mat2, Mat1, Res1);
+	//	Res1 = Mat2 * Mat1;
+	//	//SSEMath::MultMatrixMatrix(Mat2, Mat1, Res1);
 	//	Mat2.Rotate(Vector3f(i, 0, 0));
 	//}
+
+	std::cout << Mat2.M[0][0];
 	t2 = clock();
 	std::cout << ((float)t2 - (float)t1) / CLOCKS_PER_SEC << std::endl;
 

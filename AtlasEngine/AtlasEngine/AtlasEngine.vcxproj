@@ -178,7 +178,9 @@
     <ClInclude Include="Include\Memory\StackAllocator.h" />
     <ClInclude Include="Include\Misc\Assertions.h" />
     <ClInclude Include="Include\Math\SSEMath.h" />
+    <ClInclude Include="Include\Misc\StringUtil.h" />
     <ClInclude Include="Include\Singleton.h" />
+    <ClInclude Include="Include\StringID.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
@@ -187,6 +189,7 @@
     <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
     <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
+    <ClCompile Include="Src\StringID.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

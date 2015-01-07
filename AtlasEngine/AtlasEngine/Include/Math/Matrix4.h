@@ -11,17 +11,16 @@
 
 
 /**
-*	4x4 floating-point column-matrix
-*	Elements are access by [row][col]
+*	4x4 floating-point colum-vector column-major matrix
+*	Elements are accessed by M[col][row]
 */
 WIN_ALIGN(16)
 struct FMatrix4
 {
 	/** 
-	* Each row in the matrix is a vector.
+	* M[0][-] is column one in the matrix
 	*/
 	float M[4][4];
-
 
 	/**
 	* Constructs identity matrix.
@@ -209,11 +208,11 @@ struct FMatrix4
 inline FMatrix4 operator*(const FMatrix4& Lhs, const float Scalar)
 {
 	FMatrix4 Result;
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			Result.M[row][col] = Lhs.M[row][col] * Scalar;
+			Result.M[col][row] = Lhs.M[col][row] * Scalar;
 		}
 	}
 	return Result;
@@ -227,11 +226,11 @@ inline FMatrix4 operator*(const float Scalar, const FMatrix4& Lhs)
 inline FMatrix4 operator+(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			Result.M[row][col] = Lhs.M[row][col] + Rhs.M[row][col];
+			Result.M[col][row] = Lhs.M[col][row] + Rhs.M[col][row];
 		}
 	}
 	return Result;
@@ -240,11 +239,11 @@ inline FMatrix4 operator+(const FMatrix4& Lhs, const FMatrix4& Rhs)
 inline FMatrix4 operator*(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			Result.M[row][col] = Vector4f::Dot4(Lhs.GetRow(row), Rhs.GetColumn(col));
+			Result.M[col][row] = Vector4f::Dot4(Lhs.GetRow(row), Rhs.GetColumn(col));
 		}
 	}
 	return Result;
@@ -262,25 +261,25 @@ inline FMatrix4::FMatrix4()
 	0.0f, 0.0f, 0.0f, 1.0f })
 {}
 
-	inline FMatrix4::FMatrix4(const std::initializer_list<float>& Mat)
+inline FMatrix4::FMatrix4(const std::initializer_list<float>& Mat)
 {
 	ASSERT(Mat.size() == 16 && "FMatrix4 not fully initialized");
 
 	auto itr = Mat.begin();
 
-	M[0][0] = *(itr++); M[0][1] = *(itr++); M[0][2] = *(itr++); M[0][3] = *(itr++);
-	M[1][0] = *(itr++); M[1][1] = *(itr++); M[1][2] = *(itr++); M[1][3] = *(itr++);
-	M[2][0] = *(itr++); M[2][1] = *(itr++); M[2][2] = *(itr++); M[2][3] = *(itr++);
-	M[3][0] = *(itr++); M[3][1] = *(itr++); M[3][2] = *(itr++); M[3][3] = *(itr++);
+	M[0][0] = *(itr++); M[1][0] = *(itr++); M[2][0] = *(itr++); M[3][0] = *(itr++);
+	M[0][1] = *(itr++); M[1][1] = *(itr++); M[2][1] = *(itr++); M[3][1] = *(itr++);
+	M[0][2] = *(itr++); M[1][2] = *(itr++); M[2][2] = *(itr++); M[3][2] = *(itr++);
+	M[0][3] = *(itr++); M[1][3] = *(itr++); M[2][3] = *(itr++); M[3][3] = *(itr++);
 }
 
 inline FMatrix4::FMatrix4(const Vector3f& XBasis, const Vector3f& YBasis, const Vector3f& ZBasis)
 {
-	for (int col = 0; col < 3; col++)
+	for (int row = 0; row < 3; row++)
 	{
-		M[0][col] = XBasis[col];
-		M[1][col] = YBasis[col];
-		M[2][col] = ZBasis[col];
+		M[0][row] = XBasis[row];
+		M[1][row] = YBasis[row];
+		M[2][row] = ZBasis[row];
 	}
 
 	M[3][0] = M[3][1] = M[3][2] = M[0][3] = M[1][3] = M[2][3] = 0.0f;
@@ -289,22 +288,22 @@ inline FMatrix4::FMatrix4(const Vector3f& XBasis, const Vector3f& YBasis, const 
 
 inline FMatrix4::FMatrix4(const FMatrix4& Other)
 {
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			M[row][col] = Other.M[row][col];
+			M[col][row] = Other.M[col][row];
 		}
 	}
 }
 
 inline FMatrix4& FMatrix4::operator=(const FMatrix4& Other)
 {
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			M[row][col] = Other.M[row][col];
+			M[col][row] = Other.M[col][row];
 		}
 	}
 
@@ -314,50 +313,34 @@ inline FMatrix4& FMatrix4::operator=(const FMatrix4& Other)
 inline FMatrix4& FMatrix4::operator*=(const FMatrix4& Rhs)
 {
 	float tempM[4][4];
-	for (int row = 0; row < 4; row++)
+
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			tempM[row][col] = Vector4f::Dot4(GetRow(row), Rhs.GetColumn(col));
+			tempM[col][row] = Vector4f::Dot4(GetRow(row), Rhs.GetColumn(col));
 		}
 	}
 
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			M[row][col] = tempM[row][col];
+			M[col][row] = tempM[col][row];
 		}
 	}
-
 
 	return *this;
 }
 
 inline FMatrix4& FMatrix4::operator*=(float Scalar)
 {
-	for (int row = 0; row < 4; row++)
-	{
-		for (int col = 0; col < 4; col++)
-		{
-			M[row][col] *= Scalar;
-		}
-	}
-
-	return *this;
+	return *this *= Scalar;
 }
 
 inline FMatrix4& FMatrix4::operator+=(const FMatrix4& Rhs)
 {
-	for (int row = 0; row < 4; row++)
-	{
-		for (int col = 0; col < 4; col++)
-		{
-			M[row][col] += Rhs.M[row][col];
-		}
-	}
-
-	return *this;
+	return *this += Rhs;
 }
 
 inline bool FMatrix4::operator==(const FMatrix4& Rhs) const
@@ -387,9 +370,9 @@ inline FMatrix4 FMatrix4::Transpose() const
 
 inline float FMatrix4::Determinant() const
 {
-	return M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1])
-		- M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0])
-		- M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+	return M[0][0] * (M[1][1] * M[2][2] - M[2][1] * M[1][2])
+		- M[1][0] * (M[0][1] * M[2][2] - M[2][1] * M[0][2])
+		- M[2][0] * (M[0][1] * M[1][2] - M[1][1] * M[0][2]);
 }
 
 inline Vector3f FMatrix4::TransformNormal(const Vector3f& Normal) const
@@ -426,33 +409,17 @@ inline Vector3f FMatrix4::GetAxis(EAxis Axis) const
 	switch (Axis)
 	{
 	case EAxis::X:
-		return Vector3f(M[0][0], M[1][0], M[2][0]);
+		return Vector3f(M[0][0], M[0][1], M[0][2]);
 	case EAxis::Y:
-		return Vector3f(M[0][1], M[1][1], M[2][1]);
+		return Vector3f(M[1][0], M[1][1], M[1][2]);
 	case EAxis::Z:
-		return Vector3f(M[0][2], M[1][2], M[2][2]);
+		return Vector3f(M[2][0], M[2][1], M[2][2]);
 	}
 }
 
 inline void FMatrix4::SetAxis(EAxis Axis, const Vector3f& Basis)
 {
-	int col = -1;
-	switch (Axis)
-	{
-	case EAxis::X:
-			col = 0;
-			break;
-	case EAxis::Y:
-			col = 1;
-			break;
-	case EAxis::Z:
-			col = 2;
-			break;
-		default:
-			return;
-	}
-
-	M[0][col] = Basis.x; M[1][col] = Basis.y; M[2][col] = Basis.z;
+	M[Axis][0] = Basis.x; M[Axis][1] = Basis.y; M[Axis][2] = Basis.z;
 }
 
 inline void FMatrix4::Rotate(EAxis Axis, float Degrees)
@@ -489,7 +456,7 @@ inline void FMatrix4::Rotate(EAxis Axis, float Degrees)
 
 	// save and remove translation
 	Vector3f translation = GetOrigin();
-	M[0][3] = M[1][3] = M[2][3] = 0.0f;
+	M[3][0] = M[3][1] = M[3][2] = 0.0f;
 
 	*this = rotationMat * (*this);
 	SetOrigin(translation);
@@ -508,27 +475,10 @@ inline void FMatrix4::Scale(float Scale)
 }
 
 inline void FMatrix4::Scale(EAxis Axis, float Scale)
-{
-	int intAxis = -1;
-	switch (Axis)
-	{
-	case EAxis::X:
-		intAxis = 0;
-		break;
-	case EAxis::Y:
-		intAxis = 1;
-		break;
-	case EAxis::Z:
-		intAxis = 2;
-		break;
-	default:
-		return;
-	}
-
-	
-	// set old scale values
+{	
+	// Get old scale values and modify
 	Vector3f newScale = GetScale();
-	newScale[intAxis] = Scale;
+	newScale[Axis] = Scale;
 	FMatrix4::Scale(newScale);
 
 }
@@ -557,32 +507,32 @@ inline Vector3f FMatrix4::GetScale() const
 
 inline Vector4f FMatrix4::GetColumn(int Col) const
 {
-	return Vector4f(M[0][Col], M[1][Col], M[2][Col], M[3][Col]);
+	return Vector4f(M[Col][0], M[Col][1], M[Col][2], M[Col][3]);
 }
 
 inline Vector4f FMatrix4::GetRow(int Row) const
 {
-	return Vector4f(M[Row][0], M[Row][1], M[Row][2], M[Row][3]);
+	return Vector4f(M[0][Row], M[1][Row], M[2][Row], M[3][Row]);
 }
 
 inline Vector3f FMatrix4::GetOrigin() const
 {
-	return Vector3f(M[0][3], M[1][3], M[2][3]);
+	return Vector3f(M[3][0], M[3][1], M[3][2]);
 }
 
 inline void FMatrix4::SetOrigin(const Vector3f& Origin)
 {
-	M[0][3] = Origin.x; M[1][3] = Origin.y; M[2][3] = Origin.z;
+	M[3][0] = Origin.x; M[3][1] = Origin.y; M[3][2] = Origin.z;
 }
 
 inline FMatrix4 FMatrix4::GetInverse() const
 {
 	FMatrix4 inv;
 	float* invM = &(inv.M[0][0]);
-	const float	m0 = M[0][0],	m1 = M[0][1],	m2 = M[0][2],	m3 = M[0][3],
-				m4 = M[1][0],	m5 = M[1][1],	m6 = M[1][2],	m7 = M[1][3],
-				m8 = M[2][0],	m9 = M[2][1],	m10 = M[2][2],	m11 = M[2][3],
-				m12 = M[3][0],	m13 = M[3][1],	m14 = M[3][2],	m15 = M[3][3];
+	const float	m0 = M[0][0],	m1 = M[1][0],	m2 = M[2][0],	m3 = M[3][0],
+				m4 = M[0][1],	m5 = M[1][1],	m6 = M[2][1],	m7 = M[3][1],
+				m8 = M[0][2],	m9 = M[1][2],	m10 = M[2][2],	m11 = M[3][2],
+				m12 = M[0][3],	m13 = M[1][3],	m14 = M[2][3],	m15 = M[3][3];
 
 	invM[0] = m5 * m10 * m15 - m5 * m11 * m14 - m9 * m6 * m15 + m9 * m7 * m14 + m13 * m6 * m11 - m13 * m7 * m10;
 	invM[1] = -m1 * m10 * m15 + m1 * m11 * m14 + m9 * m2 * m15 - m9 * m3 * m14 - m13 * m2 * m11 + m13 * m3 * m10;
@@ -621,9 +571,9 @@ inline FMatrix4 FMatrix4::GetInverseAffine() const
 	const Vector3f& translateVector(GetOrigin());
 
 	// transpose 3x3 portion
-	for (int row = 0; row < 3; row++)
+	for (int col = 0; col < 3; col++)
 	{
-		for (int col = 0; col < 3; col++)
+		for (int row = 0; row < 3; row++)
 		{
 			result.M[row][col] = M[col][row];
 		}
@@ -661,25 +611,25 @@ inline LookAtMatrix::LookAtMatrix(const Vector3f& Eye, const Vector3f& LookLocat
 
 	for (int col = 0; col < 3; col++)
 	{
-		M[0][col] = U[col];
-		M[1][col] = V[col];
-		M[2][col] = N[col];
-		M[3][col] = 0.0f;
+		M[col][0] = U[col];
+		M[col][1] = V[col];
+		M[col][2] = N[col];
+		M[col][3] = 0.0f;
 	}
 
-	M[0][3] = -Vector3f::Dot(Eye, U);
-	M[1][3] = -Vector3f::Dot(Eye, V);
-	M[2][3] = -Vector3f::Dot(Eye, N);
+	M[3][0] = -Vector3f::Dot(Eye, U);
+	M[3][1] = -Vector3f::Dot(Eye, V);
+	M[3][2] = -Vector3f::Dot(Eye, N);
 	M[3][3] = 1.0f;
 }
 
 inline LookAtMatrix& LookAtMatrix::operator=(const FMatrix4& Other)
 {
-	for (int row = 0; row < 4; row++)
+	for (int col = 0; col < 4; col++)
 	{
-		for (int col = 0; col < 4; col++)
+		for (int row = 0; row < 4; row++)
 		{
-			M[row][col] = Other.M[row][col];
+			M[col][row] = Other.M[col][row];
 		}
 	}
 
