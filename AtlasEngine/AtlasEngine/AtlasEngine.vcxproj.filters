@@ -72,6 +72,12 @@
     <ClInclude Include="Include\StringID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\FileIO\GenericFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\FileIO\WindowsFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -93,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\StringID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileIO\WindowsFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

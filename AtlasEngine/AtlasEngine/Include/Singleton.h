@@ -37,3 +37,5 @@ protected:
 	static T* Instance;
 };
 
+template <typename T>
+T* TSingleton<T>::Instance = nullptr;

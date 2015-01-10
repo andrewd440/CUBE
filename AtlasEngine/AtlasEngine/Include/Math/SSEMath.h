@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Matrix4.h"
+#include "FMath.h"
 #include <emmintrin.h>
 
 #define SHUFFLE_PARAM(x, y, z, w) \
@@ -34,13 +35,9 @@ namespace SSEMath
 	__forceinline void MultVectorMatrix(const FMatrix4& Matrix, const Vector4f& Vector, Vector4f& ResultOut)
 	{	
 		const __m128 V = _mm_load_ps(&Vector.x);
-		const __m128 MCols[4] = {
-			_mm_load_ps(Matrix.M[0]),
-			_mm_load_ps(Matrix.M[1]),
-			_mm_load_ps(Matrix.M[2]),
-			_mm_load_ps(Matrix.M[3])
-		};
+		const __m128* MCols = (const __m128*)&Matrix;
 
+		// Multiply and add each column in the matrix with respective component of the vector
 		__m128 Result = _mm_mul_ps(MCols[0], _mm_replicate_x_ps(V));
 		Result = _mm_madd_ps(MCols[1], _mm_replicate_y_ps(V), Result);
 		Result = _mm_madd_ps(MCols[2], _mm_replicate_z_ps(V), Result);
@@ -52,8 +49,19 @@ namespace SSEMath
 
 	__forceinline void MultMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, FMatrix4& ResultOut)
 	{
-		const __m128* M1 = (const __m128*)&Mat1;
-		const __m128* M2 = (const __m128*)&Mat2;
+		const __m128 M1[4] = {
+			_mm_load_ps(Mat1.M[0]),
+			_mm_load_ps(Mat1.M[1]),
+			_mm_load_ps(Mat1.M[2]),
+			_mm_load_ps(Mat1.M[3])
+		};
+
+		const __m128 M2[4] = {
+			_mm_load_ps(Mat2.M[0]),
+			_mm_load_ps(Mat2.M[1]),
+			_mm_load_ps(Mat2.M[2]),
+			_mm_load_ps(Mat2.M[3])
+		};
 		__m128* Result = (__m128*)&ResultOut;
 
 		// Mat1 * Mat2[0]
@@ -85,6 +93,18 @@ namespace SSEMath
 		Result[1] = R1;
 		Result[2] = R2;
 		Result[3] = R3;
+	}
+
+	__forceinline void Dot4Product(const Vector4f& Vec1, const Vector4f& Vec2, float& ResultOut)
+	{
+		const __m128 V1 = _mm_load_ps(&Vec1.x);
+		const __m128 V2 = _mm_load_ps(&Vec2.x);
+
+		__m128 Dot = _mm_mul_ps(V1, V2);
+		Dot = _mm_hadd_ps(Dot, Dot);
+		Dot = _mm_hadd_ps(Dot, Dot);
+
+		ResultOut = Dot.m128_f32[0];
 	}
 }
 
