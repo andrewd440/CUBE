@@ -62,14 +62,14 @@ public:
 /**
 * Interface for platform files.
 */
-class IFile : public TSingleton<IFile>
+class IFileSystem : public TSingleton<IFileSystem>
 {
 public:
-	IFile()
+	IFileSystem()
 		: TSingleton()
 	{}
 
-	virtual ~IFile() {};
+	virtual ~IFileSystem() {};
 
 	/**
 	* Opens or creates a file in the current working directory.
@@ -96,7 +96,7 @@ public:
 	* @param Filename Name of the file to delete.
 	* @return True if the delete succeeded.
 	*/
-	virtual bool DeleteFile(const wchar_t* Filename) = 0;
+	virtual bool DeleteFilename(const wchar_t* Filename) = 0;
 
 	/**
 	* Retrieves the current working file directory.
@@ -105,7 +105,7 @@ public:
 	* @return True if the complete directory was written to DataOut. False if
 	*		DataOut didn't have enough space to hold the directory.
 	*/
-	virtual bool CurrentDirectory(char* DataOut, const uint32_t BufferLength) = 0;
+	virtual bool CurrentDirectory(wchar_t* DataOut, const uint32_t BufferLength) = 0;
 
 	/**
 	* Deletes a file directory.
@@ -119,6 +119,6 @@ public:
 	* @param DirectoryName Directory to create.
 	* @return True if the creation succeeded.
 	*/
-	virtual bool CreateDirectory(const wchar_t* DirectoryName) = 0;
+	virtual bool CreateFileDirectory(const wchar_t* DirectoryName) = 0;
 
 };

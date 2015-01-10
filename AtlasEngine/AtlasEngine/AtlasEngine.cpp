@@ -27,11 +27,6 @@ int main()
 	t2 = clock();
 	std::cout << ((float)t2 - (float)t1) / CLOCKS_PER_SEC << std::endl;
 
-
-	IFile* File = new FWindowsFile;
-	auto Handle = File->OpenReadable(L"Test.txt");
-	uint8_t Data[15];
-	Handle->Read(Data, 15);
 	return 0;
 }
 
