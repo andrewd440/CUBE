@@ -16,16 +16,30 @@
 #include <vector>
 #include "Include\Memory\StackAllocator.h"
 #include "Include\StringID.h"
-
-#include "Include\FileIO\WindowsFile.h"
+#include "Include\Math\SSEMath.h"
+#include "Include\Windows\WindowsFile.h"
+#include "Include\Clock.h"
+#include "Include\FTime.h"
 
 int main()
 {
-	clock_t t1, t2;
-	t1 = clock();
+	Vector4f Vec1(4, 3, 2, 1), Res;
+	FMatrix4 Mat;
+	Mat.Rotate(Vector3f(2, 3, 4));
 
-	t2 = clock();
-	std::cout << ((float)t2 - (float)t1) / CLOCKS_PER_SEC << std::endl;
+	FTime::SetDeltaTime(1.0f / 30.0f);
+
+	for (int i = 0; i < 1000; i++)
+	{
+		uint64_t T1 = FClock::ReadClockTimer();
+		SSEMath::MultVectorMatrix(Mat, Vec1, Res);
+		uint64_t T2 = FClock::ReadClockTimer();
+
+		FTime::SetDeltaTime(FClock::CyclesToSeconds(T2 - T1));
+	}
+
+	std::cout << Res.x << std::endl;
+	//std::cout << T2 - T1 << std::endl;
 
 	return 0;
 }

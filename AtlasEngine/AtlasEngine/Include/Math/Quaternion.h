@@ -5,6 +5,7 @@
 #include "FMath.h"
 
 /** Represents a unit length 3D rotation quaternion */
+WIN_ALIGN(16)
 class FQuaternion
 {
 public:
@@ -88,7 +89,7 @@ public:
 	/**
 	* Spherical linear interpolation starting at From, going to To.
 	*/
-	static FQuaternion Slerp(FQuaternion From, const FQuaternion& To, const float Delta);
+	static FQuaternion Slerp(const FQuaternion& From, const FQuaternion& To, const float Delta);
 
 	/**
 	* Linear interpolation starting at From, going to To.
@@ -115,14 +116,13 @@ inline FQuaternion operator*(const FQuaternion& Lhs, const FQuaternion& Rhs)
 	return Result;
 }
 
-inline FQuaternion operator*(FQuaternion Lhs, const float Scale)
+inline FQuaternion operator*(const FQuaternion& Lhs, const float Scale)
 {
-	Lhs.w *= Scale;
-	Lhs.x *= Scale;
-	Lhs.y *= Scale;
-	Lhs.z *= Scale;
-
-	return Lhs;
+	return FQuaternion(
+		Lhs.w * Scale,
+		Lhs.x * Scale,
+		Lhs.y * Scale,
+		Lhs.z * Scale);
 }
 
 inline FQuaternion operator*(const float Scale, const FQuaternion& Lhs )
@@ -130,14 +130,13 @@ inline FQuaternion operator*(const float Scale, const FQuaternion& Lhs )
 	return Lhs * Scale;
 }
 
-inline FQuaternion operator+(FQuaternion Lhs, const FQuaternion& Rhs)
+inline FQuaternion operator+(const FQuaternion& Lhs, const FQuaternion& Rhs)
 {
-	Lhs.w += Rhs.w;
-	Lhs.x += Rhs.x;
-	Lhs.y += Rhs.y;
-	Lhs.z += Rhs.z;
-
-	return Lhs;
+	return FQuaternion(
+		Lhs.w + Rhs.w,
+		Lhs.x + Rhs.x,
+		Lhs.y + Rhs.y,
+		Lhs.z + Rhs.z);
 }
 
 template <typename T>

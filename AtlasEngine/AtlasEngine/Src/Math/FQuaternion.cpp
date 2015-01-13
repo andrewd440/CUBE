@@ -32,16 +32,16 @@ Vector3f FQuaternion::EulerAngles(const FQuaternion& Quat)
 	return Euler;
 }
 
-FQuaternion FQuaternion::Slerp(FQuaternion From, const FQuaternion& To, const float Delta)
+FQuaternion FQuaternion::Slerp(const FQuaternion& From, const FQuaternion& To, const float Delta)
 {
 	// From 3D Math Primer for Graphics and Game Development
 	float Dot = FQuaternion::Dot(From, To);
-
+	int32_t Sign = 1;
 	// If Dot is negative, negate a quaternion to take the shorter
 	// arc
 	if (Dot < 0.0f)
 	{
-		From = -From;
+		Sign = -1;
 		Dot = -Dot;
 	}
 
@@ -72,10 +72,10 @@ FQuaternion FQuaternion::Slerp(FQuaternion From, const FQuaternion& To, const fl
 	// interpolate
 	return FQuaternion
 	{
-		From.w * k0 + To.w * k1,
-		From.x * k0 + To.x * k1,
-		From.y * k0 + To.y * k1,
-		From.z * k0 + To.z * k1
+		Sign * From.w * k0 + To.w * k1,
+		Sign * From.x * k0 + To.x * k1,
+		Sign * From.y * k0 + To.y * k1,
+		Sign * From.z * k0 + To.z * k1
 	};
 }
 

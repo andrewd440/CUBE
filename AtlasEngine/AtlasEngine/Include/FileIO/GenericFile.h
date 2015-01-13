@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Singleton.h"
+
 /**
 * Interface for platform file handles.
 */

@@ -164,8 +164,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\Common.h" />
+    <ClInclude Include="Include\Clock.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
+    <ClInclude Include="Include\FTime.h" />
     <ClInclude Include="Include\Math\Color.h" />
     <ClInclude Include="Include\Math\FMath.h" />
     <ClInclude Include="Include\Math\Matrix4.h" />
@@ -183,7 +184,10 @@
     <ClInclude Include="Include\Misc\StringUtil.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\StringID.h" />
-    <ClInclude Include="Include\FileIO\WindowsFile.h" />
+    <ClInclude Include="Include\SystemClock.h" />
+    <ClInclude Include="Include\SystemFile.h" />
+    <ClInclude Include="Include\Windows\WindowsClock.h" />
+    <ClInclude Include="Include\Windows\WindowsFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
@@ -193,7 +197,8 @@
     <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
     <ClCompile Include="Src\StringID.cpp" />
-    <ClCompile Include="Src\FileIO\WindowsFile.cpp" />
+    <ClCompile Include="Src\Windows\WindowsClock.cpp" />
+    <ClCompile Include="Src\Windows\WindowsFile.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

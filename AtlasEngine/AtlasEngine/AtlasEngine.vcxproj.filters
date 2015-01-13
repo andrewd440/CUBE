@@ -42,9 +42,6 @@
     <ClInclude Include="Include\Misc\Assertions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Math\Quaternion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,7 +72,22 @@
     <ClInclude Include="Include\FileIO\GenericFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\FileIO\WindowsFile.h">
+    <ClInclude Include="Include\Windows\WindowsFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Windows\WindowsClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\FTime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\SystemClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\SystemFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -101,7 +113,10 @@
     <ClCompile Include="Src\StringID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\FileIO\WindowsFile.cpp">
+    <ClCompile Include="Src\Windows\WindowsFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WindowsClock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
