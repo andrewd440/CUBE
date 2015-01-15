@@ -16,14 +16,14 @@ public:
 	* Reads the internal clock cycle of the
 	* cpu.
 	*/
-	static uint64_t ReadClockTimer();
+	static uint64_t ReadSystemTimer();
 
 	/**
 	* Transforms cpu clock cycles to seconds.
 	*/
 	static uint64_t SecondsToCycles(float Seconds)
 	{
-		return (uint64_t)(Seconds * ClockFrequency);
+		return (uint64_t)(Seconds * SystemClockFrequency);
 	}
 
 	/**
@@ -31,16 +31,16 @@ public:
 	*/
 	static float CyclesToSeconds(uint64_t Cycles)
 	{
-		return (float)Cycles / ClockFrequency;
+		return (float)Cycles / SystemClockFrequency;
 	}
 
 private:
 	/**
 	* Retrieves the clock frequency of the cpu.
 	*/
-	static const uint64_t GetClockFrequency();
+	static const uint64_t GetSystemClockFrequency();
 
-	const static uint64_t ClockFrequency; // Clock frequency of the cpu
+	const static uint64_t SystemClockFrequency; // Clock frequency of the cpu
 
 public:
 	/**
@@ -58,7 +58,12 @@ public:
 	{
 	}
 
-	uint64_t GetClockCycles() const 
+	/**
+	* Retrieve the clock cycles this clock
+	* has accumulated. To get time in seconds,
+	* use FClock::CyclesToSeconds
+	*/
+	uint64_t GetCycles() const
 	{ 
 		return mClockCycles; 
 	}
@@ -71,7 +76,7 @@ public:
 	*/
 	float GetTimeDifference(const FClock& Other) 
 	{ 
-		return CyclesToSeconds(mClockCycles - Other.GetClockCycles()); 
+		return CyclesToSeconds(mClockCycles - Other.GetCycles());
 	}
 
 	/**
@@ -105,6 +110,11 @@ public:
 	float SetTimeScale() const
 	{
 		return mTimeScale;
+	}
+
+	void Reset()
+	{
+		mClockCycles = 0;
 	}
 
 private:

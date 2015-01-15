@@ -16,7 +16,13 @@ bool FWindowsHandle::Read(uint8_t* DataOut, uint32_t NumBytesToRead)
 		if (NumBytesToRead == BytesRead)
 			return true;
 	}
-	//DWORD Error = GetLastError();
+	
+	DWORD Error = GetLastError();
+	if (Error == ERROR_NOACCESS)
+	{
+		std::wcerr << L"FWindowsHandle: No access to memory location on file read." << std::endl;
+	}
+
 	return false;
 }
 
@@ -28,6 +34,12 @@ bool FWindowsHandle::Write(const uint8_t* Data, const uint32_t NumBytesToWrite)
 	{
 		if (BytesWritten == NumBytesToWrite)
 			return true;
+	}
+
+	DWORD Error = GetLastError();
+	if (Error == ERROR_NOACCESS)
+	{
+		std::wcerr << L"FWindowsHandle: No access to memory location on file write." << std::endl;
 	}
 
 	return false;

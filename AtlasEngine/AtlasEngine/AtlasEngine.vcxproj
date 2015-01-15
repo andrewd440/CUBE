@@ -68,7 +68,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);include/;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -89,16 +89,16 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include/;ThirdParty/SFMT;C:\SFML\include;</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
+      <AssemblerOutput>NoListing</AssemblerOutput>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>SFMT/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -126,10 +126,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>Include/;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Include/;ThirdParty/SFMT;C:\SFML\include;</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AssemblerOutput>NoListing</AssemblerOutput>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +138,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <Profile>true</Profile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;sfml-window.lib;;sfml-system.lib;;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -164,9 +167,15 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\AtlasRoot.h" />
     <ClInclude Include="Include\Clock.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
     <ClInclude Include="Include\FTime.h" />
+    <ClInclude Include="Include\Input\MouseAxis.h" />
+    <ClInclude Include="Include\Input\ButtonEvent.h" />
+    <ClInclude Include="Include\Input\Keyboard.h" />
+    <ClInclude Include="Include\Input\Mouse.h" />
+    <ClInclude Include="Include\Window.h" />
     <ClInclude Include="Include\Math\Color.h" />
     <ClInclude Include="Include\Math\FMath.h" />
     <ClInclude Include="Include\Math\Matrix4.h" />
@@ -186,11 +195,15 @@
     <ClInclude Include="Include\StringID.h" />
     <ClInclude Include="Include\SystemClock.h" />
     <ClInclude Include="Include\SystemFile.h" />
+    <ClInclude Include="Include\WindowEvent.h" />
     <ClInclude Include="Include\Windows\WindowsClock.h" />
     <ClInclude Include="Include\Windows\WindowsFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\AtlasRoot.cpp" />
+    <ClCompile Include="Src\Input\MouseAxis.cpp" />
+    <ClCompile Include="Src\Input\ButtonEvent.cpp" />
     <ClCompile Include="Src\Math\Color.cpp" />
     <ClCompile Include="Src\Math\FQuaternion.cpp" />
     <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
