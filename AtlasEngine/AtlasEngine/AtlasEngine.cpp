@@ -3,11 +3,9 @@
 
 #include <iostream>
 #include "Include\AtlasRoot.h"
-
+#include "Include\Debugging\ConsoleOutput.h"
 int main()
 {
-
-	//OutputDebugString(L"Debug String");
 	FAtlasRoot Root;
 	Root.Start();
 

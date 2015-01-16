@@ -111,6 +111,9 @@
     <ClInclude Include="Include\Input\MouseAxis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Debugging\ConsoleOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -147,6 +150,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Input\MouseAxis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debugging\ConsoleOutput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

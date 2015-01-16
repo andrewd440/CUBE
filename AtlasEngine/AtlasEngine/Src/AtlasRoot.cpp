@@ -6,6 +6,7 @@
 #include "..\Include\WindowEvent.h"
 #include "..\Include\Input\ButtonEvent.h"
 #include "..\Include\Input\MouseAxis.h"
+#include "..\Include\Debugging\ConsoleOutput.h"
 
 namespace
 {
@@ -65,7 +66,7 @@ void FAtlasRoot::GameLoop()
 		FrameStart = FrameEnd;
 
 		ServiceEvents();
-
+		
 		mGameWindow.display();
 		Sleep(100);
 	}

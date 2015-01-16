@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClInclude Include="Include\AtlasRoot.h" />
     <ClInclude Include="Include\Clock.h" />
+    <ClInclude Include="Include\Debugging\ConsoleOutput.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
     <ClInclude Include="Include\FTime.h" />
     <ClInclude Include="Include\Input\MouseAxis.h" />
@@ -202,6 +203,7 @@
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\AtlasRoot.cpp" />
+    <ClCompile Include="Src\Debugging\ConsoleOutput.cpp" />
     <ClCompile Include="Src\Input\MouseAxis.cpp" />
     <ClCompile Include="Src\Input\ButtonEvent.cpp" />
     <ClCompile Include="Src\Math\Color.cpp" />
