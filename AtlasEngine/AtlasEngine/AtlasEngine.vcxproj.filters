@@ -90,28 +90,28 @@
     <ClInclude Include="Include\SystemFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Input\Keyboard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Input\Mouse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\AtlasRoot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Input\ButtonEvent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\WindowEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Input\MouseAxis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Debugging\ConsoleOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\ShaderProgram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\GLUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\PerspectiveMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\StdUniformBlockBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -155,5 +155,19 @@
     <ClCompile Include="Src\Debugging\ConsoleOutput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Rendering\ShaderProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\GLUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\StdUniformBlockBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Triangle.frag" />
+    <None Include="Triangle.vert" />
   </ItemGroup>
 </Project>

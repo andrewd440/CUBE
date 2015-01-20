@@ -27,6 +27,12 @@ public:
 		return *Instance;
 	}
 
+	static T* GetInstancePtr()
+	{
+		ASSERT(Instance != nullptr);
+		return Instance;
+	}
+
 private:
 	// Disable copy ctor and assignment
 	TSingleton(const TSingleton<T>& Other) = delete;

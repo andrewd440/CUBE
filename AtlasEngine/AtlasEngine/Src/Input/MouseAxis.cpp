@@ -20,15 +20,15 @@ int32_t FMouseAxis::GetWheelDelta()
 	return mWheelDelta;
 }
 
-void FMouseAxis::Update(const FWindowEvent& MouseEvent)
+void FMouseAxis::Update(const sf::Event& MouseEvent)
 {
 	ASSERT(IsMouseAxisEvent(MouseEvent));
 	switch (MouseEvent.type)
 	{
-	case FWindowEvent::MouseMoved:
+	case sf::Event::MouseMoved:
 		mCurrentFramePosition = Vector2i(MouseEvent.mouseMove.x, MouseEvent.mouseMove.y);
 		break;
-	case FWindowEvent::MouseWheelMoved:
+	case sf::Event::MouseWheelMoved:
 		mWheelDelta = MouseEvent.mouseWheel.delta;
 		break;
 	default:
@@ -42,7 +42,7 @@ void FMouseAxis::ResetAxes()
 	mLastFramePosition = mCurrentFramePosition;
 }
 
-bool FMouseAxis::IsMouseAxisEvent(const FWindowEvent& MouseEvent)
+bool FMouseAxis::IsMouseAxisEvent(const sf::Event& MouseEvent)
 {
-	return MouseEvent.type == FWindowEvent::MouseMoved || MouseEvent.type == FWindowEvent::MouseWheelMoved;
+	return MouseEvent.type == sf::Event::MouseMoved || MouseEvent.type == sf::Event::MouseWheelMoved;
 }

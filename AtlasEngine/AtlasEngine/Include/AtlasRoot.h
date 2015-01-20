@@ -1,6 +1,6 @@
 #pragma once
 #include "Singleton.h"
-#include "Window.h"
+#include "SFML\Window\Window.hpp"
 
 /**
 * Root/Central class for the game engine
@@ -12,6 +12,10 @@ public:
 
 	~FAtlasRoot();
 
+	// Disable copying of this object.
+	FAtlasRoot(const FAtlasRoot& Other) = delete;
+	FAtlasRoot& operator=(const FAtlasRoot& Other) = delete;
+
 	void Start();
 
 	void GameLoop();
@@ -20,6 +24,6 @@ private:
 	void ServiceEvents();
 
 private:
-	FWindow mGameWindow;
+	sf::Window mGameWindow;
 };
 

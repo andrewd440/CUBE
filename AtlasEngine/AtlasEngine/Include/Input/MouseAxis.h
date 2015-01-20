@@ -1,9 +1,9 @@
 #pragma once
-#include "Mouse.h"
+#include "SFML\Window\Mouse.hpp"
 
 #include <cstdint>
 #include <functional>
-#include "..\WindowEvent.h"
+#include "SFML\Window\Event.hpp"
 #include "..\Math\Vector2.h"
 
 /**
@@ -41,7 +41,7 @@ public:
 	* into this update.
 	* @param MouseEvent - Window event for a mouse axis.
 	*/
-	static void Update(const FWindowEvent& MouseEvent);
+	static void Update(const sf::Event& MouseEvent);
 
 	/**
 	* Resets the mouse movement values from the last frame. This should
@@ -52,7 +52,7 @@ public:
 	/**
 	* Checks if a specific windows event is a mouse axis event.
 	*/
-	static bool IsMouseAxisEvent(const FWindowEvent& MouseEvent);
+	static bool IsMouseAxisEvent(const sf::Event& MouseEvent);
 
 private:
 	static Vector2i mLastFramePosition;

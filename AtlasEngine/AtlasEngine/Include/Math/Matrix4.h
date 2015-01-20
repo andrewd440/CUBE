@@ -605,7 +605,7 @@ struct LookAtMatrix : public FMatrix4
 
 inline LookAtMatrix::LookAtMatrix(const Vector3f& Eye, const Vector3f& LookLocation, const Vector3f& UpDirection)
 {
-	Vector3f N = -(LookLocation - Eye).Normalize();
+	Vector3f N = (LookLocation - Eye).Normalize();
 	Vector3f U = Vector3f::Cross(N, UpDirection).Normalize();
 	Vector3f V = Vector3f::Cross(U, N).Normalize();
 
@@ -613,13 +613,13 @@ inline LookAtMatrix::LookAtMatrix(const Vector3f& Eye, const Vector3f& LookLocat
 	{
 		M[col][0] = U[col];
 		M[col][1] = V[col];
-		M[col][2] = N[col];
+		M[col][2] = -N[col];
 		M[col][3] = 0.0f;
 	}
 
-	M[3][0] = -Vector3f::Dot(Eye, U);
-	M[3][1] = -Vector3f::Dot(Eye, V);
-	M[3][2] = -Vector3f::Dot(Eye, N);
+	M[3][0] = Vector3f::Dot(-Eye, U);
+	M[3][1] = Vector3f::Dot(-Eye, V);
+	M[3][2] = Vector3f::Dot(-Eye, -N);
 	M[3][3] = 1.0f;
 }
 

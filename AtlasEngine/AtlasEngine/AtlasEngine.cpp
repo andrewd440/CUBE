@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "Include\AtlasRoot.h"
-#include "Include\Debugging\ConsoleOutput.h"
+
 int main()
 {
 	FAtlasRoot Root;

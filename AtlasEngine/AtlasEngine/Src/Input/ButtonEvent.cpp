@@ -1,11 +1,11 @@
 #include "..\..\Include\Input\ButtonEvent.h"
 #include "..\..\Include\Misc\Assertions.h"
 
-std::bitset<FKeyboard::KeyCount> FButtonEvent::mKeyUps;
-std::bitset<FKeyboard::KeyCount> FButtonEvent::mKeyDowns;
+std::bitset<sf::Keyboard::KeyCount> FButtonEvent::mKeyUps;
+std::bitset<sf::Keyboard::KeyCount> FButtonEvent::mKeyDowns;
 
-std::bitset<FMouse::ButtonCount> FButtonEvent::mMouseUps;
-std::bitset<FMouse::ButtonCount> FButtonEvent::mMouseDowns;
+std::bitset<sf::Mouse::ButtonCount> FButtonEvent::mMouseUps;
+std::bitset<sf::Mouse::ButtonCount> FButtonEvent::mMouseDowns;
 
 void FButtonEvent::ResetButtonEvents()
 {
@@ -15,26 +15,26 @@ void FButtonEvent::ResetButtonEvents()
 	mMouseUps.reset();
 }
 
-bool FButtonEvent::AddButtonEvent(const FWindowEvent& ButtonEvent)
+bool FButtonEvent::AddButtonEvent(const sf::Event& ButtonEvent)
 {
 	// Ensure that only button events are passed to this function.
 	ASSERT(IsButtonEvent(ButtonEvent));
 
 	switch (ButtonEvent.type)
 	{
-	case FWindowEvent::KeyPressed:
+	case sf::Event::KeyPressed:
 		mKeyDowns[ButtonEvent.key.code] = true;
 		return true;
 		break;
-	case FWindowEvent::KeyReleased:
+	case sf::Event::KeyReleased:
 		mKeyUps[ButtonEvent.key.code] = true;
 		return true;
 		break;
-	case FWindowEvent::MouseButtonPressed:
+	case sf::Event::MouseButtonPressed:
 		mMouseDowns[ButtonEvent.key.code] = true;
 		return true;
 		break;
-	case FWindowEvent::MouseButtonReleased:
+	case sf::Event::MouseButtonReleased:
 		mMouseUps[ButtonEvent.key.code] = true;
 		return true;
 		break;
@@ -43,28 +43,28 @@ bool FButtonEvent::AddButtonEvent(const FWindowEvent& ButtonEvent)
 	return false;
 }
 
-bool FButtonEvent::GetKeyUp(const FKeyboard::Key Key)
+bool FButtonEvent::GetKeyUp(const sf::Keyboard::Key Key)
 {
 	return mKeyUps[Key];
 }
 
-bool FButtonEvent::GetKeyDown(const FKeyboard::Key Key)
+bool FButtonEvent::GetKeyDown(const sf::Keyboard::Key Key)
 {
 	return mKeyDowns[Key];
 }
 
-bool FButtonEvent::GetMouseUp(const FMouse::Button Button)
+bool FButtonEvent::GetMouseUp(const sf::Mouse::Button Button)
 {
 	return mMouseUps[Button];
 }
 
-bool FButtonEvent::GetMouseDown(const FMouse::Button Button)
+bool FButtonEvent::GetMouseDown(const sf::Mouse::Button Button)
 {
 	return mMouseDowns[Button];
 }
 
-bool FButtonEvent::IsButtonEvent(const FWindowEvent& Event)
+bool FButtonEvent::IsButtonEvent(const sf::Event& Event)
 {
-	return Event.type == FWindowEvent::KeyPressed || Event.type == FWindowEvent::KeyReleased
-		|| Event.type == FWindowEvent::MouseButtonPressed || Event.type == FWindowEvent::MouseButtonReleased;
+	return Event.type == sf::Event::KeyPressed || Event.type == sf::Event::KeyReleased
+		|| Event.type == sf::Event::MouseButtonPressed || Event.type == sf::Event::MouseButtonReleased;
 }
