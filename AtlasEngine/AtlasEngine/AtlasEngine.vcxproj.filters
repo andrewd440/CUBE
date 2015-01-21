@@ -111,7 +111,10 @@
     <ClInclude Include="Include\Math\PerspectiveMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\StdUniformBlockBuffer.h">
+    <ClInclude Include="Include\Rendering\UniformBlockStandard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -161,7 +164,7 @@
     <ClCompile Include="Src\Rendering\GLUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Rendering\StdUniformBlockBuffer.cpp">
+    <ClCompile Include="Src\Rendering\UniformBlockStandard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

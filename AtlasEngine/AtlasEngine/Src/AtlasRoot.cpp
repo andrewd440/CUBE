@@ -17,15 +17,17 @@
 #include "..\Include\Math\Vector3.h"
 #include "..\Include\Math\Matrix4.h"
 #include "..\Include\Math\PerspectiveMatrix.h"
-#include "..\Include\Rendering\StdUniformBlockBuffer.h"
+#include "..\Include\Rendering\UniformBlockStandard.h"
+#include "..\Include\Common.h"
+#include "..\Include\Math\Quaternion.h"
 
 namespace
 {
-	static const uint32_t WindowWidth = 1200;
-	static const uint32_t WindowHeight = 700;
+	static const uint32_t WindowWidth = 1600;
+	static const uint32_t WindowHeight = 1000;
 }
 
-FStdUniformBlockBuffer* UniformBuffer;
+FUniformBlockStandard* UniformBuffer;
 
 FAtlasRoot::FAtlasRoot()
 	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"Atlas Engine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
@@ -36,7 +38,7 @@ FAtlasRoot::FAtlasRoot()
 	}
 
 	IFileSystem* FileSystem = new FFileSystem;
-	UniformBuffer = new FStdUniformBlockBuffer("TransformBlock", 1, 128);
+	UniformBuffer = new FUniformBlockStandard(0, 128);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -44,7 +46,9 @@ FAtlasRoot::FAtlasRoot()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	
+	FMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
 }
 
 
@@ -66,7 +70,8 @@ enum Buffers { BVerts, BColors};
 GLuint CubeArray;
 GLuint VertexBuffer;
 GLuint EBO;
-LookAtMatrix ViewTransform = LookAtMatrix{ Vector3f(0, 0, 2), Vector3f(0, 0, 0), Vector3f(0, 1, 0) };
+Vector3f Eye(0,0,10), LookAt(0,0,0), Up(0,1,0);
+LookAtMatrix ViewTransform = LookAtMatrix{ Eye, LookAt, Up };
 FShaderProgram* ShaderProgram = nullptr;
 
 void DrawCube()
@@ -137,11 +142,13 @@ void DrawCube()
 
 void GLTests()
 {
-	ShaderProgram = new FShaderProgram{ L"Triangle.vert", L"Triangle.frag" };
+	FShader VShader{ L"Triangle.vert", GL_VERTEX_SHADER };
+	FShader FShader{ L"Triangle.frag", GL_FRAGMENT_SHADER };
+	ShaderProgram = new FShaderProgram{ &VShader, &FShader };
 	ShaderProgram->Use();
 	DrawCube();
 
-	FPerspectiveMatrix Projection{ (float)WindowWidth, (float)WindowHeight, 35, 1, 20 };
+	FPerspectiveMatrix Projection{ (float)WindowWidth, (float)WindowHeight, 35, 1, 100 };
 	UniformBuffer->SetData(64, Projection);
 }
 
@@ -155,6 +162,53 @@ void GLLoop(const FClock& Clock)
 	//glUniform1f(TimeDeltaLocation, FClock::CyclesToSeconds(Clock.GetCycles()));
 
 
+}
+
+void UpdateCamera()
+{
+	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = .002f;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		ZMovement = MoveSpeed;
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+		ZMovement = -MoveSpeed;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		XMovement = MoveSpeed;
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		XMovement = -MoveSpeed;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		YMovement = MoveSpeed;
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+		YMovement = -MoveSpeed;
+
+
+	const float LookSpeed = 0.05f;
+	Vector3f NAxis = (LookAt - Eye).Normalize();
+	Vector3f UAxis = Vector3f::Cross(NAxis, Up).Normalize();
+	// Y Rotation
+	LookAt -= Eye;
+	FQuaternion RotateY{ Up, -(float)FMouseAxis::GetDelta().x * LookSpeed};
+	LookAt = RotateY * LookAt;
+	LookAt += Eye;
+
+	// X Rotation
+	FQuaternion RotateX{ UAxis, -(float)FMouseAxis::GetDelta().y * LookSpeed };
+	LookAt -= Eye;
+	LookAt = RotateX * LookAt;
+	LookAt += Eye;
+
+	// Side movement
+	Vector3f CameraMovement;
+	NAxis = (LookAt - Eye).Normalize();
+	UAxis = Vector3f::Cross(NAxis, Up).Normalize();
+	CameraMovement += UAxis * XMovement;
+	CameraMovement += NAxis * ZMovement;
+	CameraMovement += Up * YMovement;
+	Eye += CameraMovement;
+	LookAt += CameraMovement;
+
+	ViewTransform = LookAtMatrix(Eye, LookAt, Up);
+	UniformBuffer->SetData(0, ViewTransform);
+	UniformBuffer->SendBuffer();
 }
 
 void FAtlasRoot::GameLoop()
@@ -195,28 +249,11 @@ void FAtlasRoot::GameLoop()
 
 		ServiceEvents();
 
-
 		//// OpenGL /////////////////////
 		GLLoop(GameTimer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindVertexArray(CubeArray);
-		float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = .0005f;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			ZMovement = MoveSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			ZMovement = -MoveSpeed;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			XMovement = MoveSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			XMovement = -MoveSpeed;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-			YMovement = MoveSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-			YMovement = -MoveSpeed;
-
-		ViewTransform.SetOrigin(ViewTransform.GetOrigin() + Vector3f(-XMovement, -YMovement, ZMovement));
-		UniformBuffer->SetData(0, ViewTransform);
-		UniformBuffer->SendBuffer();
+		UpdateCamera();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		//glDrawArrays(GL_TRIANGLES, 0, 12);
@@ -240,10 +277,14 @@ void FAtlasRoot::ServiceEvents()
 	FButtonEvent::ResetButtonEvents();
 	FMouseAxis::ResetAxes();
 
+	FMouseAxis::UpdateDelta(mGameWindow);
+	static sf::Vector2i DefaultMouse(FMouseAxis::GetDefaultMousePosition().x, FMouseAxis::GetDefaultMousePosition().y);
+	sf::Mouse::setPosition(DefaultMouse, mGameWindow);
+
 	// Service window events
 	while (mGameWindow.pollEvent(Event))
 	{
-		if (Event.type == Event.Closed)
+		if (Event.type == Event.Closed || FButtonEvent::GetKeyDown(sf::Keyboard::Escape))
 			mGameWindow.close();
 
 		if (FButtonEvent::IsButtonEvent(Event))
@@ -252,7 +293,7 @@ void FAtlasRoot::ServiceEvents()
 		}
 		else if (FMouseAxis::IsMouseAxisEvent(Event))
 		{
-			FMouseAxis::Update(Event);
+			FMouseAxis::UpdateEvent(Event);
 		}
 		else if (Event.type == sf::Event::Resized)
 		{

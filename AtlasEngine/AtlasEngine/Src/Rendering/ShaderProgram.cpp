@@ -8,12 +8,93 @@
 #include <cstdint>
 #include <vector>
 
-FShaderProgram::FShaderProgram(const wchar_t* VertexSrc, const wchar_t* FragmentSrc, const wchar_t* GeometrySrc)
+/////////////////////////
+//// FShader ////////////
+
+FShader::FShader(const wchar_t* SourceFile, GLenum ShaderType)
+	: mID()
+	, mType(ShaderType)
+{
+	mID = glCreateShader(ShaderType);
+
+	const std::string ShaderSource = ReadShader(SourceFile);
+	const char* SourcePtr = ShaderSource.c_str();
+	glShaderSource(mID, 1, &SourcePtr, nullptr);
+
+	glCompileShader(mID);
+
+#ifndef NDEBUG
+	CheckShaderErrors(mID);
+#endif
+}
+
+FShader::~FShader()
+{
+	glDeleteShader(mID);
+}
+
+GLuint FShader::GetID() const
+{
+	return mID;
+}
+
+GLenum FShader::GetType() const
+{
+	return mType;
+}
+
+std::string FShader::ReadShader(const wchar_t* SourceFile) const
+{
+	IFileSystem& FileSystem = IFileSystem::GetInstance();
+	auto ShaderFile = FileSystem.OpenReadable(SourceFile);
+
+	if (ShaderFile)
+	{
+		const uint32_t ShaderSize = ShaderFile->GetFileSize();
+
+		std::string ShaderSource;
+		ShaderSource.resize(ShaderSize);
+		ShaderFile->Read((uint8_t*)ShaderSource.data(), ShaderSize);
+		//ShaderSource.append('\0'); // add the null terminator that is missing.
+		return ShaderSource;
+	}
+
+	return std::string();
+}
+
+
+#ifndef NDEBUG
+void FShader::CheckShaderErrors(GLuint Shader) const
+{
+	// Retrieve the status of the shader
+	GLint Success = 0;
+	glGetShaderiv(Shader, GL_COMPILE_STATUS, &Success);
+
+	if (Success == GL_TRUE)
+		return;
+
+	// If here, we have an error, so retrieves it's info
+	GLint LogSize = 0;
+	glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, &LogSize);
+
+	// Get the info log and pring to debug output
+	std::vector<char> LogInfo(LogSize);
+	glGetShaderInfoLog(Shader, LogSize, nullptr, &LogInfo[0]);
+	FDebug::PrintF(&LogInfo[0]);
+}
+#endif
+
+/////////////////////////
+//// FShaderProgram /////
+
+FShaderProgram::FShaderProgram(const std::initializer_list<const FShader*> Shaders)
 	: mID(glCreateProgram())
 {
-	if (VertexSrc) AddShader(GL_VERTEX_SHADER, VertexSrc);
-	if (FragmentSrc) AddShader(GL_FRAGMENT_SHADER, FragmentSrc);
-	if (GeometrySrc) AddShader(GL_GEOMETRY_SHADER, GeometrySrc);
+	for (auto Itr = Shaders.begin(); Itr != Shaders.end(); Itr++)
+	{
+		AttachShader(*(*Itr));
+	}
+
 	LinkProgram();
 
 #ifndef NDEBUG
@@ -26,23 +107,9 @@ FShaderProgram::~FShaderProgram()
 	glDeleteProgram(mID);
 }
 
-void FShaderProgram::AddShader(GLenum ShaderType, const wchar_t* FilePath)
+void FShaderProgram::AttachShader(const FShader& Shader)
 {
-	const char* ShaderSource = ReadShader(FilePath);
-
-	// Create shader and point it to the source data
-	GLuint Shader = glCreateShader(ShaderType);
-	glShaderSource(Shader, 1, &ShaderSource, nullptr);
-	delete[] ShaderSource;
-
-	glCompileShader(Shader);
-
-#ifndef NDEBUG
-	CheckShaderErrors(Shader);
-#endif
-
-	glAttachShader(mID, Shader);
-	glDeleteShader(Shader);
+	glAttachShader(mID, Shader.GetID());
 }
 
 void FShaderProgram::LinkProgram() const
@@ -62,44 +129,7 @@ void FShaderProgram::LinkProgram() const
 	}
 }
 
-char* FShaderProgram::ReadShader(const wchar_t* FilePath) const
-{
-	IFileSystem& FileSystem = IFileSystem::GetInstance();
-	auto ShaderFile = FileSystem.OpenReadable(FilePath);
-
-	if (ShaderFile)
-	{
-		const uint32_t ShaderSize = ShaderFile->GetFileSize();
-
-		char* ShaderSource = new char[ShaderSize + 1];
-		ShaderFile->Read((uint8_t*)ShaderSource, ShaderSize);
-		ShaderSource[ShaderSize] = '\0'; // add the null terminator that is missing.
-		return ShaderSource;
-	}
-
-	return new char[1];
-}
-
 #ifndef NDEBUG
-void FShaderProgram::CheckShaderErrors(GLuint Shader)
-{
-	// Retrieve the status of the shader
-	GLint Success = 0;
-	glGetShaderiv(Shader, GL_COMPILE_STATUS, &Success);
-
-	if (Success == GL_TRUE)
-		return;
-	
-	// If here, we have an error, so retrieves it's info
-	GLint LogSize = 0;
-	glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, &LogSize);
-
-	// Get the info log and pring to debug output
-	std::vector<char> LogInfo(LogSize);
-	glGetShaderInfoLog(Shader, LogSize, nullptr, &LogInfo[0]);
-	FDebug::PrintF(&LogInfo[0]);
-}
-
 void FShaderProgram::CheckProgramErrors()
 {
 	// Retrieve the status of the program

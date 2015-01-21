@@ -1,18 +1,13 @@
 #include "..\..\Include\Input\MouseAxis.h"
 #include "..\..\Include\Misc\Assertions.h"
 
-Vector2i FMouseAxis::mLastFramePosition;
-Vector2i FMouseAxis::mCurrentFramePosition;
+Vector2i FMouseAxis::mDefaultMousePosition;
+Vector2i FMouseAxis::mMouseDelta;
 int32_t FMouseAxis::mWheelDelta = 0;
 
-int32_t FMouseAxis::GetHorizontalDelta()
+Vector2i FMouseAxis::GetDelta()
 {
-	return mCurrentFramePosition.x - mLastFramePosition.x;
-}
-
-int32_t FMouseAxis::GetVerticalDelta()
-{
-	return mCurrentFramePosition.y - mLastFramePosition.y;
+	return mMouseDelta;
 }
 
 int32_t FMouseAxis::GetWheelDelta()
@@ -20,14 +15,13 @@ int32_t FMouseAxis::GetWheelDelta()
 	return mWheelDelta;
 }
 
-void FMouseAxis::Update(const sf::Event& MouseEvent)
+void FMouseAxis::UpdateEvent(const sf::Event& MouseEvent)
 {
 	ASSERT(IsMouseAxisEvent(MouseEvent));
 	switch (MouseEvent.type)
 	{
-	case sf::Event::MouseMoved:
-		mCurrentFramePosition = Vector2i(MouseEvent.mouseMove.x, MouseEvent.mouseMove.y);
-		break;
+	//case sf::Event::MouseMoved:
+	//	break;
 	case sf::Event::MouseWheelMoved:
 		mWheelDelta = MouseEvent.mouseWheel.delta;
 		break;
@@ -36,13 +30,30 @@ void FMouseAxis::Update(const sf::Event& MouseEvent)
 	}
 }
 
+void FMouseAxis::UpdateDelta(const sf::Window& Window)
+{
+	const sf::Vector2i CurrentPosition = sf::Mouse::getPosition(Window);
+	const Vector2i DefaultPosition = mDefaultMousePosition;
+	mMouseDelta = Vector2i(CurrentPosition.x - DefaultPosition.x, CurrentPosition.y - DefaultPosition.y);
+}
+
 void FMouseAxis::ResetAxes()
 {
 	mWheelDelta = 0;
-	mLastFramePosition = mCurrentFramePosition;
+	mMouseDelta = Vector2i(0, 0);
 }
 
 bool FMouseAxis::IsMouseAxisEvent(const sf::Event& MouseEvent)
 {
 	return MouseEvent.type == sf::Event::MouseMoved || MouseEvent.type == sf::Event::MouseWheelMoved;
+}
+
+void FMouseAxis::SetDefaultMousePosition(Vector2i Position)
+{
+	mDefaultMousePosition = Position;
+}
+
+Vector2i FMouseAxis::GetDefaultMousePosition()
+{
+	return mDefaultMousePosition;
 }

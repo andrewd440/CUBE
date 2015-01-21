@@ -17,16 +17,10 @@ public:
 	~FMouseAxis() = delete;
 
 	/**
-	* Retrieve the horizontal movement of the mouse
+	* Retrieve the delta movement of the mouse
 	* during the last game frame.
 	*/
-	static int32_t GetHorizontalDelta();
-
-	/**
-	* Retrieve the vertical movement of the mouse
-	* during the last game frame.
-	*/
-	static int32_t GetVerticalDelta();
+	static Vector2i GetDelta();
 
 	/**
 	* Retrieve the wheel movement of the mouse
@@ -41,7 +35,15 @@ public:
 	* into this update.
 	* @param MouseEvent - Window event for a mouse axis.
 	*/
-	static void Update(const sf::Event& MouseEvent);
+	static void UpdateEvent(const sf::Event& MouseEvent);
+
+	/**
+	* Update the mouse delta movement for the current frame.
+	* This is calculated by the difference between the default
+	* mouse position and the current mouse position.
+	* @param Window - The active window.
+	*/
+	static void UpdateDelta(const sf::Window& Window);
 
 	/**
 	* Resets the mouse movement values from the last frame. This should
@@ -54,9 +56,23 @@ public:
 	*/
 	static bool IsMouseAxisEvent(const sf::Event& MouseEvent);
 
+	/**
+	* Set the default position of the mouse. This is the position that
+	* the mouse is reset to at the end of each frame. Mouse delta movement
+	* is calculated from this position.
+	*/
+	static void SetDefaultMousePosition(Vector2i Position);
+
+	/**
+	* Get the default position of the mouse. This is the position that
+	* the mouse is reset to at the end of each frame. Mouse delta movement
+	* is calculated from this position.
+	*/
+	static Vector2i GetDefaultMousePosition();
+
 private:
-	static Vector2i mLastFramePosition;
-	static Vector2i mCurrentFramePosition;
+	static Vector2i mDefaultMousePosition;
+	static Vector2i mMouseDelta;
 	static int32_t mWheelDelta;
 
 };

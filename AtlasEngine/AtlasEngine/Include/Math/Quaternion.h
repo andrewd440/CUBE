@@ -146,7 +146,7 @@ template <typename T>
 * @param Rhs Vector to rotate.
 * @return The rotated vector.
 */
-inline FQuaternion operator*(const FQuaternion& Lhs, const TVector3<T>& Rhs)
+inline TVector3<T> operator*(const FQuaternion& Lhs, const TVector3<T>& Rhs)
 {
 	FQuaternion Point(0, Rhs.x, Rhs.y, Rhs.z);
 	Point = Lhs * Point * Lhs.Inverse();

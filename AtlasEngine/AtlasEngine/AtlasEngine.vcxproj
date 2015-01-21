@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClInclude Include="Include\AtlasRoot.h" />
     <ClInclude Include="Include\Clock.h" />
+    <ClInclude Include="Include\Common.h" />
     <ClInclude Include="Include\Debugging\ConsoleOutput.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
     <ClInclude Include="Include\FTime.h" />
@@ -194,7 +195,7 @@
     <ClInclude Include="Include\Misc\Assertions.h" />
     <ClInclude Include="Include\Math\SSEMath.h" />
     <ClInclude Include="Include\Misc\StringUtil.h" />
-    <ClInclude Include="Include\Rendering\StdUniformBlockBuffer.h" />
+    <ClInclude Include="Include\Rendering\UniformBlockStandard.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\StringID.h" />
     <ClInclude Include="Include\SystemClock.h" />
@@ -215,7 +216,7 @@
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
     <ClCompile Include="Src\Rendering\ShaderProgram.cpp" />
-    <ClCompile Include="Src\Rendering\StdUniformBlockBuffer.cpp" />
+    <ClCompile Include="Src\Rendering\UniformBlockStandard.cpp" />
     <ClCompile Include="Src\StringID.cpp" />
     <ClCompile Include="Src\Windows\WindowsClock.cpp" />
     <ClCompile Include="Src\Windows\WindowsFile.cpp" />
