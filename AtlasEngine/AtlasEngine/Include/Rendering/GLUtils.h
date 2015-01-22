@@ -12,4 +12,13 @@ namespace GLUtils
 	* From The Red Book 4.3
 	*/
 	size_t GetTypeSize(GLenum type);
+
+	template <GLenum Target>
+	void BufferUnmapper(void*)
+	{
+		glUnmapBuffer(Target);
+		glBindBuffer(Target, 0);
+	}
+
+
 }

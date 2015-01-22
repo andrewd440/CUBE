@@ -20,6 +20,7 @@
 #include "..\Include\Rendering\UniformBlockStandard.h"
 #include "..\Include\Common.h"
 #include "..\Include\Math\Quaternion.h"
+#include "..\Include\Rendering\VertexBufferObject.h"
 
 namespace
 {
@@ -28,6 +29,7 @@ namespace
 }
 
 FUniformBlockStandard* UniformBuffer;
+FVertexArrayObject* VertexArray;
 
 FAtlasRoot::FAtlasRoot()
 	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"Atlas Engine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
@@ -39,7 +41,7 @@ FAtlasRoot::FAtlasRoot()
 
 	IFileSystem* FileSystem = new FFileSystem;
 	UniformBuffer = new FUniformBlockStandard(0, 128);
-	
+	VertexArray = new FVertexArrayObject(1);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -54,6 +56,7 @@ FAtlasRoot::FAtlasRoot()
 
 FAtlasRoot::~FAtlasRoot()
 {
+	delete VertexArray;
 	delete UniformBuffer;
 	delete IFileSystem::GetInstancePtr();
 }
@@ -64,16 +67,10 @@ void FAtlasRoot::Start()
 	GameLoop();
 }
 
-enum Attribute_IDs{ vPosition, vColor, AttrCount };
-enum VertexArray {VVertices, VColors};
-enum Buffers { BVerts, BColors};
-GLuint CubeArray;
-GLuint VertexBuffer;
 GLuint EBO;
 Vector3f Eye(0,0,10), LookAt(0,0,0), Up(0,1,0);
 LookAtMatrix ViewTransform = LookAtMatrix{ Eye, LookAt, Up };
 FShaderProgram* ShaderProgram = nullptr;
-
 void DrawCube()
 {
 	static const float BlockWidth = .5f;
@@ -118,26 +115,27 @@ void DrawCube()
 		5, 2, 6
 	};
 
-	glGenVertexArrays(1, &CubeArray);
-	glGenBuffers(1, &VertexBuffer);
 
 	glGenBuffers(1, &EBO);
-	glBindVertexArray(CubeArray);
+	VertexArray->SetActive(true);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+	auto& Buffer = VertexArray->GetBuffer(0);
+	Buffer.SetActive(true);
+	Buffer.SetData(sizeof(Vertices), Vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(offsetof(Vertex, Position)));
-	glEnableVertexAttribArray(vPosition);
+	// Position attrib
+	Buffer.SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Position));
+	Buffer.EnableAttribute(0);
 
-	glVertexAttribPointer(vColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(offsetof(Vertex, Color)));
-	glEnableVertexAttribArray(vColor);
-	glBindVertexArray(0);
+	// Color attrib
+	Buffer.SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Color));
+	Buffer.EnableAttribute(1);
 
-	
+	Buffer.SetActive(false);
+	VertexArray->SetActive(false);
 }
 
 void GLTests()
@@ -250,12 +248,13 @@ void FAtlasRoot::GameLoop()
 		//// OpenGL /////////////////////
 		GLLoop(GameTimer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindVertexArray(CubeArray);
+
+		VertexArray->SetActive(true);
+		
 		UpdateCamera();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-		//glDrawArrays(GL_TRIANGLES, 0, 12);
-		glBindVertexArray(0);
+		VertexArray->SetActive(false);
 		//////////////////////////////////
 		mGameWindow.display();
 		//Sleep(100);

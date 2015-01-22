@@ -1,4 +1,5 @@
 #include "..\..\Include\Rendering\UniformBlockStandard.h"
+#include "..\..\Include\Rendering\GLUtils.h"
 
 void FUniformBlockStandard::GetBlockSize(const char* BlockName, GLint& SizeOut)
 {
@@ -53,14 +54,7 @@ void FUniformBlockStandard::SendBuffer()
 std::unique_ptr<void, void(*)(void*)> FUniformBlockStandard::MapBuffer(GLenum Access) const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
-
-	auto Deleter = [](void*)
-	{ 
-		glBindBuffer(GL_UNIFORM_BUFFER, 0); 
-		glUnmapBuffer(GL_UNIFORM_BUFFER); 
-	};
-
-	return std::unique_ptr<void, decltype(Deleter)>(glMapBuffer(GL_UNIFORM_BUFFER, Access), Deleter);
+	return std::unique_ptr<void, void(*)(void*)>(glMapBuffer(GL_UNIFORM_BUFFER, Access), GLUtils::BufferUnmapper<GL_UNIFORM_BUFFER>);
 }
 
 void FUniformBlockStandard::SetData(const uint32_t DataOffset, const uint8_t* Data, const uint32_t DataSize)

@@ -71,6 +71,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -79,6 +80,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);Include/;</IncludePath>
+    <OutDir>$(SolutionDir)\BuidConfigurations\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -101,6 +103,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;glu32.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -196,6 +199,7 @@
     <ClInclude Include="Include\Math\SSEMath.h" />
     <ClInclude Include="Include\Misc\StringUtil.h" />
     <ClInclude Include="Include\Rendering\UniformBlockStandard.h" />
+    <ClInclude Include="Include\Rendering\VertexBufferObject.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\StringID.h" />
     <ClInclude Include="Include\SystemClock.h" />
@@ -217,6 +221,7 @@
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
     <ClCompile Include="Src\Rendering\ShaderProgram.cpp" />
     <ClCompile Include="Src\Rendering\UniformBlockStandard.cpp" />
+    <ClCompile Include="Src\Rendering\VertexBufferObject.cpp" />
     <ClCompile Include="Src\StringID.cpp" />
     <ClCompile Include="Src\Windows\WindowsClock.cpp" />
     <ClCompile Include="Src\Windows\WindowsFile.cpp" />
