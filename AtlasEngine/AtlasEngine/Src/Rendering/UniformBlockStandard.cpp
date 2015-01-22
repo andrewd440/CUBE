@@ -45,8 +45,22 @@ FUniformBlockStandard::~FUniformBlockStandard()
 void FUniformBlockStandard::SendBuffer()
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
-	glBufferData(GL_UNIFORM_BUFFER, mData.size(), mData.data(), GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, mData.size(), mData.data());
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+
+std::unique_ptr<void, void(*)(void*)> FUniformBlockStandard::MapBuffer(GLenum Access) const
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
+
+	auto Deleter = [](void*)
+	{ 
+		glBindBuffer(GL_UNIFORM_BUFFER, 0); 
+		glUnmapBuffer(GL_UNIFORM_BUFFER); 
+	};
+
+	return std::unique_ptr<void, decltype(Deleter)>(glMapBuffer(GL_UNIFORM_BUFFER, Access), Deleter);
 }
 
 void FUniformBlockStandard::SetData(const uint32_t DataOffset, const uint8_t* Data, const uint32_t DataSize)

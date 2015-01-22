@@ -11,6 +11,8 @@
 #include "..\Math\Vector2.h"
 #include "..\Math\Color.h"
 
+#include <memory>
+
 /**
 * Abstracts manipulating GLSL uniform buffer blocks
 * with standard (std140) layout.
@@ -55,6 +57,14 @@ public:
 	* Send all the data within this object to the gpu.
 	*/
 	void SendBuffer();
+
+	/**
+	* Retrieve a pointer to the buffer held by this object.
+	* @param Access - Type of access required for the memory.
+	* @return The pointer is returned in a unique_ptr object with a custom deleter
+	* that unbinds and unmappeds this buffer.
+	*/
+	std::unique_ptr<void, void(*)(void*)> MapBuffer(GLenum Access) const;
 
 	/**
 	* Add data to the buffer at a specific offset within the uniform block.

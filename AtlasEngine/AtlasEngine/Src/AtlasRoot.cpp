@@ -39,7 +39,7 @@ FAtlasRoot::FAtlasRoot()
 
 	IFileSystem* FileSystem = new FFileSystem;
 	UniformBuffer = new FUniformBlockStandard(0, 128);
-
+	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -160,8 +160,6 @@ void GLLoop(const FClock& Clock)
 	//	FDebug::PrintF("TimeDeltaLocation not found in shader.");
 	//}
 	//glUniform1f(TimeDeltaLocation, FClock::CyclesToSeconds(Clock.GetCycles()));
-
-
 }
 
 void UpdateCamera()
