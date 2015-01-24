@@ -181,7 +181,10 @@
     <ClInclude Include="Include\Input\MouseAxis.h" />
     <ClInclude Include="Include\Input\ButtonEvent.h" />
     <ClInclude Include="Include\Math\PerspectiveMatrix.h" />
+    <ClInclude Include="Include\Rendering\Block.h" />
+    <ClInclude Include="Include\Rendering\Chunk.h" />
     <ClInclude Include="Include\Rendering\GLUtils.h" />
+    <ClInclude Include="Include\Rendering\Mesh.h" />
     <ClInclude Include="Include\Rendering\ShaderProgram.h" />
     <ClInclude Include="Include\Math\Color.h" />
     <ClInclude Include="Include\Math\FMath.h" />
@@ -218,7 +221,10 @@
     <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
     <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
+    <ClCompile Include="Src\Rendering\Block.cpp" />
+    <ClCompile Include="Src\Rendering\Chunk.cpp" />
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
+    <ClCompile Include="Src\Rendering\Mesh.cpp" />
     <ClCompile Include="Src\Rendering\ShaderProgram.cpp" />
     <ClCompile Include="Src\Rendering\UniformBlockStandard.cpp" />
     <ClCompile Include="Src\Rendering\VertexBufferObject.cpp" />

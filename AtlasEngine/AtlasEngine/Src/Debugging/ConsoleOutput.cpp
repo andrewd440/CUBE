@@ -4,7 +4,7 @@ namespace FDebug
 {
 	int32_t VPrintF(const char* Format, va_list ArgList)
 	{
-		const uint32_t MAX_CHARS = 1024;
+		const uint32_t MAX_CHARS = 2048;
 		static char DebugBuffer[MAX_CHARS];
 
 		// Format the arglist with specific Format

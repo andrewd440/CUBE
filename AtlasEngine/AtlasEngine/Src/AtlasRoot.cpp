@@ -21,15 +21,15 @@
 #include "..\Include\Common.h"
 #include "..\Include\Math\Quaternion.h"
 #include "..\Include\Rendering\VertexBufferObject.h"
+#include "..\Include\Rendering\Chunk.h"
 
 namespace
 {
-	static const uint32_t WindowWidth = 1600;
-	static const uint32_t WindowHeight = 1000;
+	static const uint32_t WindowWidth = 1800;
+	static const uint32_t WindowHeight = 1100;
 }
 
 FUniformBlockStandard* UniformBuffer;
-FVertexArrayObject* VertexArray;
 
 FAtlasRoot::FAtlasRoot()
 	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"Atlas Engine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
@@ -40,8 +40,8 @@ FAtlasRoot::FAtlasRoot()
 	}
 
 	IFileSystem* FileSystem = new FFileSystem;
-	UniformBuffer = new FUniformBlockStandard(0, 128);
-	VertexArray = new FVertexArrayObject(1);
+	UniformBuffer = new FUniformBlockStandard(0, 144);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -56,7 +56,6 @@ FAtlasRoot::FAtlasRoot()
 
 FAtlasRoot::~FAtlasRoot()
 {
-	delete VertexArray;
 	delete UniformBuffer;
 	delete IFileSystem::GetInstancePtr();
 }
@@ -67,76 +66,9 @@ void FAtlasRoot::Start()
 	GameLoop();
 }
 
-GLuint EBO;
-Vector3f Eye(0,0,10), LookAt(0,0,0), Up(0,1,0);
+Vector3f Eye(0,0,30), LookAt(0,0,0), Up(0,1,0);
 LookAtMatrix ViewTransform = LookAtMatrix{ Eye, LookAt, Up };
 FShaderProgram* ShaderProgram = nullptr;
-void DrawCube()
-{
-	static const float BlockWidth = .5f;
-
-	static struct Vertex
-	{
-		Vector3f Position;
-		Vector3f Color;
-	} Vertices[8];
-
-	Vertices[0].Position = Vector3f(-BlockWidth, -BlockWidth, BlockWidth); // Bottom - Left - Front
-	Vertices[1].Position = Vector3f(-BlockWidth, BlockWidth, BlockWidth);  // Top - Left - Front
-	Vertices[2].Position = Vector3f(BlockWidth, BlockWidth, BlockWidth);	// Top - Right - Front
-	Vertices[3].Position = Vector3f(BlockWidth, -BlockWidth, BlockWidth);	// Bottom - Right - Front
-	Vertices[4].Position = Vector3f(-BlockWidth, -BlockWidth, -BlockWidth);// Bottom - Left - Back
-	Vertices[5].Position = Vector3f(-BlockWidth, BlockWidth, -BlockWidth); // Top - Left - Back
-	Vertices[6].Position = Vector3f(BlockWidth, BlockWidth, -BlockWidth);  // Top - Right - Back
-	Vertices[7].Position = Vector3f(BlockWidth, -BlockWidth, -BlockWidth); // Bottom - Right - Back
-
-	Vertices[0].Color = Vector3f(1, 1, 1); // Front
-	Vertices[1].Color = Vector3f(.85, .85, .85);  // Top
-	Vertices[2].Color = Vector3f(.75, .75, .75);	// Right
-	Vertices[3].Color = Vector3f(.65, .65, .65);	// Bottom
-	Vertices[4].Color = Vector3f(.55, .55, .55);// Left
-	Vertices[5].Color = Vector3f(.45, .45, .45); // Back
-	Vertices[6].Color = Vector3f(.35, .35, .35);
-	Vertices[7].Color = Vector3f(.25, .25, .25);
-
-
-	static const uint32_t Indices[36] = {
-		1, 0, 3, // Front
-		1, 3, 2,
-		5, 4, 0, // Left
-		5, 0, 1,
-		3, 0, 4, // Bottom
-		3, 4, 7,
-		5, 6, 7, // Back
-		5, 7, 4,
-		2, 3, 7, // Right
-		7, 6, 2,
-		5, 1, 2, // Top
-		5, 2, 6
-	};
-
-
-	glGenBuffers(1, &EBO);
-	VertexArray->SetActive(true);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
-
-	auto& Buffer = VertexArray->GetBuffer(0);
-	Buffer.SetActive(true);
-	Buffer.SetData(sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-
-	// Position attrib
-	Buffer.SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Position));
-	Buffer.EnableAttribute(0);
-
-	// Color attrib
-	Buffer.SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Color));
-	Buffer.EnableAttribute(1);
-
-	Buffer.SetActive(false);
-	VertexArray->SetActive(false);
-}
 
 void GLTests()
 {
@@ -144,25 +76,15 @@ void GLTests()
 	FShader FShader{ L"Triangle.frag", GL_FRAGMENT_SHADER };
 	ShaderProgram = new FShaderProgram{ &VShader, &FShader };
 	ShaderProgram->Use();
-	DrawCube();
 
 	FPerspectiveMatrix Projection{ (float)WindowWidth, (float)WindowHeight, 35, 1, 100 };
 	UniformBuffer->SetData(64, Projection);
-}
-
-void GLLoop(const FClock& Clock)
-{
-	//GLint TimeDeltaLocation = glGetUniformLocation(ShaderProgram->GetID(), "TimeDelta");
-	//if (TimeDeltaLocation < 0)
-	//{
-	//	FDebug::PrintF("TimeDeltaLocation not found in shader.");
-	//}
-	//glUniform1f(TimeDeltaLocation, FClock::CyclesToSeconds(Clock.GetCycles()));
+	UniformBuffer->SetData(128, Vector3f(0,0,0));
 }
 
 void UpdateCamera()
 {
-	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = .002f;
+	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 20.0f * FTime::GetDeltaTime();;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
@@ -177,7 +99,7 @@ void UpdateCamera()
 		YMovement = -MoveSpeed;
 
 
-	const float LookSpeed = 0.05f;
+	const float LookSpeed = 10.0f * FTime::GetFixedUpdate();
 	Vector3f NAxis = (LookAt - Eye).Normalize();
 	Vector3f UAxis = Vector3f::Cross(NAxis, Up).Normalize();
 	// Y Rotation
@@ -204,7 +126,6 @@ void UpdateCamera()
 
 	ViewTransform = LookAtMatrix(Eye, LookAt, Up);
 	UniformBuffer->SetData(0, ViewTransform);
-	UniformBuffer->SendBuffer();
 }
 
 void FAtlasRoot::GameLoop()
@@ -213,10 +134,15 @@ void FAtlasRoot::GameLoop()
 	FClock GameTimer;
 
 	uint64_t FrameStart, FrameEnd;
+	FTime::SetFixedUpdate(.0025f);
 	FTime::SetDeltaTime(1.0f / 30.0f); // Default delta time with 30fps
 	FrameStart = FClock::ReadSystemTimer();
-
+	
+	
 	GLTests();
+	FChunk LotsBlocks;
+	LotsBlocks.CreateMesh();
+
 	// Game Loop
 	while (mGameWindow.isOpen())
 	{
@@ -246,15 +172,16 @@ void FAtlasRoot::GameLoop()
 		ServiceEvents();
 
 		//// OpenGL /////////////////////
-		GLLoop(GameTimer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		VertexArray->SetActive(true);
-		
 		UpdateCamera();
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-		VertexArray->SetActive(false);
+		UniformBuffer->SendBuffer();
+		LotsBlocks.Render();
+
+
+		//std::cout << FTime::GetDeltaTime() << std::endl;
+		//FDebug::PrintF("Frame Time: %f", FTime::GetDeltaTime());
 		//////////////////////////////////
 		mGameWindow.display();
 		//Sleep(100);
