@@ -22,6 +22,7 @@
 #include "..\Include\Math\Quaternion.h"
 #include "..\Include\Rendering\VertexBufferObject.h"
 #include "..\Include\Rendering\Chunk.h"
+#include "..\Include\Rendering\ChunkManager.h"
 
 namespace
 {
@@ -140,8 +141,8 @@ void FAtlasRoot::GameLoop()
 	
 	
 	GLTests();
-	FChunk LotsBlocks;
-	LotsBlocks.CreateMesh();
+	FChunkManager Chunks;
+	Chunks.Setup();
 
 	// Game Loop
 	while (mGameWindow.isOpen())
@@ -177,8 +178,7 @@ void FAtlasRoot::GameLoop()
 		UpdateCamera();
 
 		UniformBuffer->SendBuffer();
-		LotsBlocks.Render();
-
+		Chunks.Render();
 
 		//std::cout << FTime::GetDeltaTime() << std::endl;
 		//FDebug::PrintF("Frame Time: %f", FTime::GetDeltaTime());

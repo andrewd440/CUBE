@@ -181,8 +181,10 @@
     <ClInclude Include="Include\Input\MouseAxis.h" />
     <ClInclude Include="Include\Input\ButtonEvent.h" />
     <ClInclude Include="Include\Math\PerspectiveMatrix.h" />
+    <ClInclude Include="Include\Math\SystemMath.h" />
     <ClInclude Include="Include\Rendering\Block.h" />
     <ClInclude Include="Include\Rendering\Chunk.h" />
+    <ClInclude Include="Include\Rendering\ChunkManager.h" />
     <ClInclude Include="Include\Rendering\GLUtils.h" />
     <ClInclude Include="Include\Rendering\Mesh.h" />
     <ClInclude Include="Include\Rendering\ShaderProgram.h" />
@@ -217,12 +219,14 @@
     <ClCompile Include="Src\Input\MouseAxis.cpp" />
     <ClCompile Include="Src\Input\ButtonEvent.cpp" />
     <ClCompile Include="Src\Math\Color.cpp" />
+    <ClCompile Include="Src\Math\FMath.cpp" />
     <ClCompile Include="Src\Math\FQuaternion.cpp" />
     <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
     <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
     <ClCompile Include="Src\Rendering\Block.cpp" />
     <ClCompile Include="Src\Rendering\Chunk.cpp" />
+    <ClCompile Include="Src\Rendering\ChunkManager.cpp" />
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
     <ClCompile Include="Src\Rendering\Mesh.cpp" />
     <ClCompile Include="Src\Rendering\ShaderProgram.cpp" />

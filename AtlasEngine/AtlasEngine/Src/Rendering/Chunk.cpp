@@ -1,34 +1,73 @@
 #include "..\..\Include\Rendering\Chunk.h"
+#include "..\..\Include\Rendering\UniformBlockStandard.h"
+#include "..\..\Include\Debugging\ConsoleOutput.h"
 
+FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 500> FChunk::ChunkAllocator(__alignof(FChunk));
+
+namespace
+{
+	uint32_t BlockIndex(uint32_t X, uint32_t Y, uint32_t Z)
+	{
+		return X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE + Y * FChunk::CHUNK_SIZE + Z;
+	}
+}
 
 FChunk::FChunk()
 	: mMesh()
+	, mIsLoaded(false)
+	, mBlocks(nullptr)
 {
+}
+
+FChunk::~FChunk()
+{
+	if (mIsLoaded)
+		ChunkAllocator.Free(mBlocks);
+}
+
+void FChunk::Load()
+{
+	ASSERT(!mIsLoaded);
+	mIsLoaded = true;
+	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
+	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
+
 	FOR(x, CHUNK_SIZE)
 	{
 		FOR(y, CHUNK_SIZE)
 		{
 			FOR(z, CHUNK_SIZE)
 			{
-				Blocks[x][y][z].SetActive (false);
-				if (sqrt((float)(z - CHUNK_SIZE / 2.0)*(z - CHUNK_SIZE / 2.0) + 
-								(y - CHUNK_SIZE / 2.0)*(y - CHUNK_SIZE / 2.0) + 
-								(x - CHUNK_SIZE / 2.0)*(x - CHUNK_SIZE / 2.0)) 
-								<= CHUNK_SIZE / 2.0)
-				{
-					Blocks[x][y][z].SetActive(true);
-				}
+				mBlocks[BlockIndex(x, y, z)].SetActive(true);
 			}
 		}
 	}
 }
 
-FChunk::~FChunk()
+void FChunk::Unload()
 {
+	ASSERT(mIsLoaded);
+	mIsLoaded = false;
+	ChunkAllocator.Free(mBlocks);
+	mMesh.Deactivate();
 }
 
-void FChunk::CreateMesh()
+bool FChunk::IsLoaded() const
 {
+	return mIsLoaded;
+}
+
+extern FUniformBlockStandard* UniformBuffer;
+void FChunk::Render(const Vector3f& WorldPosition)
+{
+	UniformBuffer->SetData(128, WorldPosition);
+	UniformBuffer->SendBuffer();
+	mMesh.Render();
+}
+
+void FChunk::BuildMesh()
+{
+	// Reset the mesh
 	mMesh.Deactivate();
 	FOR(x, CHUNK_SIZE)
 	{
@@ -36,7 +75,7 @@ void FChunk::CreateMesh()
 		{
 			FOR(z, CHUNK_SIZE)
 			{
-				if (!Blocks[x][y][z].IsActive())
+				if (!mBlocks[BlockIndex(x, y, z)].IsActive())
 					continue;
 
 				CreateCube(Vector3f((float)x, (float)y, (float)z));
@@ -48,19 +87,17 @@ void FChunk::CreateMesh()
 
 void FChunk::CreateCube(const Vector3f& Position)
 {
-	static const float BlockWidth = .49f;
-
 	// Positions
 	const Vector3f P[8] =
 	{
-		Position + Vector3f(-BlockWidth, -BlockWidth, BlockWidth),	// Bottom - Left -	Front
-		Position + Vector3f(-BlockWidth, BlockWidth, BlockWidth),	// Top -	Left -	Front
-		Position + Vector3f(BlockWidth, BlockWidth, BlockWidth),	// Top -	Right - Front
-		Position + Vector3f(BlockWidth, -BlockWidth, BlockWidth),	// Bottom -	Right - Front
-		Position + Vector3f(-BlockWidth, -BlockWidth, -BlockWidth),	// Bottom - Left -	Back
-		Position + Vector3f(-BlockWidth, BlockWidth, -BlockWidth),	// Top -	Left -	Back
-		Position + Vector3f(BlockWidth, BlockWidth, -BlockWidth),	// Top -	Right - Back
-		Position + Vector3f(BlockWidth, -BlockWidth, -BlockWidth)	// Bottom - Right - Back
+		Position + Vector3f(-FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Bottom - Left -	Front
+		Position + Vector3f(-FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Top -	Left -	Front
+		Position + Vector3f(FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Top -	Right - Front
+		Position + Vector3f(FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Bottom -	Right - Front
+		Position + Vector3f(-FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Bottom - Left -	Back
+		Position + Vector3f(-FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Top -	Left -	Back
+		Position + Vector3f(FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Top -	Right - Back
+		Position + Vector3f(FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE)	// Bottom - Right - Back
 	};
 
 	// Normals
@@ -85,7 +122,7 @@ void FChunk::CreateCube(const Vector3f& Position)
 		Vector3f(0.1f, 0.55f, 0.2f),	// Back
 	};
 
-	VoxelVertex Vertices[24];
+	FVoxelVertex Vertices[24];
 	// Front
 	Vertices[0].Position = P[0];
 	Vertices[1].Position = P[1];
@@ -151,15 +188,12 @@ void FChunk::CreateCube(const Vector3f& Position)
 		7, 5, 6,
 	};
 
-	uint32_t VertexIndices[24];
-	FOR(i, 24)
-	{
-		VertexIndices[i] = mMesh.AddVertex(Vertices[i]);
-	}
+	uint32_t BaseIndex = mMesh.AddVertex(Vertices, 24);
 
-	FOR(i, 12)
-	{	
-		// Calculate index based off indices received from mesh.
-		mMesh.AddTriangle(VertexIndices[BaseIndices[i * 3]], VertexIndices[BaseIndices[i * 3 + 1]], VertexIndices[BaseIndices[i * 3 + 2]]);
-	}
+	// Calculate indices with offset
+	uint32_t VertexIndices[36];
+	FOR(i, 36)
+		VertexIndices[i] = BaseIndex + BaseIndices[i];
+
+	mMesh.AddTriangle(VertexIndices, 12);
 }

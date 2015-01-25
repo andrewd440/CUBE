@@ -1,8 +1,8 @@
 #pragma once
 
+#include "..\Common.h"
 #include "Matrix4.h"
 #include "Vector3.h"
-#include "FMath.h"
 
 /** Represents a unit length 3D rotation quaternion */
 WIN_ALIGN(16)

@@ -1,9 +1,11 @@
 #pragma once
+#include "..\Common.h"
 #include "Matrix4.h"
 
 /**
 * An OpenGL perspective matrix.
 */
+WIN_ALIGN(16)
 class FPerspectiveMatrix : public FMatrix4
 {
 public:

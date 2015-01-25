@@ -4,8 +4,15 @@
 #include <vector>
 #include "..\Math\Vector3.h"
 
-struct VoxelVertex
+struct FVoxelVertex
 {
+	FVoxelVertex(Vector3f Position = Vector3f(), Vector3f Normal = Vector3f(), Vector3f Color = Vector3f())
+		: Position(Position)
+		, Normal(Normal)
+		, Color(Color)
+	{
+	}
+
 	Vector3f Position;
 	Vector3f Normal;
 	Vector3f Color;
@@ -28,9 +35,36 @@ public:
 	FMesh();
 
 	/**
+	* Copy Ctor.
+	* Copies vertex and index data from Other
+	* and opens new OpenGL buffers for its data.
+	*/
+	FMesh(const FMesh& Other);
+
+	/**
+	* Move Ctor.
+	* Steals vertex data, index data and OpenGL buffers
+	* from Other.
+	*/
+	FMesh(FMesh&& Other);
+
+	/**
 	* Deletes buffers held by this object.
 	*/
 	~FMesh();
+
+
+	/**
+	* Copies vertex and index data from Other
+	*/
+	FMesh& operator=(const FMesh& Other);
+
+	/**
+	* Deletes OpenGL buffers held by this object and
+	* vertex data, index data and OpenGL buffers
+	* from Other.
+	*/
+	FMesh& operator=(FMesh&& Other);
 
 	/**
 	* Renders vertex data held by this objects' buffers.
@@ -41,10 +75,18 @@ public:
 	/**
 	* Adds a vertex to the mesh.
 	* @param Vertex to add.
-	* @return ID of the added triangle. This is used to add
+	* @return ID of the added vertex. This is used to add
 	*	triangles to the mesh with AddTriangle()
 	*/
-	uint32_t AddVertex(const VoxelVertex& Vertex);
+	uint32_t AddVertex(const FVoxelVertex& Vertex);
+
+	/**
+	* Adds a list of vertices to the mesh.
+	* @param Vertex - The vertex list.
+	* @param Count - The number of vertices in this list.
+	* @return The ID of the first vertex added.
+	*/
+	uint32_t AddVertex(const FVoxelVertex* Vertex, const uint32_t Count);
 
 	/**
 	* Adds a triangle to the mesh. Vertices must be in CCW order.
@@ -53,6 +95,13 @@ public:
 	* @param V3 - Third vertex ID.
 	*/
 	void AddTriangle(const uint32_t V1, const uint32_t V2, const uint32_t V3);
+
+	/**
+	* Adds a list of triangles to the mesh. Vertices must be in CCW order.
+	* @param Indices - The list of vertex indices for each triangle.
+	* @param Count - Number of triangles to add.
+	*/
+	void AddTriangle(const uint32_t* Indices, const uint32_t Count);
 
 	/**
 	* Clears data held internally by this object and empties
@@ -94,7 +143,7 @@ private:
 	};
 
 private:
-	std::vector<VoxelVertex> mVertices;
+	std::vector<FVoxelVertex> mVertices;
 	std::vector<uint32_t> mIndices;
 	GLuint mVertexArray;
 	GLuint mBuffers[2];
@@ -117,10 +166,17 @@ inline uint32_t FMesh::TriangleCount() const
 	return mVertices.size() / 3;
 }
 
-inline uint32_t FMesh::AddVertex(const VoxelVertex& Vertex)
+inline uint32_t FMesh::AddVertex(const FVoxelVertex& Vertex)
 {
 	uint32_t ReturningIndex = mVertices.size();
 	mVertices.push_back(Vertex);
+	return ReturningIndex;
+}
+
+inline uint32_t FMesh::AddVertex(const FVoxelVertex* Vertex, const uint32_t Count)
+{
+	uint32_t ReturningIndex = mVertices.size();
+	mVertices.insert(mVertices.end(), Vertex, Vertex + Count);
 	return ReturningIndex;
 }
 
@@ -129,4 +185,9 @@ inline void FMesh::AddTriangle(const uint32_t V1, const uint32_t V2, const uint3
 	mIndices.push_back(V1);
 	mIndices.push_back(V2);
 	mIndices.push_back(V3);
+}
+
+inline void FMesh::AddTriangle(const uint32_t* Indices, const uint32_t Count)
+{
+	mIndices.insert(mIndices.end(), Indices, Indices + (Count * 3));
 }

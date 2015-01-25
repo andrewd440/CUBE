@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <cstdio>
-
 #include "Misc\Assertions.h"
 
 template <typename T>

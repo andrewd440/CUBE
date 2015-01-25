@@ -129,6 +129,12 @@
     <ClInclude Include="Include\Rendering\Chunk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Rendering\ChunkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Math\SystemMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -189,6 +195,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\Chunk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\ChunkManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Math\FMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

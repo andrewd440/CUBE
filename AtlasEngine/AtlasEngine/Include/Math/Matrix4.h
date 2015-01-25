@@ -4,10 +4,12 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "SystemMath.h"
+#include "..\Common.h"
+#include "FMath.h"
 #include "Math\Vector3.h"
 #include "Math\Vector4.h"
 #include "Misc\Assertions.h"
-#include "FMath.h"
 
 
 /**
@@ -208,13 +210,15 @@ struct FMatrix4
 inline FMatrix4 operator*(const FMatrix4& Lhs, const float Scalar)
 {
 	FMatrix4 Result;
-	for (int col = 0; col < 4; col++)
+	FMatrix4 Scale
 	{
-		for (int row = 0; row < 4; row++)
-		{
-			Result.M[col][row] = Lhs.M[col][row] * Scalar;
-		}
-	}
+		Scalar, Scalar, Scalar, Scalar,
+		Scalar, Scalar, Scalar, Scalar,
+		Scalar, Scalar, Scalar, Scalar,
+		Scalar, Scalar, Scalar, Scalar
+	};
+
+	MultComponentMatrixMatrix(Lhs, Scale, Result);
 	return Result;
 }
 
@@ -226,26 +230,14 @@ inline FMatrix4 operator*(const float Scalar, const FMatrix4& Lhs)
 inline FMatrix4 operator+(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	for (int col = 0; col < 4; col++)
-	{
-		for (int row = 0; row < 4; row++)
-		{
-			Result.M[col][row] = Lhs.M[col][row] + Rhs.M[col][row];
-		}
-	}
+	AddMatrixMatrix(Lhs, Rhs, Result);
 	return Result;
 }
 
 inline FMatrix4 operator*(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	for (int col = 0; col < 4; col++)
-	{
-		for (int row = 0; row < 4; row++)
-		{
-			Result.M[col][row] = Vector4f::Dot4(Lhs.GetRow(row), Rhs.GetColumn(col));
-		}
-	}
+	MultMatrixMatrix(Lhs, Rhs, Result);
 	return Result;
 }
 
@@ -312,35 +304,20 @@ inline FMatrix4& FMatrix4::operator=(const FMatrix4& Other)
 
 inline FMatrix4& FMatrix4::operator*=(const FMatrix4& Rhs)
 {
-	float tempM[4][4];
-
-	for (int col = 0; col < 4; col++)
-	{
-		for (int row = 0; row < 4; row++)
-		{
-			tempM[col][row] = Vector4f::Dot4(GetRow(row), Rhs.GetColumn(col));
-		}
-	}
-
-	for (int col = 0; col < 4; col++)
-	{
-		for (int row = 0; row < 4; row++)
-		{
-			M[col][row] = tempM[col][row];
-		}
-	}
-
+	MultMatrixMatrix(*this, Rhs, *this);
 	return *this;
 }
 
 inline FMatrix4& FMatrix4::operator*=(float Scalar)
 {
-	return *this *= Scalar;
+	*this = *this * Scalar;
+	return *this;
 }
 
 inline FMatrix4& FMatrix4::operator+=(const FMatrix4& Rhs)
 {
-	return *this += Rhs;
+	*this = *this + Rhs;
+	return *this;
 }
 
 inline bool FMatrix4::operator==(const FMatrix4& Rhs) const
@@ -396,12 +373,9 @@ inline Vector3f FMatrix4::TransformPosition(const Vector3f& Position) const
 
 inline Vector4f FMatrix4::TransformVector(const Vector4f& Vector) const
 {
-	Vector4f transformed;
-	transformed.x = Vector4f::Dot4(GetRow(0), Vector);
-	transformed.y = Vector4f::Dot4(GetRow(1), Vector);
-	transformed.z = Vector4f::Dot4(GetRow(2), Vector);
-	transformed.w = Vector4f::Dot4(GetRow(3), Vector);
-	return transformed;
+	Vector4f Transformed;
+	MultVectorMatrix(*this, Vector, Transformed);
+	return Transformed;
 }
 
 inline Vector3f FMatrix4::GetAxis(EAxis Axis) const

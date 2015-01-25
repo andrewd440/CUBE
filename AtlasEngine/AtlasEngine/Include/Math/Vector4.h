@@ -5,7 +5,7 @@
 
 #include "Math\Vector3.h"
 #include "Misc\Assertions.h"
-#include "FMath.h"
+#include "..\Common.h"
 
 template <typename T>
 /**

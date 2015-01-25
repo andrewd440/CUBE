@@ -1,5 +1,6 @@
 #include "..\..\Include\Rendering\Mesh.h"
 #include "..\..\Include\Rendering\GLUtils.h"
+#include "..\..\Include\Common.h"
 
 FMesh::FMesh()
 	: mVertices()
@@ -11,10 +12,77 @@ FMesh::FMesh()
 	glGenBuffers(2, mBuffers);
 }
 
+FMesh::FMesh(const FMesh& Other)
+	: mVertices(Other.mVertices)
+	, mIndices(Other.mIndices)
+	, mIsActive(Other.mIsActive)
+{
+	glGenVertexArrays(1, &mVertexArray);
+	glGenBuffers(2, mBuffers);
+
+	if (mIsActive)
+		Activate();
+}
+
+FMesh::FMesh(FMesh&& Other)
+	: mVertices(std::move(Other.mVertices))
+	, mIndices(std::move(Other.mIndices))
+	, mVertexArray(Other.mVertexArray)
+	, mIsActive(Other.mIsActive)
+{
+	// Copy buffers
+	FOR(i, 2)
+		mBuffers[i] = Other.mBuffers[i];
+
+	// Remove buffers from Other
+	Other.mVertexArray = 0;
+	Other.mBuffers[0] = Other.mBuffers[1] = 0;
+	Other.mIsActive = false;
+}
+
 FMesh::~FMesh()
 {
 	glDeleteVertexArrays(1, &mVertexArray);
 	glDeleteBuffers(2, mBuffers);
+}
+
+FMesh& FMesh::operator=(const FMesh& Other)
+{
+	// Copy vertex data
+	mVertices = Other.mVertices;
+	mIndices = Other.mIndices;
+	mIsActive = Other.mIsActive;
+
+	if (mIsActive)
+		Activate();
+	else
+		Deactivate();
+
+	return *this;
+}
+
+FMesh& FMesh::operator=(FMesh&& Other)
+{
+	// Delete buffers held
+	glDeleteVertexArrays(1, &mVertexArray);
+	glDeleteBuffers(2, mBuffers);
+
+	// Steal data
+	mVertices = std::move(Other.mVertices);
+	mIndices = std::move(Other.mIndices);
+	mVertexArray = Other.mVertexArray;
+	mIsActive = Other.mIsActive;
+
+	// Copy buffers
+	FOR(i, 2)
+		mBuffers[i] = Other.mBuffers[i];
+
+	// Remove buffers from Other
+	Other.mVertexArray = 0;
+	Other.mBuffers[0] = Other.mBuffers[1] = 0;
+	Other.mIsActive = false;
+
+	return *this;
 }
 
 void FMesh::Render(const GLenum RenderMode)
@@ -26,6 +94,9 @@ void FMesh::Render(const GLenum RenderMode)
 
 void FMesh::Deactivate()
 {
+	if (!mIsActive)
+		return;
+
 	mIsActive = false;
 
 	// Free data
@@ -55,15 +126,15 @@ void FMesh::Activate()
 
 	// Supply vertex data to gpu
 	GLUtils::BufferBinder<GL_ARRAY_BUFFER> VertexBinding(mBuffers[Vertex]);
-	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(VoxelVertex), mVertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(FVoxelVertex), mVertices.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(GLAttributePosition::Position, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelVertex), BUFFER_OFFSET(offsetof(VoxelVertex, Position)));
+	glVertexAttribPointer(GLAttributePosition::Position, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Position)));
 	glEnableVertexAttribArray(GLAttributePosition::Position);
 
-	glVertexAttribPointer(GLAttributePosition::Normal, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelVertex), BUFFER_OFFSET(offsetof(VoxelVertex, Normal)));
+	glVertexAttribPointer(GLAttributePosition::Normal, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Normal)));
 	glEnableVertexAttribArray(GLAttributePosition::Normal);
 
-	glVertexAttribPointer(GLAttributePosition::Color, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelVertex), BUFFER_OFFSET(offsetof(VoxelVertex, Color)));
+	glVertexAttribPointer(GLAttributePosition::Color, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Color)));
 	glEnableVertexAttribArray(GLAttributePosition::Color);
 
 	// Supply index data to gpu
