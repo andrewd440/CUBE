@@ -20,15 +20,13 @@
 #include "..\Include\Rendering\UniformBlockStandard.h"
 #include "..\Include\Common.h"
 #include "..\Include\Math\Quaternion.h"
-#include "..\Include\Rendering\VertexBufferObject.h"
-#include "..\Include\Rendering\Chunk.h"
 #include "..\Include\Rendering\ChunkManager.h"
+#include "..\Include\Debugging\DebugText.h"
+#include "..\Include\Math\OrthoMatrix.h"
 
-namespace
-{
-	static const uint32_t WindowWidth = 1800;
-	static const uint32_t WindowHeight = 1100;
-}
+
+const uint32_t WindowWidth = 1800;
+const uint32_t WindowHeight = 1100;
 
 FUniformBlockStandard* UniformBuffer;
 
@@ -43,14 +41,12 @@ FAtlasRoot::FAtlasRoot()
 	IFileSystem* FileSystem = new FFileSystem;
 	UniformBuffer = new FUniformBlockStandard(0, 144);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
 	FMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
 }
 
@@ -67,7 +63,7 @@ void FAtlasRoot::Start()
 	GameLoop();
 }
 
-Vector3f Eye(0,0,30), LookAt(0,0,0), Up(0,1,0);
+Vector3f Eye((FChunkManager::WORLD_WIDTH / 2) * 16, 16, (FChunkManager::WORLD_WIDTH / 2) * 16), LookAt(32, 16, 33), Up(0, 1, 0);
 LookAtMatrix ViewTransform = LookAtMatrix{ Eye, LookAt, Up };
 FShaderProgram* ShaderProgram = nullptr;
 
@@ -129,6 +125,7 @@ void UpdateCamera()
 	UniformBuffer->SetData(0, ViewTransform);
 }
 
+
 void FAtlasRoot::GameLoop()
 {
 	// Setup game timers
@@ -142,11 +139,13 @@ void FAtlasRoot::GameLoop()
 	
 	GLTests();
 	FChunkManager Chunks;
-	Chunks.Setup();
+	mGameWindow.setMouseCursorVisible(false);
 
+	FDebugText Texting;
+	Texting.SetStyle("Vera.ttf", 60, FDebugText::AtlasInfo{ 512, 512, 1 });
 	// Game Loop
 	while (mGameWindow.isOpen())
-	{
+	{	
 		// Manage frame timers
 		FrameEnd = FClock::ReadSystemTimer();
 		uint64_t FrameTime = FrameEnd - FrameStart;
@@ -176,9 +175,14 @@ void FAtlasRoot::GameLoop()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		UpdateCamera();
-
 		UniformBuffer->SendBuffer();
+		Chunks.Update();
 		Chunks.Render();
+		wchar_t String[100];
+		swprintf_s(String, L"FPS: %.6f", 1.0f / FTime::GetDeltaTime());
+		Texting.AddText(String, FColor(1, 0, 1, .5f), Vector2i(100, 100));
+		Texting.Render();
+		ShaderProgram->Use();
 
 		//std::cout << FTime::GetDeltaTime() << std::endl;
 		//FDebug::PrintF("Frame Time: %f", FTime::GetDeltaTime());

@@ -1,23 +1,19 @@
 #pragma once
-
 #include <GL\glew.h>
 #include <vector>
 #include "..\Math\Vector3.h"
 
+/**
+* Voxel vertex (P, N, C)
+*/
 struct FVoxelVertex
 {
-	FVoxelVertex(Vector3f Position = Vector3f(), Vector3f Normal = Vector3f(), Vector3f Color = Vector3f())
-		: Position(Position)
-		, Normal(Normal)
-		, Color(Color)
-	{
-	}
-
 	Vector3f Position;
 	Vector3f Normal;
 	Vector3f Color;
 };
 
+template <typename Vertex>
 /**
 * An OpenGL indexed triangle mesh. 
 * Triangle data can be added to the mesh before
@@ -26,8 +22,10 @@ struct FVoxelVertex
 * with Activate(), which sends it's information to the GPU,
 * before it can be rendered.
 */
-class FMesh
+class IMesh
 {
+public:
+	using VertexType = Vertex;
 public:
 	/**
 	* Defualt Ctor.
@@ -78,7 +76,7 @@ public:
 	* @return ID of the added vertex. This is used to add
 	*	triangles to the mesh with AddTriangle()
 	*/
-	uint32_t AddVertex(const FVoxelVertex& Vertex);
+	uint32_t AddVertex(const VertexType& Vertex);
 
 	/**
 	* Adds a list of vertices to the mesh.
@@ -86,7 +84,7 @@ public:
 	* @param Count - The number of vertices in this list.
 	* @return The ID of the first vertex added.
 	*/
-	uint32_t AddVertex(const FVoxelVertex* Vertex, const uint32_t Count);
+	uint32_t AddVertex(const VertexType* Vertex, const uint32_t Count);
 
 	/**
 	* Adds a triangle to the mesh. Vertices must be in CCW order.
@@ -143,7 +141,7 @@ private:
 	};
 
 private:
-	std::vector<FVoxelVertex> mVertices;
+	std::vector<VertexType> mVertices;
 	std::vector<uint32_t> mIndices;
 	GLuint mVertexArray;
 	GLuint mBuffers[2];
@@ -151,43 +149,52 @@ private:
 	bool mIsActive;
 };
 
-inline bool FMesh::IsActive() const
+#include "Mesh.inl"
+
+template <typename T>
+inline bool FMesh<T>::IsActive() const
 {
 	return mIsActive;
 }
 
-inline uint32_t FMesh::GetIndexCount() const
+template <typename T>
+inline uint32_t FMesh<T>::GetIndexCount() const
 {
 	return mIndices.size();
 }
 
-inline uint32_t FMesh::TriangleCount() const
+template <typename T>
+inline uint32_t FMesh<T>::TriangleCount() const
 {
 	return mVertices.size() / 3;
 }
 
-inline uint32_t FMesh::AddVertex(const FVoxelVertex& Vertex)
+template <typename T>
+inline uint32_t FMesh<T>::AddVertex(const typename FMesh<T>::VertexType& Vertex)
 {
 	uint32_t ReturningIndex = mVertices.size();
 	mVertices.push_back(Vertex);
 	return ReturningIndex;
 }
 
-inline uint32_t FMesh::AddVertex(const FVoxelVertex* Vertex, const uint32_t Count)
+template <typename T>
+inline uint32_t FMesh<T>::AddVertex(const typename FMesh<T>::VertexType* Vertex, const uint32_t Count)
 {
 	uint32_t ReturningIndex = mVertices.size();
 	mVertices.insert(mVertices.end(), Vertex, Vertex + Count);
 	return ReturningIndex;
 }
 
-inline void FMesh::AddTriangle(const uint32_t V1, const uint32_t V2, const uint32_t V3)
+template <typename T>
+inline void FMesh<T>::AddTriangle(const uint32_t V1, const uint32_t V2, const uint32_t V3)
 {
 	mIndices.push_back(V1);
 	mIndices.push_back(V2);
 	mIndices.push_back(V3);
 }
 
-inline void FMesh::AddTriangle(const uint32_t* Indices, const uint32_t Count)
+template <typename T>
+inline void FMesh<T>::AddTriangle(const uint32_t* Indices, const uint32_t Count)
 {
 	mIndices.insert(mIndices.end(), Indices, Indices + (Count * 3));
 }

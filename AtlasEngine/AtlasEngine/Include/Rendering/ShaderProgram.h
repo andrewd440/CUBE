@@ -70,13 +70,13 @@ private:
 class FShaderProgram
 {
 public:
+	FShaderProgram();
+
 	/**
 	* Default ctor.
-	* Creates a shader program with possible inputs
-	* for a vertex, fragment, and geometry shader.
-	* @param VertexSrc - Filename of the vertex shader source.
-	* @param FragmentSrc - Filename of the fragment shader source.
-	* @param GeometrySrc - Filename of the geometry shader source.
+	* Creates a shader program.
+	* @param Shaders - A list of compiled shaders to attach to
+	*					this program.
 	*/
 	explicit FShaderProgram(const std::initializer_list<const FShader*> Shaders);
 
@@ -99,7 +99,7 @@ public:
 	* Once the linking is complete, all previously attacheds shaders
 	* are detached from this program.
 	*/
-	void LinkProgram() const;
+	void LinkProgram();
 
 	/**
 	* Returns the GLuint id of the program.

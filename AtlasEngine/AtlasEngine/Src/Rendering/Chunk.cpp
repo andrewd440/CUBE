@@ -22,15 +22,19 @@ FChunk::FChunk()
 FChunk::~FChunk()
 {
 	if (mIsLoaded)
+	{
 		ChunkAllocator.Free(mBlocks);
+		delete mMesh;
+	}
 }
 
 void FChunk::Load()
 {
 	ASSERT(!mIsLoaded);
+	mMesh = new FMesh<FVoxelVertex>;
 	mIsLoaded = true;
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
-	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
+	FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
 
 	FOR(x, CHUNK_SIZE)
 	{
@@ -46,10 +50,12 @@ void FChunk::Load()
 
 void FChunk::Unload()
 {
+	delete mMesh;
 	ASSERT(mIsLoaded);
+	FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
 	mIsLoaded = false;
 	ChunkAllocator.Free(mBlocks);
-	mMesh.Deactivate();
+	//mMesh->Deactivate();
 }
 
 bool FChunk::IsLoaded() const
@@ -62,13 +68,13 @@ void FChunk::Render(const Vector3f& WorldPosition)
 {
 	UniformBuffer->SetData(128, WorldPosition);
 	UniformBuffer->SendBuffer();
-	mMesh.Render();
+	mMesh->Render();
 }
 
 void FChunk::BuildMesh()
 {
 	// Reset the mesh
-	mMesh.Deactivate();
+	mMesh->Deactivate();
 	FOR(x, CHUNK_SIZE)
 	{
 		FOR(y, CHUNK_SIZE)
@@ -82,7 +88,7 @@ void FChunk::BuildMesh()
 			}
 		}
 	}
-	mMesh.Activate();
+	mMesh->Activate();
 }
 
 void FChunk::CreateCube(const Vector3f& Position)
@@ -188,12 +194,12 @@ void FChunk::CreateCube(const Vector3f& Position)
 		7, 5, 6,
 	};
 
-	uint32_t BaseIndex = mMesh.AddVertex(Vertices, 24);
+	uint32_t BaseIndex = mMesh->AddVertex(Vertices, 24);
 
 	// Calculate indices with offset
 	uint32_t VertexIndices[36];
 	FOR(i, 36)
 		VertexIndices[i] = BaseIndex + BaseIndices[i];
 
-	mMesh.AddTriangle(VertexIndices, 12);
+	mMesh->AddTriangle(VertexIndices, 12);
 }

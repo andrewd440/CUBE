@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GL\glew.h>
-#include <GL\GL.h>
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
@@ -65,5 +64,6 @@ namespace GLAttributePosition
 		Position,
 		Normal,
 		Color,
+		UV,
 	};
 }

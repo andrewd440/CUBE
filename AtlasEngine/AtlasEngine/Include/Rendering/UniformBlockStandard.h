@@ -6,6 +6,7 @@
 
 #include "..\Math\Matrix4.h"
 #include "..\Math\PerspectiveMatrix.h"
+#include "..\Math\OrthoMatrix.h"
 #include "..\Math\Vector4.h"
 #include "..\Math\Vector3.h"
 #include "..\Math\Vector2.h"
@@ -98,6 +99,12 @@ inline void FUniformBlockStandard::SetData<FMatrix4>(const uint32_t DataOffset, 
 
 template <>
 inline void FUniformBlockStandard::SetData<FPerspectiveMatrix>(const uint32_t DataOffset, const FPerspectiveMatrix& Type)
+{
+	SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
+}
+
+template <>
+inline void FUniformBlockStandard::SetData<FOrthoMatrix>(const uint32_t DataOffset, const FOrthoMatrix& Type)
 {
 	SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
 }

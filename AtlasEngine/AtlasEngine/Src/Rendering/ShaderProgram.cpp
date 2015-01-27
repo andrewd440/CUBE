@@ -87,6 +87,12 @@ void FShader::CheckShaderErrors(GLuint Shader) const
 /////////////////////////
 //// FShaderProgram /////
 
+FShaderProgram::FShaderProgram()
+	:mID(glCreateProgram())
+{
+
+}
+
 FShaderProgram::FShaderProgram(const std::initializer_list<const FShader*> Shaders)
 	: mID(glCreateProgram())
 {
@@ -96,10 +102,6 @@ FShaderProgram::FShaderProgram(const std::initializer_list<const FShader*> Shade
 	}
 
 	LinkProgram();
-
-#ifndef NDEBUG
-	CheckProgramErrors();
-#endif
 }
 
 FShaderProgram::~FShaderProgram()
@@ -112,7 +114,7 @@ void FShaderProgram::AttachShader(const FShader& Shader)
 	glAttachShader(mID, Shader.GetID());
 }
 
-void FShaderProgram::LinkProgram() const
+void FShaderProgram::LinkProgram()
 {
 	glLinkProgram(mID);
 
@@ -127,6 +129,10 @@ void FShaderProgram::LinkProgram() const
 	{
 		glDetachShader(mID, AttachedShaders[i]);
 	}
+
+#ifndef NDEBUG
+	CheckProgramErrors();
+#endif
 }
 
 #ifndef NDEBUG

@@ -7,7 +7,7 @@
 class FChunkManager
 {
 public:
-	static const uint32_t WORLD_WIDTH = 4;
+	static const uint32_t WORLD_WIDTH = 512;
 	static const uint32_t WORLD_HEIGHT = 1;
 public:
 	FChunkManager();

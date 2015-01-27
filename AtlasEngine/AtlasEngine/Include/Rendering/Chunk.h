@@ -62,6 +62,6 @@ private:
 
 private:
 	FBlock* mBlocks;
-	FMesh mMesh;
+	FMesh<FVoxelVertex>* mMesh;
 	bool mIsLoaded;
 };

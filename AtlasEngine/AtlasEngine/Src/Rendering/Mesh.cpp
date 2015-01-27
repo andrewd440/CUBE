@@ -1,8 +1,9 @@
-#include "..\..\Include\Rendering\Mesh.h"
 #include "..\..\Include\Rendering\GLUtils.h"
 #include "..\..\Include\Common.h"
+#include "..\..\Include\VertexTraits.h"
 
-FMesh::FMesh()
+template <typename T>
+FMesh<T>::FMesh()
 	: mVertices()
 	, mIndices()
 	, mVertexArray()
@@ -12,7 +13,8 @@ FMesh::FMesh()
 	glGenBuffers(2, mBuffers);
 }
 
-FMesh::FMesh(const FMesh& Other)
+template <typename T>
+FMesh<T>::FMesh(const FMesh<T>& Other)
 	: mVertices(Other.mVertices)
 	, mIndices(Other.mIndices)
 	, mIsActive(Other.mIsActive)
@@ -24,7 +26,8 @@ FMesh::FMesh(const FMesh& Other)
 		Activate();
 }
 
-FMesh::FMesh(FMesh&& Other)
+template <typename T>
+FMesh<T>::FMesh(FMesh<T>&& Other)
 	: mVertices(std::move(Other.mVertices))
 	, mIndices(std::move(Other.mIndices))
 	, mVertexArray(Other.mVertexArray)
@@ -40,13 +43,15 @@ FMesh::FMesh(FMesh&& Other)
 	Other.mIsActive = false;
 }
 
-FMesh::~FMesh()
+template <typename T>
+FMesh<T>::~FMesh()
 {
 	glDeleteVertexArrays(1, &mVertexArray);
 	glDeleteBuffers(2, mBuffers);
 }
 
-FMesh& FMesh::operator=(const FMesh& Other)
+template <typename T>
+FMesh<T>& FMesh<T>::operator=(const FMesh<T>& Other)
 {
 	// Copy vertex data
 	mVertices = Other.mVertices;
@@ -61,7 +66,8 @@ FMesh& FMesh::operator=(const FMesh& Other)
 	return *this;
 }
 
-FMesh& FMesh::operator=(FMesh&& Other)
+template <typename T>
+FMesh<T>& FMesh<T>::operator=(FMesh<T>&& Other)
 {
 	// Delete buffers held
 	glDeleteVertexArrays(1, &mVertexArray);
@@ -85,14 +91,16 @@ FMesh& FMesh::operator=(FMesh&& Other)
 	return *this;
 }
 
-void FMesh::Render(const GLenum RenderMode)
+template <typename T>
+void FMesh<T>::Render(const GLenum RenderMode)
 {
 	ASSERT(mIsActive);
 	GLUtils::ArrayBinder VAOBinding(mVertexArray);
 	glDrawElements(RenderMode, mIndices.size(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 }
 
-void FMesh::Deactivate()
+template <typename T>
+void FMesh<T>::Deactivate()
 {
 	if (!mIsActive)
 		return;
@@ -114,30 +122,35 @@ void FMesh::Deactivate()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, nullptr, GL_STATIC_DRAW);
 }
 
-void FMesh::Activate()
+template <typename T>
+void FMesh<T>::Activate()
 {
 	mIsActive = true;
-
-	// Clear unused space
-	mVertices.shrink_to_fit();
-	mIndices.shrink_to_fit();
 
 	GLUtils::ArrayBinder VAOBinding(mVertexArray);
 
 	// Supply vertex data to gpu
 	GLUtils::BufferBinder<GL_ARRAY_BUFFER> VertexBinding(mBuffers[Vertex]);
-	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(FVoxelVertex), mVertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(VertexType), mVertices.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(GLAttributePosition::Position, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Position)));
-	glEnableVertexAttribArray(GLAttributePosition::Position);
-
-	glVertexAttribPointer(GLAttributePosition::Normal, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Normal)));
-	glEnableVertexAttribArray(GLAttributePosition::Normal);
-
-	glVertexAttribPointer(GLAttributePosition::Color, 3, GL_FLOAT, GL_FALSE, sizeof(FVoxelVertex), BUFFER_OFFSET(offsetof(FVoxelVertex, Color)));
-	glEnableVertexAttribArray(GLAttributePosition::Color);
+	using namespace VertexTraits;
+	for (uint32_t i = 0; i < Attribute_Count<VertexType>::Count; i++)
+	{
+		glVertexAttribPointer(GL_Attribute<VertexType>::Position[i],
+			GL_Attribute<VertexType>::ElementCount[i],
+			GL_Attribute<VertexType>::Type[i],
+			GL_Attribute<VertexType>::Normalized[i],
+			sizeof(VertexType),
+			BUFFER_OFFSET(GL_Attribute<VertexType>::Offset[i]));
+		glEnableVertexAttribArray(GL_Attribute<VertexType>::Position[i]);
+	}
 
 	// Supply index data to gpu
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[Index]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(uint32_t), mIndices.data(), GL_STATIC_DRAW);
+
+
+	// Clear local data
+	mVertices.clear();
+	mIndices.clear();
 }
