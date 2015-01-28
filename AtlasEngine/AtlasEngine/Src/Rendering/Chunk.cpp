@@ -3,6 +3,7 @@
 #include "..\..\Include\Debugging\ConsoleOutput.h"
 
 FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 500> FChunk::ChunkAllocator(__alignof(FChunk));
+FPoolAllocatorType<TMesh<FVoxelVertex>, 500> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 
 namespace
 {
@@ -13,9 +14,9 @@ namespace
 }
 
 FChunk::FChunk()
-	: mMesh()
+	: mBlocks(nullptr)
+	, mMesh(nullptr)
 	, mIsLoaded(false)
-	, mBlocks(nullptr)
 {
 }
 
@@ -24,17 +25,21 @@ FChunk::~FChunk()
 	if (mIsLoaded)
 	{
 		ChunkAllocator.Free(mBlocks);
-		delete mMesh;
+		MeshAllocator.Free(mMesh);
 	}
 }
 
 void FChunk::Load()
 {
 	ASSERT(!mIsLoaded);
-	mMesh = new FMesh<FVoxelVertex>;
-	mIsLoaded = true;
+
+	// In-place allocate mesh and allocate blocks
+	mMesh = new (MeshAllocator.Allocate()) TMesh<FVoxelVertex>(GL_STATIC_DRAW);
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
-	FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
+
+	mIsLoaded = true;
+
+	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
 
 	FOR(x, CHUNK_SIZE)
 	{
@@ -50,12 +55,13 @@ void FChunk::Load()
 
 void FChunk::Unload()
 {
-	delete mMesh;
 	ASSERT(mIsLoaded);
-	FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
 	mIsLoaded = false;
+
+	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
+
+	MeshAllocator.Free(mMesh);
 	ChunkAllocator.Free(mBlocks);
-	//mMesh->Deactivate();
 }
 
 bool FChunk::IsLoaded() const
@@ -74,7 +80,7 @@ void FChunk::Render(const Vector3f& WorldPosition)
 void FChunk::BuildMesh()
 {
 	// Reset the mesh
-	mMesh->Deactivate();
+	mMesh->ClearData();
 	FOR(x, CHUNK_SIZE)
 	{
 		FOR(y, CHUNK_SIZE)

@@ -81,9 +81,6 @@
     <ClInclude Include="Include\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\FTime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -120,9 +117,6 @@
     <ClInclude Include="Include\Rendering\VertexBufferObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Rendering\Block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -144,8 +138,17 @@
     <ClInclude Include="Include\Rendering\VertexTraits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\Mesh.inl">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Include\Rendering\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\Screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\STime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ResourceHolder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -218,12 +221,21 @@
     <ClCompile Include="Src\Rendering\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Rendering\Screen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Triangle.frag" />
-    <None Include="Triangle.vert" />
     <None Include="Include\Rendering\VertexTraits.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Include\Rendering\Mesh.inl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Shaders\BlinnLighting.vert" />
+    <None Include="Shaders\BlinnLighting.frag" />
+    <None Include="Include\ResourceHolder.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

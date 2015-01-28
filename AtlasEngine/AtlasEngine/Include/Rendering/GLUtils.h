@@ -67,3 +67,11 @@ namespace GLAttributePosition
 		UV,
 	};
 }
+
+namespace GLUniformBlockBindings
+{
+	enum
+	{
+		TransformBlock,
+	};
+}

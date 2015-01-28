@@ -9,7 +9,7 @@ namespace FString
 	* for computation.
 	* @param String Null-terminated c-string to be hashed.
 	*/
-	uint32_t HashCRC32(const char* String)
+	inline uint32_t HashCRC32(const char* String)
 	{
 		static const uint32_t Polynomial = 0x04C11DB7;
 		static const uint32_t Table[256] = {

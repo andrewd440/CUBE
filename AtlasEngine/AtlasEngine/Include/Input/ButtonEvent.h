@@ -10,11 +10,11 @@
 * not ment to be instatiated. Button events are updated
 * on each frame.
 */
-class FButtonEvent
+class SButtonEvent
 {
 public:
-	FButtonEvent() = delete;
-	~FButtonEvent() = delete;
+	SButtonEvent() = delete;
+	~SButtonEvent() = delete;
 
 	/**
 	* Resets all currently store button events.

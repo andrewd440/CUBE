@@ -93,7 +93,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>Include/;ThirdParty/SFMT;C:\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -132,7 +132,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>Include/;ThirdParty/SFMT;C:\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -179,7 +179,8 @@
     <ClInclude Include="Include\Debugging\ConsoleOutput.h" />
     <ClInclude Include="Include\Debugging\DebugText.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
-    <ClInclude Include="Include\FTime.h" />
+    <ClInclude Include="Include\ResourceHolder.h" />
+    <ClInclude Include="Include\STime.h" />
     <ClInclude Include="Include\Input\MouseAxis.h" />
     <ClInclude Include="Include\Input\ButtonEvent.h" />
     <ClInclude Include="Include\Math\OrthoMatrix.h" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Include\Rendering\Chunk.h" />
     <ClInclude Include="Include\Rendering\ChunkManager.h" />
     <ClInclude Include="Include\Rendering\GLUtils.h" />
+    <ClInclude Include="Include\Rendering\Screen.h" />
     <ClInclude Include="Include\Rendering\VertexTraits.h" />
     <ClInclude Include="Include\Rendering\Mesh.h" />
     <ClInclude Include="Include\Rendering\ShaderProgram.h" />
@@ -218,9 +220,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
-    <ClInclude Include="Include\Rendering\Mesh.inl">
+    <None Include="Include\Rendering\Mesh.inl">
       <FileType>CppCode</FileType>
-    </ClInclude>
+    </None>
     <ClCompile Include="Src\AtlasRoot.cpp" />
     <ClCompile Include="Src\Debugging\ConsoleOutput.cpp" />
     <ClCompile Include="Src\Debugging\DebugText.cpp" />
@@ -237,6 +239,7 @@
     <ClCompile Include="Src\Rendering\ChunkManager.cpp" />
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
     <ClCompile Include="Src\Rendering\Mesh.cpp" />
+    <ClCompile Include="Src\Rendering\Screen.cpp" />
     <ClCompile Include="Src\Rendering\ShaderProgram.cpp" />
     <ClCompile Include="Src\Rendering\UniformBlockStandard.cpp" />
     <ClCompile Include="Src\Rendering\VertexBufferObject.cpp" />
@@ -246,9 +249,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Include\Rendering\VertexTraits.inl" />
+    <None Include="Include\ResourceHolder.inl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="packages.config" />
-    <None Include="Triangle.frag" />
-    <None Include="Triangle.vert" />
+    <None Include="Shaders\BlinnLighting.frag" />
+    <None Include="Shaders\BlinnLighting.vert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\freetype-gl\Build\freetype-gl.vcxproj">

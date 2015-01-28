@@ -23,6 +23,8 @@ public:
 private:
 	void ServiceEvents();
 
+	void UpdateTimers();
+
 private:
 	sf::Window mGameWindow;
 };

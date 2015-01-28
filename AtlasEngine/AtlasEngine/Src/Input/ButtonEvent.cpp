@@ -1,13 +1,13 @@
 #include "..\..\Include\Input\ButtonEvent.h"
 #include "..\..\Include\Misc\Assertions.h"
 
-std::bitset<sf::Keyboard::KeyCount> FButtonEvent::mKeyUps;
-std::bitset<sf::Keyboard::KeyCount> FButtonEvent::mKeyDowns;
+std::bitset<sf::Keyboard::KeyCount> SButtonEvent::mKeyUps;
+std::bitset<sf::Keyboard::KeyCount> SButtonEvent::mKeyDowns;
 
-std::bitset<sf::Mouse::ButtonCount> FButtonEvent::mMouseUps;
-std::bitset<sf::Mouse::ButtonCount> FButtonEvent::mMouseDowns;
+std::bitset<sf::Mouse::ButtonCount> SButtonEvent::mMouseUps;
+std::bitset<sf::Mouse::ButtonCount> SButtonEvent::mMouseDowns;
 
-void FButtonEvent::ResetButtonEvents()
+void SButtonEvent::ResetButtonEvents()
 {
 	mKeyDowns.reset();
 	mKeyUps.reset();
@@ -15,7 +15,7 @@ void FButtonEvent::ResetButtonEvents()
 	mMouseUps.reset();
 }
 
-bool FButtonEvent::AddButtonEvent(const sf::Event& ButtonEvent)
+bool SButtonEvent::AddButtonEvent(const sf::Event& ButtonEvent)
 {
 	// Ensure that only button events are passed to this function.
 	ASSERT(IsButtonEvent(ButtonEvent));
@@ -43,27 +43,27 @@ bool FButtonEvent::AddButtonEvent(const sf::Event& ButtonEvent)
 	return false;
 }
 
-bool FButtonEvent::GetKeyUp(const sf::Keyboard::Key Key)
+bool SButtonEvent::GetKeyUp(const sf::Keyboard::Key Key)
 {
 	return mKeyUps[Key];
 }
 
-bool FButtonEvent::GetKeyDown(const sf::Keyboard::Key Key)
+bool SButtonEvent::GetKeyDown(const sf::Keyboard::Key Key)
 {
 	return mKeyDowns[Key];
 }
 
-bool FButtonEvent::GetMouseUp(const sf::Mouse::Button Button)
+bool SButtonEvent::GetMouseUp(const sf::Mouse::Button Button)
 {
 	return mMouseUps[Button];
 }
 
-bool FButtonEvent::GetMouseDown(const sf::Mouse::Button Button)
+bool SButtonEvent::GetMouseDown(const sf::Mouse::Button Button)
 {
 	return mMouseDowns[Button];
 }
 
-bool FButtonEvent::IsButtonEvent(const sf::Event& Event)
+bool SButtonEvent::IsButtonEvent(const sf::Event& Event)
 {
 	return Event.type == sf::Event::KeyPressed || Event.type == sf::Event::KeyReleased
 		|| Event.type == sf::Event::MouseButtonPressed || Event.type == sf::Event::MouseButtonReleased;

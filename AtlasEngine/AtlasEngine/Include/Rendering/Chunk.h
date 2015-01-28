@@ -9,6 +9,16 @@
 #include "Mesh.h"
 
 /**
+* Voxel vertex (P, N, C)
+*/
+struct FVoxelVertex
+{
+	Vector3f Position;
+	Vector3f Normal;
+	Vector3f Color;
+};
+
+/**
 * Represents a 3D mesh of voxels of CHUNK_SIZE
 * dimensions.
 */
@@ -18,8 +28,8 @@ public:
 	// Dimensions of each chunk
 	static const uint32_t CHUNK_SIZE = 16;
 	static const uint32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 500> ChunkAllocator;
 
+public:
 	/**
 	* Constructs chunk of voxels.
 	*/
@@ -61,7 +71,11 @@ private:
 	void CreateCube(const Vector3f& Position);
 
 private:
+	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 500> ChunkAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, 500> MeshAllocator;
+
+private:
 	FBlock* mBlocks;
-	FMesh<FVoxelVertex>* mMesh;
+	TMesh<FVoxelVertex>* mMesh;
 	bool mIsLoaded;
 };

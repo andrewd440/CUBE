@@ -2,7 +2,10 @@
 
 #include <vector>
 #include <queue>
+
 #include "Chunk.h"
+#include "ShaderProgram.h"
+#include "UniformBlockStandard.h"
 
 class FChunkManager
 {
@@ -33,5 +36,8 @@ private:
 	std::queue<uint32_t> mLoadList;     // Index list of chunks to be loaded
 	std::queue<uint32_t> mUnloadList;   // Index list of chunks to be unloaded
 	std::queue<uint32_t> mRebuildList;  // Index list of chunks to be rebuilt
+
+	// Rendering data
+	FShaderProgram mShader;
 };
 

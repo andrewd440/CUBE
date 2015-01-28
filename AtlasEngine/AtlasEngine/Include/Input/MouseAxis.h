@@ -10,11 +10,11 @@
 * Class for retrieving changes in mouse
 * axes (i.e. Mouse position and wheel scroll).
 */
-class FMouseAxis
+class SMouseAxis
 {	
 public:
-	FMouseAxis() = delete;
-	~FMouseAxis() = delete;
+	SMouseAxis() = delete;
+	~SMouseAxis() = delete;
 
 	/**
 	* Retrieve the delta movement of the mouse
