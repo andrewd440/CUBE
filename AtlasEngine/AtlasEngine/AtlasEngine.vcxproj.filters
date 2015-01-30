@@ -150,6 +150,9 @@
     <ClInclude Include="Include\ResourceHolder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -222,6 +225,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\Screen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,29 +4,95 @@
 #include "Rendering\GLUtils.h"
 #include "ResourceHolder.h"
 
+
 namespace
-{
+{	
+	/**
+	* Converts a 3D chunk position into an index into the chunks array.
+	*/
 	uint32_t ChunkIndex(uint32_t X, uint32_t Y, uint32_t Z)
 	{
-		return Y * FChunkManager::WORLD_HEIGHT * FChunkManager::WORLD_HEIGHT + X * FChunkManager::WORLD_WIDTH + Z;
+		return Y * FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE + X * FChunkManager::WORLD_SIZE + Z;
+	}
+
+	/**
+	* Converts a 3D chunk position into an index into the chunks array.
+	*/
+	uint32_t ChunkIndex(Vector3i Position)
+	{
+		return ChunkIndex(Position.x, Position.y, Position.z);
+	}
+
+	/**
+	* Determines the amount of bit-shift require to
+	* divide by a power of 2.
+	*/
+	uint32_t CalcShift(uint32_t Value)
+	{
+		uint32_t Shift = 0;
+		while (Value > 1)
+		{
+			Value = Value >> 1;
+			Shift++;
+		}
+
+		return Shift;
+	}
+
+	/**
+	* Convertes a chunk index into a world space 3D position.
+	*/
+	Vector3i IndexToPosition(uint32_t Index)
+	{
+		// World diminsions will be powers of two, so chunk locations can be 
+		// calculated by shifting indexes and bitwise operations to avoid division.
+		static const uint32_t WidthShift = CalcShift(FChunkManager::WORLD_SIZE);
+		static const uint32_t HeightShift = CalcShift(FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE);
+
+		const uint32_t X = (Index >> WidthShift & (FChunkManager::WORLD_SIZE - 1)) * FChunk::CHUNK_SIZE;
+		const uint32_t Y = (Index >> HeightShift & ((FChunkManager::WORLD_SIZE << 1) - 1)) * FChunk::CHUNK_SIZE;
+		const uint32_t Z = (Index & (FChunkManager::WORLD_SIZE - 1)) * FChunk::CHUNK_SIZE;
+
+		return Vector3i(X, Y, Z);
 	}
 }
 
+const uint32_t FChunkManager::WORLD_SIZE = 64;
+const uint32_t FChunkManager::VISIBILITY_DISTANCE = 4;
+const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 3;
+
+extern Vector3f gEyePosition;
+
 FChunkManager::FChunkManager()
-	: mChunks(WORLD_WIDTH * WORLD_WIDTH * WORLD_HEIGHT)
+	: mChunks(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE)
 	, mVisibleList()
 	, mRenderList()
 	, mLoadList()
+	, mIsLoadedList()
 	, mUnloadList()
 	, mRebuildList()
 	, mShader()
+	, mLastCameraChunk(TVector3<uint32_t>((uint32_t)gEyePosition.x, (uint32_t)gEyePosition.y, (uint32_t)gEyePosition.z) / FChunk::CHUNK_SIZE)
+	, mNoiseMap()
 {
-	ASSERT((WORLD_WIDTH & (WORLD_WIDTH - 1)) == 0x0 && "World width must be a power of two.");
+	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
 
 	auto& ShaderHolder = FShaderHolder::GetInstance();
 	mShader.AttachShader(ShaderHolder.Get("BlinnVertex"));
 	mShader.AttachShader(ShaderHolder.Get("BlinnFragment"));
 	mShader.LinkProgram();
+
+	// SEtup noise map
+	noise::module::Perlin Perlin;
+	Perlin.SetOctaveCount(1);
+	Perlin.SetPersistence(.2);
+	noise::utils::NoiseMapBuilderPlane MapBuilder;
+	MapBuilder.SetSourceModule(Perlin);
+	MapBuilder.SetDestNoiseMap(mNoiseMap);
+	MapBuilder.SetDestSize(FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE, FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
+	MapBuilder.SetBounds(0.0, FChunkManager::WORLD_SIZE, 0.0, FChunkManager::WORLD_SIZE);
+	MapBuilder.Build();
+
 }
 
 
@@ -34,39 +100,45 @@ FChunkManager::~FChunkManager()
 {
 }
 
+float FChunkManager::GetNoiseHeight(uint32_t x, uint32_t z)
+{
+	static const int32_t MidHeight = FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE / 2;
+	static const int32_t HeightVariation = 7;
+	const int32_t IndexOffset = x + (z * FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
+	return MidHeight + *(mNoiseMap.GetConstSlabPtr() + IndexOffset) * HeightVariation;
+}
 
 void FChunkManager::Setup()
 {
+	// Load all chunks surrounding the camera's starting position.
+	TVector3<uint32_t> CameraChunk = mLastCameraChunk;
+	CameraChunk -= VISIBILITY_DISTANCE;
 
-}
-
-uint32_t CalcShift(uint32_t Value)
-{
-	uint32_t Shift = 0;
-	while (Value > 1)
+	const uint32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
+	for (uint32_t Y = 0; Y < DoubleVisibility; Y++)
 	{
-		Value = Value >> 1;
-		Shift++;
+		for (uint32_t X = 0; X < DoubleVisibility; X++)
+		{
+			for (int32_t Z = 0; Z < DoubleVisibility; Z++)
+			{
+				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + X, CameraChunk.y + Y, CameraChunk.z + Z);
+				mVisibleList.push_back(VisibleChunkIndex);
+				mLoadList.push_back(VisibleChunkIndex);
+			}
+		}
 	}
-
-	return Shift;
 }
 
 void FChunkManager::Render()
 {
 	mShader.Use();
 
-	// World diminsions will be powers of two, so chunk locations can be 
-	// calculated by shifting indexes and bitwise operations to avoid division.
-	static const uint32_t WidthShift = CalcShift(WORLD_WIDTH);
-	static const uint32_t HeightShift = CalcShift(WORLD_WIDTH * WORLD_WIDTH);
-
 	for (const auto& Index : mRenderList)
 	{
-		const uint32_t X = (Index >> WidthShift & (WORLD_WIDTH - 1)) * FChunk::CHUNK_SIZE;
-		const uint32_t Y = (Index >> HeightShift & ((WORLD_WIDTH<<1) - 1)) * FChunk::CHUNK_SIZE;
-		const uint32_t Z = (Index & (WORLD_WIDTH - 1)) * FChunk::CHUNK_SIZE;
-		mChunks[Index].Render(Vector3f((float)X, (float)Y, (float)Z));
+		auto Fposition = IndexToPosition(Index);
+		const Vector3f Position(Fposition.x, Fposition.y, Fposition.z);
+		//if (Position.y < 33.0f)
+			mChunks[Index].Render(Position);
 	}
 }
 
@@ -79,78 +151,106 @@ void FChunkManager::Update()
 
 void FChunkManager::UpdateUnloadList()
 {
-	while (!mUnloadList.empty())
+	for (auto Itr = mUnloadList.begin(); Itr != mUnloadList.end(); Itr++)
 	{
-		FDebug::PrintF("Unloaded");
-		mChunks[mUnloadList.front()].Unload();
-		mUnloadList.pop();
+		// Unload the chunk
+		const uint32_t Index = *Itr;
+		mChunks[Index].Unload();
+
+		// If it is in the loaded list, remove it
+		auto Remove = std::find(mIsLoadedList.begin(), mIsLoadedList.end(), Index);
+		if (Remove != mIsLoadedList.end())
+			mIsLoadedList.erase(Remove);
+
+		// If it is in the render list, remove it
+		Remove = std::find(mRenderList.begin(), mRenderList.end(), Index);
+		if (Remove != mRenderList.end())
+			mRenderList.erase(Remove);
 	}
+
+	mUnloadList.clear();
 }
 
 void FChunkManager::UpdateLoadList()
 {
-	while (!mLoadList.empty())
+	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_FRAME;
+
+	for (auto Itr = mLoadList.begin(); Itr != mLoadList.end() && LoadsLeft > 0; Itr++)
 	{
-		mChunks[mLoadList.front()].Load();
-		mChunks[mLoadList.front()].BuildMesh();
-		mRenderList.push_back(mLoadList.front());
-		mLoadList.pop();
+		const uint32_t Index = *Itr;
+
+		// Load and build the chunk
+		mChunks[Index].Load(IndexToPosition(Index));
+		mChunks[Index].BuildMesh();
+
+		// Add it to the loaded and render lists
+		mIsLoadedList.push_back(Index);
+		mRenderList.push_back(Index);
+
+		LoadsLeft--;
 	}
+
+	// Erase loaded chunks
+	mLoadList.erase(mLoadList.begin(), mLoadList.begin() + (CHUNKS_TO_LOAD_PER_FRAME - LoadsLeft));
 }
 
-extern Vector3f Eye;
 void FChunkManager::UpdateVisibleList()
 {
-	Vector3i CameraChunk = Vector3i((int32_t)Eye.x, (int32_t)Eye.y, (int32_t)Eye.z) / 16;
-	CameraChunk.x -= 3; CameraChunk.z -= 3;
-	FOR(y, 1)
+	// Chunk coordinate of the camera
+	const TVector3<uint32_t> CameraChunk = TVector3<uint32_t>(	(uint32_t)gEyePosition.x, 
+																(uint32_t)gEyePosition.y, 
+																(uint32_t)gEyePosition.z) / FChunk::CHUNK_SIZE;
+	
+	// Only update visibility list when we move to another chunk
+	if (CameraChunk == mLastCameraChunk)
+		return;
+	
+	// Offset the camera chunk position so the loop centers the camera
+	const TVector3<uint32_t> CameraChunkOffset = CameraChunk - VISIBILITY_DISTANCE;
+
+	// Get the total range of visible area.
+	const uint32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
+
+	// Clear previous load and visibile list when moving across chunks.
+	mLoadList.clear();
+	mVisibleList.clear();
+
+	// Add all chunks in the visible range to the visible list.
+	for (uint32_t Y = 0; Y <= DoubleVisibility; Y++)
 	{
-		FOR(x, 6)
+		for (uint32_t X = 0; X <= DoubleVisibility; X++)
 		{
-			FOR(z, 6)
+			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
 			{
-				if (!mChunks[ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z)].IsLoaded())
-					mLoadList.push(ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z));
+				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + X, CameraChunkOffset.y + Y, CameraChunkOffset.z + Z);
+				mVisibleList.push_back(VisibleChunkIndex);
+
+				// If this visible chunk is not loaded, load it.
+				if (!mChunks[VisibleChunkIndex].IsLoaded())
+					mLoadList.push_back(VisibleChunkIndex);
 			}
 		}
 	}
 
-	CameraChunk.x -= 1; CameraChunk.z -= 1;
-	for (int y = 0; y < 1; y++)
+	// Add all loaded chunks that are no longer visible to the unload list.
+	for (auto Itr = mIsLoadedList.begin(); Itr != mIsLoadedList.end(); Itr++)
 	{
-		for (int x = 0; x < 8; x+=7)
+		// Get the chunk coordinates of this loaded chunk.
+		Vector3i Position = IndexToPosition(*Itr) / FChunk::CHUNK_SIZE;
+		
+		// Unload if it is loaded and outside of visible area.
+		if (mChunks[*Itr].IsLoaded())
 		{
-			for (int z = 0; z < 8; z++)
+			if (Position.x < CameraChunkOffset.x || Position.x >(CameraChunkOffset.x + DoubleVisibility) ||
+				Position.y < CameraChunkOffset.y || Position.y >(CameraChunkOffset.y + DoubleVisibility) ||
+				Position.z < CameraChunkOffset.z || Position.z >(CameraChunkOffset.z + DoubleVisibility))
 			{
-				if (mChunks[ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z)].IsLoaded())
-				{
-					mUnloadList.push(ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z));
-					auto Remove = std::find(mRenderList.begin(), mRenderList.end(), ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z));
-					if (Remove != mRenderList.end())
-						mRenderList.erase(Remove);
-
-				}
+				mUnloadList.push_back(*Itr);
 			}
 		}
 	}
 
-	for (int y = 0; y < 1; y++)
-	{
-		for (int z = 0; z < 8; z += 7)
-		{
-			for (int x = 1; x < 7; x++)
-			{
-				if (mChunks[ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z)].IsLoaded())
-				{
-					mUnloadList.push(ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z));
-					auto Remove = std::find(mRenderList.begin(), mRenderList.end(), ChunkIndex(CameraChunk.x + x, y, CameraChunk.z + z));
-					if (Remove != mRenderList.end())
-						mRenderList.erase(Remove);
-
-				}
-			}
-		}
-	}
+	mLastCameraChunk = CameraChunk;
 }
 
 void FChunkManager::UpdateRenderList()

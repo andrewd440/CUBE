@@ -29,6 +29,9 @@ public:
 	static const uint32_t CHUNK_SIZE = 16;
 	static const uint32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
+	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 1000> ChunkAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, 1000> MeshAllocator;
+
 public:
 	/**
 	* Constructs chunk of voxels.
@@ -41,7 +44,7 @@ public:
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
 	*/
-	void Load();
+	void Load(const Vector3i& LowerLeftPosition);
 
 	/**
 	* Frees chunk data and deactivates the chunk mesh.
@@ -69,10 +72,6 @@ private:
 	* @param Position to add the cube.
 	*/
 	void CreateCube(const Vector3f& Position);
-
-private:
-	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 500> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, 500> MeshAllocator;
 
 private:
 	FBlock* mBlocks;

@@ -21,7 +21,7 @@ public:
 	* @param Z - value of Z component
 	* @param W - value of W component
 	*/
-	TVector4(T X = 0, T Y = 0, T Z = 0, T W = 1);
+	explicit TVector4(T X = 0, T Y = 0, T Z = 0, T W = 1);
 
 	/**
 	* Default copy constructor.

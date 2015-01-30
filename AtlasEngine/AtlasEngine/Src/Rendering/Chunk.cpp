@@ -1,9 +1,13 @@
 #include "..\..\Include\Rendering\Chunk.h"
 #include "..\..\Include\Rendering\UniformBlockStandard.h"
 #include "..\..\Include\Debugging\ConsoleOutput.h"
+#include "Debugging\DebugText.h"
+#include "Rendering\Screen.h"
+#include "LevelLoader.h"
+#include "Rendering\ChunkManager.h"
 
-FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 500> FChunk::ChunkAllocator(__alignof(FChunk));
-FPoolAllocatorType<TMesh<FVoxelVertex>, 500> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
+FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 1000> FChunk::ChunkAllocator(__alignof(FChunk));
+FPoolAllocatorType<TMesh<FVoxelVertex>, 1000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 
 namespace
 {
@@ -29,25 +33,28 @@ FChunk::~FChunk()
 	}
 }
 
-void FChunk::Load()
+void FChunk::Load(const Vector3i& LowerLeftPosition)
 {
 	ASSERT(!mIsLoaded);
+	mIsLoaded = true;
 
 	// In-place allocate mesh and allocate blocks
 	mMesh = new (MeshAllocator.Allocate()) TMesh<FVoxelVertex>(GL_STATIC_DRAW);
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
 
-	mIsLoaded = true;
-
-	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
-
 	FOR(x, CHUNK_SIZE)
 	{
-		FOR(y, CHUNK_SIZE)
+		FOR(z, CHUNK_SIZE)
 		{
-			FOR(z, CHUNK_SIZE)
+			const int32_t Height = FChunkManager::GetInstance().GetNoiseHeight(LowerLeftPosition.x + x, LowerLeftPosition.z + z);
+			int32_t y = LowerLeftPosition.y;
+			for (; y < Height && (y - LowerLeftPosition.y) < CHUNK_SIZE; y++)
 			{
-				mBlocks[BlockIndex(x, y, z)].SetActive(true);
+				mBlocks[BlockIndex(x, y - LowerLeftPosition.y, z)].SetActive(true);
+			}
+			for (; y < LowerLeftPosition.y + CHUNK_SIZE; y++)
+			{
+				mBlocks[BlockIndex(x, y - LowerLeftPosition.y, z)].SetActive(false);
 			}
 		}
 	}
@@ -56,10 +63,12 @@ void FChunk::Load()
 void FChunk::Unload()
 {
 	ASSERT(mIsLoaded);
+	//if (!mIsLoaded)
+	//	return;
+
 	mIsLoaded = false;
 
-	//FDebug::PrintF("Chunks Used: %d \tChunks Remaining: %d", ChunkAllocator.Size(), ChunkAllocator.Capacity() - ChunkAllocator.Size());
-
+	mMesh->~TMesh();
 	MeshAllocator.Free(mMesh);
 	ChunkAllocator.Free(mBlocks);
 }
@@ -72,6 +81,7 @@ bool FChunk::IsLoaded() const
 extern FUniformBlockStandard* UniformBuffer;
 void FChunk::Render(const Vector3f& WorldPosition)
 {
+	ASSERT(mIsLoaded);
 	UniformBuffer->SetData(128, WorldPosition);
 	UniformBuffer->SendBuffer();
 	mMesh->Render();
@@ -99,17 +109,18 @@ void FChunk::BuildMesh()
 
 void FChunk::CreateCube(const Vector3f& Position)
 {
+	static const float HalfBlock = FBlock::BLOCK_SIZE / 2.0f;
 	// Positions
 	const Vector3f P[8] =
 	{
-		Position + Vector3f(-FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Bottom - Left -	Front
-		Position + Vector3f(-FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Top -	Left -	Front
-		Position + Vector3f(FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Top -	Right - Front
-		Position + Vector3f(FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE),	// Bottom -	Right - Front
-		Position + Vector3f(-FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Bottom - Left -	Back
-		Position + Vector3f(-FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Top -	Left -	Back
-		Position + Vector3f(FBlock::BLOCK_SIZE, FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE),	// Top -	Right - Back
-		Position + Vector3f(FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE, -FBlock::BLOCK_SIZE)	// Bottom - Right - Back
+		Position + Vector3f(-HalfBlock, -HalfBlock, HalfBlock),	// Bottom - Left -	Front
+		Position + Vector3f(-HalfBlock, HalfBlock, HalfBlock),	// Top -	Left -	Front
+		Position + Vector3f(HalfBlock, HalfBlock, HalfBlock),	// Top -	Right - Front
+		Position + Vector3f(HalfBlock, -HalfBlock, HalfBlock),	// Bottom -	Right - Front
+		Position + Vector3f(-HalfBlock, -HalfBlock, -HalfBlock),	// Bottom - Left -	Back
+		Position + Vector3f(-HalfBlock, HalfBlock, -HalfBlock),	// Top -	Left -	Back
+		Position + Vector3f(HalfBlock, HalfBlock, -HalfBlock),	// Top -	Right - Back
+		Position + Vector3f(HalfBlock, -HalfBlock, -HalfBlock)	// Bottom - Right - Back
 	};
 
 	// Normals

@@ -18,6 +18,9 @@ uniform	vec3 DiffuseProduct = vec3( .5, .5, .5);
 uniform	vec3 AmbientProduct = vec3(.1, .1, .1);
 uniform	float Shininess = 64.0;
 
+uniform vec4 FogColor = vec4(.3, .3, .4, 1);
+uniform float FogDensity = 0.0003;
+
 void main()
 {
 	vec3 N = normalize(fs_in.Normal);
@@ -31,6 +34,12 @@ void main()
 	if(dot(N, L) < 0.0)
 		Spec = vec3(0,0,0);
 
+
+	float z = gl_FragCoord.z / gl_FragCoord.w;
+	float fog = clamp(exp(-FogDensity * z * z), 0.2, 1);
+ 
+	gl_FragColor = mix(FogColor, vec4(Diffuse + Spec + AmbientProduct, 1.0), fog);
+
 	//gl_FragColor = fs_in.Color;
-	gl_FragColor = vec4(Diffuse + Spec + AmbientProduct, 1.0);
+	//gl_FragColor = vec4(Diffuse + Spec + AmbientProduct, 1.0);
 }

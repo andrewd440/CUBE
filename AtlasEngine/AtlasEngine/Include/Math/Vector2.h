@@ -17,7 +17,7 @@ public:
 	* @param X - value of X component
 	* @param Y - value of Y component
 	*/
-	TVector2(T X = 0, T Y = 0);
+	explicit TVector2(T X = 0, T Y = 0);
 
 	/**
 	* Default copy constructor.
@@ -43,6 +43,14 @@ public:
 	* @return Reference to this vector.
 	*/
 	TVector2<T>& operator+=(const TVector2<T>& rhs);
+
+	template <typename U>
+	/**
+	* Performs vector-scalar addition.
+	* @param rhs - Vector2 to add.
+	* @return Reference to this vector.
+	*/
+	TVector2<T>& operator+=(const U& Scalar);
 
 	/**
 	* Performs vector subtraction.
@@ -201,6 +209,15 @@ inline TVector2<T>& TVector2<T>::operator+=(const TVector2<T>& rhs)
 	return *this;
 }
 
+template <typename T>
+template <typename U>
+inline TVector2<T>& TVector2<T>::operator+=(const U& Scalar)
+{
+	x += Scalar;
+	y += Scalar;
+
+	return *this;
+}
 
 template <typename T>
 inline TVector2<T>& TVector2<T>::operator-=(const TVector2<T>& rhs)
@@ -333,6 +350,18 @@ inline TVector2<T> operator+(const TVector2<T>& lhs, const TVector2<T>& rhs)
 	return TVector2<T>(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
+template <typename T, typename U>
+/**
+* Performs vector-scalar addition.
+* @param Vec - Left operand (vector)
+* @param Scalar - Right operand (scalar)
+* @return Memberwise multiplied vector
+*/
+inline TVector2<T> operator+(const TVector2<T>& Vec, const U& Scalar)
+{
+	return TVector2<T>(Vec.x + Scalar, Vec.y + Scalar);
+}
+
 template <typename T>
 /**
 * Calculates the difference of two vectors.
@@ -358,7 +387,7 @@ inline TVector2<T> operator-(const TVector2<T>& lhs)
 
 template <typename T, typename U>
 /**
-* Performs vector-scalar multiplication of two vectors.
+* Performs vector-scalar multiplication.
 * @param Vec - Left operand (vector)
 * @param Scalar - Right operand (scalar)
 * @return Memberwise multiplied vector

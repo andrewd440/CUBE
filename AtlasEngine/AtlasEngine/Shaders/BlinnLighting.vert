@@ -26,7 +26,7 @@ layout(std140, binding = 0) uniform TransformBlock
 } Transforms;
 
 
-uniform	vec4 LightPosition = vec4(20, 1000, 1000, 1);
+uniform	vec4 LightPosition = vec4(20, 100000, 100000, 1);
 
 void main()
 {

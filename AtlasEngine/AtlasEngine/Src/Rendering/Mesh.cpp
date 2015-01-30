@@ -1,7 +1,7 @@
-#include "..\..\Include\Rendering\Mesh.h"
-#include "..\..\Include\Rendering\GLUtils.h"
-#include "..\..\Include\Common.h"
-#include "..\..\Include\Rendering\VertexTraits.h"
+#include "Rendering\Mesh.h"
+#include "Rendering\GLUtils.h"
+#include "Common.h"
+#include "Rendering\VertexTraits.h"
 
 BMesh::BMesh(const GLuint DrawMode, const uint32_t DefaultBufferSize )
 	: mVertexData(DefaultBufferSize)

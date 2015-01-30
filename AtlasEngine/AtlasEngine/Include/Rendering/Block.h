@@ -22,11 +22,11 @@ public:
 	void SetActive(bool IsActive);
 
 private:
-	bool mIsActive;
+	bool mIsActive{false};
 };
 
 inline FBlock::FBlock()
-	: mIsActive(true)
+	: mIsActive(false)
 {
 
 }

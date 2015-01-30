@@ -17,7 +17,7 @@ public:
 	* @param Y - position of Y coordinate
 	* @param Z - position of Z coordinate
 	*/
-	TVector3(T X = 0, T Y = 0, T Z = 0);
+	explicit TVector3(T X = 0, T Y = 0, T Z = 0);
 
 	/**
 	* Default copy constructor.
@@ -57,6 +57,13 @@ public:
 	* @return Reference to this vector
 	*/
 	TVector3<T>& operator-=(const TVector3<T>& Rhs);
+
+	/**
+	* Performs vector-scalar subtraction.
+	* @param Rhs - Value to subtract
+	* @return Reference to this vector
+	*/
+	TVector3<T>& operator-=(const T Rhs);
 
 	template <typename U>
 	/**
@@ -241,6 +248,16 @@ inline TVector3<T>& TVector3<T>::operator-=(const TVector3<T>& rhs)
 }
 
 template <typename T>
+inline TVector3<T>& TVector3<T>::operator-=(const T Rhs)
+{
+	x -= Rhs;
+	y -= Rhs;
+	z -= Rhs;
+
+	return *this;
+}
+
+template <typename T>
 inline bool TVector3<T>::operator==(const TVector3<T>& Rhs) const
 {
 	for (size_t i = 0; i < 3; i++)
@@ -399,6 +416,17 @@ template <typename T>
 inline TVector3<T> operator-(const TVector3<T>& lhs)
 {
 	return TVector3<T>(-lhs.x, -lhs.y, -lhs.z);
+}
+
+template <typename T>
+/**
+* Performs vector-scalar subtraction.
+* @param Lhs - Vector operand
+* @param Rhs - Value to subtract
+*/
+inline TVector3<T> operator-(const TVector3<T>& Lhs, const T& Rhs)
+{
+	return TVector3<T>(Lhs.x - Rhs, Lhs.y - Rhs, Lhs.z - Rhs);
 }
 
 template <typename T, typename U>
