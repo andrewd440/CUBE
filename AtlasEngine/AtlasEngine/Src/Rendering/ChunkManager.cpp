@@ -4,7 +4,6 @@
 #include "Rendering\GLUtils.h"
 #include "ResourceHolder.h"
 
-
 namespace
 {	
 	/**
@@ -42,7 +41,7 @@ namespace
 	/**
 	* Convertes a chunk index into a world space 3D position.
 	*/
-	Vector3i IndexToPosition(uint32_t Index)
+	Vector3ui IndexToPosition(uint32_t Index)
 	{
 		// World diminsions will be powers of two, so chunk locations can be 
 		// calculated by shifting indexes and bitwise operations to avoid division.
@@ -53,13 +52,13 @@ namespace
 		const uint32_t Y = (Index >> HeightShift & ((FChunkManager::WORLD_SIZE << 1) - 1)) * FChunk::CHUNK_SIZE;
 		const uint32_t Z = (Index & (FChunkManager::WORLD_SIZE - 1)) * FChunk::CHUNK_SIZE;
 
-		return Vector3i(X, Y, Z);
+		return Vector3ui(X, Y, Z);
 	}
 }
 
-const uint32_t FChunkManager::WORLD_SIZE = 64;
-const uint32_t FChunkManager::VISIBILITY_DISTANCE = 4;
-const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 3;
+const uint32_t FChunkManager::WORLD_SIZE = 256;
+const uint32_t FChunkManager::VISIBILITY_DISTANCE = 10;
+const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 10;
 
 extern Vector3f gEyePosition;
 
@@ -102,8 +101,8 @@ FChunkManager::~FChunkManager()
 
 float FChunkManager::GetNoiseHeight(uint32_t x, uint32_t z)
 {
-	static const int32_t MidHeight = FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE / 2;
-	static const int32_t HeightVariation = 7;
+	static const int32_t MidHeight = (FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE) / 2;
+	static const int32_t HeightVariation = 10;
 	const int32_t IndexOffset = x + (z * FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
 	return MidHeight + *(mNoiseMap.GetConstSlabPtr() + IndexOffset) * HeightVariation;
 }
@@ -115,11 +114,26 @@ void FChunkManager::Setup()
 	CameraChunk -= VISIBILITY_DISTANCE;
 
 	const uint32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
-	for (uint32_t Y = 0; Y < DoubleVisibility; Y++)
+
+	// Add all chunks in the visible range to the visible list.
+	for (int32_t Y = VISIBILITY_DISTANCE; Y >= 0; Y--)
 	{
-		for (uint32_t X = 0; X < DoubleVisibility; X++)
+		for (int32_t X = 0; X <= DoubleVisibility; X++)
 		{
-			for (int32_t Z = 0; Z < DoubleVisibility; Z++)
+			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
+			{
+				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + X, CameraChunk.y + Y, CameraChunk.z + Z);
+				mVisibleList.push_back(VisibleChunkIndex);
+				mLoadList.push_back(VisibleChunkIndex);
+			}
+		}
+	}
+
+	for (int32_t Y = VISIBILITY_DISTANCE + 1; Y < DoubleVisibility; Y++)
+	{
+		for (int32_t X = 0; X <= DoubleVisibility; X++)
+		{
+			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
 			{
 				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + X, CameraChunk.y + Y, CameraChunk.z + Z);
 				mVisibleList.push_back(VisibleChunkIndex);
@@ -136,9 +150,8 @@ void FChunkManager::Render()
 	for (const auto& Index : mRenderList)
 	{
 		auto Fposition = IndexToPosition(Index);
-		const Vector3f Position(Fposition.x, Fposition.y, Fposition.z);
-		//if (Position.y < 33.0f)
-			mChunks[Index].Render(Position);
+		const Vector3f Position((float)Fposition.x, (float)Fposition.y, (float)Fposition.z);
+		mChunks[Index].Render(Position);
 	}
 }
 
@@ -181,7 +194,7 @@ void FChunkManager::UpdateLoadList()
 
 		// Load and build the chunk
 		mChunks[Index].Load(IndexToPosition(Index));
-		mChunks[Index].BuildMesh();
+		mChunks[Index].RebuildMesh();
 
 		// Add it to the loaded and render lists
 		mIsLoadedList.push_back(Index);
@@ -216,9 +229,25 @@ void FChunkManager::UpdateVisibleList()
 	mVisibleList.clear();
 
 	// Add all chunks in the visible range to the visible list.
-	for (uint32_t Y = 0; Y <= DoubleVisibility; Y++)
+	for (int32_t Y = VISIBILITY_DISTANCE; Y >= 0; Y--)
 	{
-		for (uint32_t X = 0; X <= DoubleVisibility; X++)
+		for (int32_t X = 0; X <= DoubleVisibility; X++)
+		{
+			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
+			{
+				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + X, CameraChunkOffset.y + Y, CameraChunkOffset.z + Z);
+				mVisibleList.push_back(VisibleChunkIndex);
+
+				// If this visible chunk is not loaded, load it.
+				if (!mChunks[VisibleChunkIndex].IsLoaded())
+					mLoadList.push_back(VisibleChunkIndex);
+			}
+		}
+	}
+
+	for (int32_t Y = VISIBILITY_DISTANCE + 1; Y < DoubleVisibility; Y++)
+	{
+		for (int32_t X = 0; X <= DoubleVisibility; X++)
 		{
 			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
 			{
@@ -236,7 +265,7 @@ void FChunkManager::UpdateVisibleList()
 	for (auto Itr = mIsLoadedList.begin(); Itr != mIsLoadedList.end(); Itr++)
 	{
 		// Get the chunk coordinates of this loaded chunk.
-		Vector3i Position = IndexToPosition(*Itr) / FChunk::CHUNK_SIZE;
+		Vector3ui Position = IndexToPosition(*Itr) / FChunk::CHUNK_SIZE;
 		
 		// Unload if it is loaded and outside of visible area.
 		if (mChunks[*Itr].IsLoaded())

@@ -37,17 +37,6 @@ private:
 	void UpdateRenderList();
 
 private:
-	struct ChunkInfo
-	{
-		FChunk Chunk;
-		bool InVisibleList;
-		bool InRenderList;
-		bool InLoadList;
-		bool InUnloadList;
-		bool InRebuildList;
-	};
-
-private:
 	std::vector<FChunk> mChunks;        // All world chunks
 	std::vector<uint32_t> mVisibleList; // Index list of potentially visible chunks
 	std::vector<uint32_t> mRenderList;  // Index list of chunks to render
@@ -58,7 +47,7 @@ private:
 
 	// Rendering data
 	FShaderProgram mShader;
-	TVector3<uint32_t> mLastCameraChunk;
+	Vector3ui mLastCameraChunk;
 	noise::utils::NoiseMap mNoiseMap;
 };
 

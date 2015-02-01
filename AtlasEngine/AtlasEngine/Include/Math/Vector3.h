@@ -182,7 +182,8 @@ public:
 	T z; /* Z coordinate of the vector */
 };
 
-using Vector3i = TVector3<int32_t>;	/* Vector type for integers */
+using Vector3i = TVector3<int32_t>;	/* Vector type for 32 bit integers */
+using Vector3ui = TVector3<uint32_t>; /* Vector type for 32 bit unsigned integers */
 using Vector3f = TVector3<float>; /* Vector type for floats */
 
 

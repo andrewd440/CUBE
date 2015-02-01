@@ -87,7 +87,7 @@ public:
 	* @param Indices - The list of vertex indices for each triangle.
 	* @param Count - Number of triangles to add.
 	*/
-	void AddTriangleB(const uint32_t* Indices, const uint32_t Count);
+	void AddIndicesB(const uint32_t* Indices, const uint32_t Count);
 
 	/**
 	* Clears data held internally by this object and empties
@@ -100,6 +100,16 @@ public:
 	* to the GPU.
 	*/
 	void ActivateB();
+
+	/**
+	* Copies and activates vertex and index data directly into their respective 
+	* buffer held by this mesh.
+	* @param VertexData - Vertices to be mapped.
+	* @param VertexSize - The size, in bytes, of the vertex data.
+	* @param IndexData - Indices to be mapped.
+	* @param IndexSize - The size, in bytes, of the index data.
+	*/
+	void MapAndActivateB(void* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize);
 
 	/**
 	* Clears all vertex and index data held locally be this
@@ -122,10 +132,21 @@ public:
 	*/
 	uint32_t TriangleCountB() const;
 
-	// TODO Implement these functions.
-	void MapIndexBufferB(void* Data, uint32_t Size);
+	/**
+	* Copies data directly into the index buffer held
+	* by this mesh. 
+	* @param Data to be mapped.
+	* @param Size - The size, in bytes, of the data.
+	*/
+	//void MapIndexBufferB(void* Data, uint32_t Size);
 
-	void MapVertexBufferB(void* Data, uint32_t Size);
+	/**
+	* Copies data directly into the vertex buffer held
+	* by this mesh.
+	* @param Data to be mapped.
+	* @param Size - The size, in bytes, of the data.
+	*/
+	//void MapVertexBufferB(void* Data, uint32_t Size);
 
 	/**
 	* Enables all OpenGL attributes for this mesh.
@@ -142,9 +163,16 @@ private:
 private:
 	std::vector<uint8_t> mVertexData;
 	std::vector<uint32_t> mIndices;
+
+	// GL buffers held by this object
 	GLuint mVertexArray;
 	GLuint mBuffers[2];
+
+	// Buffer usage mode
 	GLuint mUsageMode;
+
+	// Number of indices currently in the index buffer
+	uint32_t mIndexCount;
 
 	bool mIsActive;
 };
@@ -241,9 +269,9 @@ public:
 	/**
 	* Adds a list of triangles to the mesh. Vertices must be in CCW order.
 	* @param Indices - The list of vertex indices for each triangle.
-	* @param Count - Number of triangles to add.
+	* @param Count - Number of indices to add.
 	*/
-	void AddTriangle(const uint32_t* Indices, const uint32_t Count);
+	void AddIndices(const uint32_t* Indices, const uint32_t Count);
 
 	/**
 	* Clears data held internally by this object and empties
@@ -278,10 +306,31 @@ public:
 	*/
 	uint32_t TriangleCount() const;
 
-	// TODO Implement these functions.
-	void MapIndexBuffer(void* Data, uint32_t Size);
+	/**
+	* Copies and activates vertex and index data directly into their respective
+	* buffer held by this mesh.
+	* @param VertexData - Vertices to be mapped.
+	* @param VertexSize - Number of vertices to copy.
+	* @param IndexData - Indices to be mapped.
+	* @param IndexSize - Number of indices to copy.
+	*/
+	void MapAndActivate(VertexType* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize);
 
-	void MapVertexBuffer(void* Data, uint32_t Size);
+	/**
+	* Copies data directly into the index buffer held
+	* by this mesh.
+	* @param Data to be mapped.
+	* @param Size - Number of indices to copy.
+	*/
+	//void MapIndexBuffer(uint32_t* Data, uint32_t Size);
+
+	/**
+	* Copies data directly into the vertex buffer held
+	* by this mesh.
+	* @param Data to be mapped.
+	* @param Size - Number of vertices to copy.
+	*/
+	//void MapVertexBuffer(VertexType* Data, uint32_t Size);
 
 private:
 	/**

@@ -61,7 +61,7 @@ void FDebugText::AddText(const wchar_t* String, const FColor Color, Vector2i Pos
 
 			const uint32_t BaseIndex = mMesh.AddVertex(vertices, 4);
 			const GLuint indices[6] = { 0 + BaseIndex, 1 + BaseIndex, 2 + BaseIndex, 0 + BaseIndex, 2 + BaseIndex, 3 + BaseIndex };
-			mMesh.AddTriangle(indices, 2);
+			mMesh.AddIndices(indices, 6);
 
 			Position.x += (int32_t)glyph->advance_x;
 		}

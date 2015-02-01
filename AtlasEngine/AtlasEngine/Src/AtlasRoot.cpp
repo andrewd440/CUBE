@@ -58,8 +58,7 @@ FAtlasRoot::FAtlasRoot()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	glClearColor(.6, .6, .6, 1);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glClearColor(.1, .2, .3, 1);
 }
 
 FAtlasRoot::~FAtlasRoot()
@@ -94,6 +93,11 @@ void FAtlasRoot::GameLoop()
 	// Game Loop
 	while (mGameWindow.isOpen())
 	{	
+		if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		if (SButtonEvent::GetKeyDown(sf::Keyboard::K))
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		ServiceEvents();
 
 		//// OpenGL /////////////////////
@@ -107,11 +111,11 @@ void FAtlasRoot::GameLoop()
 
 
 		// Debug Print
-		wchar_t String[150];
+		wchar_t String[250];
 		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), gEyePosition.x, gEyePosition.y, gEyePosition.z);
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 50));
 
-		swprintf_s(String, L"Chunks used: %d    Meshes Used: %d", FChunk::ChunkAllocator.Size(), FChunk::MeshAllocator.Size());
+		swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 100));
 
 		Vector3i ChunkPosition = Vector3i(gEyePosition.x / FChunk::CHUNK_SIZE, gEyePosition.y / FChunk::CHUNK_SIZE, gEyePosition.z / FChunk::CHUNK_SIZE);

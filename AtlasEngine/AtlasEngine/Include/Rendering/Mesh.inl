@@ -22,30 +22,9 @@ inline uint32_t BMesh::TriangleCountB() const
 	return mVertexData.size() / 3;
 }
 
-inline uint32_t BMesh::AddVertexB(const uint8_t* Vertex, const uint32_t VertexSize)
+inline void BMesh::AddIndicesB(const uint32_t* Indices, const uint32_t Count)
 {
-	uint32_t ReturningIndex = mVertexData.size();
-	mVertexData.insert(mVertexData.end(), Vertex, Vertex + VertexSize);
-	return ReturningIndex;
-}
-
-inline uint32_t BMesh::AddVertexB(const uint8_t* Vertex, const uint32_t VertexSize, const uint32_t Count)
-{
-	uint32_t ReturningIndex = mVertexData.size();
-	mVertexData.insert(mVertexData.end(), Vertex, Vertex + (VertexSize * Count));
-	return ReturningIndex;
-}
-
-inline void BMesh::AddTriangleB(const uint32_t V1, const uint32_t V2, const uint32_t V3)
-{
-	mIndices.push_back(V1);
-	mIndices.push_back(V2);
-	mIndices.push_back(V3);
-}
-
-inline void BMesh::AddTriangleB(const uint32_t* Indices, const uint32_t Count)
-{
-	mIndices.insert(mIndices.end(), Indices, Indices + (Count * 3));
+	mIndices.insert(mIndices.end(), Indices, Indices + Count);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -116,9 +95,9 @@ inline void TMesh<T>::AddTriangle(const uint32_t V1, const uint32_t V2, const ui
 }
 
 template <typename T>
-inline void TMesh<T>::AddTriangle(const uint32_t* Indices, const uint32_t Count)
+inline void TMesh<T>::AddIndices(const uint32_t* Indices, const uint32_t Count)
 {
-	AddTriangleB(Indices, Count);
+	AddIndicesB(Indices, Count);
 }
 
 template <typename T>
@@ -156,6 +135,24 @@ inline uint32_t TMesh<T>::TriangleCount() const
 {
 	return TriangleCountB() / VertexSize;
 }
+
+template <typename T>
+inline void TMesh<T>::MapAndActivate(VertexType* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize)
+{
+	MapAndActivateB((void*)VertexData, VertexSize * sizeof(VertexType), IndexData, IndexSize);
+}
+
+//template <typename T>
+//inline void TMesh<T>::MapIndexBuffer(uint32_t* Data, uint32_t Size)
+//{
+//	MapIndexBufferB((void*)Data, sizeof(uint32_t) * Size);
+//}
+//
+//template <typename T>
+//inline void TMesh<T>::MapVertexBuffer(VertexType* Data, uint32_t Size)
+//{
+//	MapVertexBufferB((void*)Data, sizeof(VertexType) * Size);
+//}
 
 template <typename T>
 inline void TMesh<T>::EnableAttributes()
