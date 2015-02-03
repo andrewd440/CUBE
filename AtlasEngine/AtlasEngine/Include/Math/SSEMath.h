@@ -1,10 +1,12 @@
 #pragma once
 
 #include <emmintrin.h>
-#include "Vector4.h"
 
 struct FMatrix4;
 class FQuaternion;
+template <typename T>
+class TVector4;
+using Vector4f = TVector4<float>;
 
 #define SHUFFLE_PARAM(x, y, z, w) \
 	((x) | ((y) << 2) | ((z) << 4) | ((w) << 6))
@@ -137,6 +139,25 @@ __forceinline void MultComponentMatrixMatrix(const FMatrix4& Mat1, const FMatrix
 	Result[3] = Col3;
 }
 
+template <typename T>
+/**
+* Gets the 4-component dot product of two vectors.
+* If a 3-component dot product is required, 0 the w componet
+* of the vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void Dot4Product(const TVector4<T>& Vec1, const TVector4<T>& Vec2, T& ResultOut)
+{
+	// default to FPU for integer types for now
+	ResultOut = Vec1.x * Vec2.x + Vec1.y * Vec2.y + Vec1.z * Vec2.z + Vec1.w * Vec2.w;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////// Dot4Product specializations //////////////////////////////////////////////////////////////////////////
+
+template <>
 /**
 * Gets the 4-component dot product of two vectors.
 * If a 3-component dot product is required, 0 the w componet
@@ -156,6 +177,169 @@ __forceinline void Dot4Product(const Vector4f& Vec1, const Vector4f& Vec2, float
 
 	ResultOut = Dot.m128_f32[0];
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+/**
+* Component-wise addition of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void AddVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+{
+	// default to FPU for integer types for now
+	ResultOut.x = Vec1.x + Vec2.x;
+	ResultOut.y = Vec1.y + Vec2.y;
+	ResultOut.z = Vec1.z + Vec2.z;
+	ResultOut.w = Vec1.w + Vec2.w;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////// AddVectorVector specializations //////////////////////////////////////////////////////////////////////
+
+template <>
+/**
+* Component-wise addition of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void AddVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+{
+	const __m128* V1 = (const __m128*)&Vec1;
+	const __m128* V2 = (const __m128*)&Vec2;
+
+	__m128 Sum = _mm_add_ps(*V1, *V2);
+
+	// Store the result
+	__m128* Result = (__m128*)&ResultOut;
+	*Result = Sum;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+/**
+* Component-wise subtraction of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void SubtractVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+{
+	// default to FPU for integer types for now
+	ResultOut.x = Vec1.x - Vec2.x;
+	ResultOut.y = Vec1.y - Vec2.y;
+	ResultOut.z = Vec1.z - Vec2.z;
+	ResultOut.w = Vec1.w - Vec2.w;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////// SubtractVectorVector specializations ////////////////////////////////////////////////////////////////////
+
+template <>
+/**
+* Component-wise subtraction of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void SubtractVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+{
+	const __m128* V1 = (const __m128*)&Vec1;
+	const __m128* V2 = (const __m128*)&Vec2;
+
+	__m128 Sum = _mm_sub_ps(*V1, *V2);
+
+	// Store the result
+	__m128* Result = (__m128*)&ResultOut;
+	*Result = Sum;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+/**
+* Component-wise multiplication of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void MultVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+{
+	// default to FPU for integer types for now
+	ResultOut.x = Vec1.x * Vec2.x;
+	ResultOut.y = Vec1.y * Vec2.y;
+	ResultOut.z = Vec1.z * Vec2.z;
+	ResultOut.w = Vec1.w * Vec2.w;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////// MultVectorVector specializations ////////////////////////////////////////////////////////////////////////
+
+template <>
+/**
+* Component-wise multiplication of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void MultVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+{
+	const __m128* V1 = (const __m128*)&Vec1;
+	const __m128* V2 = (const __m128*)&Vec2;
+
+	__m128 Sum = _mm_mul_ps(*V1, *V2);
+
+	// Store the result
+	__m128* Result = (__m128*)&ResultOut;
+	*Result = Sum;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+/**
+* Component-wise division of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void DivideVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+{
+	// default to FPU for integer types for now
+	ResultOut.x = Vec1.x / Vec2.x;
+	ResultOut.y = Vec1.y / Vec2.y;
+	ResultOut.z = Vec1.z / Vec2.z;
+	ResultOut.w = Vec1.w / Vec2.w;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////// DivideVectorVector specializations //////////////////////////////////////////////////////////////////////
+
+template <>
+/**
+* Component-wise division of two vectors.
+* @param Vec1 First vector
+* @param Vec2 Second vector
+* @ResultOut Location the result should be placed.
+*/
+__forceinline void DivideVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+{
+	const __m128* V1 = (const __m128*)&Vec1;
+	const __m128* V2 = (const __m128*)&Vec2;
+
+	__m128 Sum = _mm_div_ps(*V1, *V2);
+
+	// Store the result
+	__m128* Result = (__m128*)&ResultOut;
+	*Result = Sum;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
 * Multiply two quaternions.
@@ -193,4 +377,3 @@ __forceinline void MultQuatQuat(const FQuaternion& Lhs, const FQuaternion& Rhs, 
 	__m128* ResOut = (__m128*)&ResultOut;
 	*ResOut = Result;
 }	
-

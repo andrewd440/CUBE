@@ -1,7 +1,8 @@
 
 #include "..\..\Include\Math\Quaternion.h"
 #include "..\..\Include\Math\Vector3.h"
-#include "..\..\Include\Math\Matrix4.h"
+#include "Math\Matrix4.h"
+#include "Common.h"
 
 Vector3f FQuaternion::EulerAngles(const FQuaternion& Quat)
 {
@@ -101,4 +102,24 @@ FMatrix4 FQuaternion::ToMatrix4() const
 		2*x*z - 2*w*y,		2*y*z + 2*w*x,			1 - 2*x*x - 2*y*y,	0,
 		0,					0,						0,					1
 	};
+}
+
+FQuaternion FQuaternion::LookAt(const Vector3f& Source, const Vector3f& Destination)
+{
+	Vector3f TargetDirection = (Destination - Source).Normalize();
+
+	float Dot = Vector3f::Dot(Vector3f::Forward, TargetDirection);
+
+	if (abs(Dot + 1.0f) < _EPSILON)
+	{
+		return FQuaternion{ 0, 1, 0, _PI };
+	}
+	if (abs(Dot - 1.0f) < _EPSILON)
+	{
+		return FQuaternion{};
+	}
+
+	float RotationAngle = acos(Dot);
+	Vector3f RotationAxis = Vector3f::Cross(Vector3f::Forward, TargetDirection);
+	return FQuaternion{ RotationAxis, RotationAngle };
 }

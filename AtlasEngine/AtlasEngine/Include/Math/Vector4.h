@@ -1,11 +1,15 @@
 #pragma once
 
+#ifndef VECTOR4_H
+#define VECTOR4_H
+#endif
+
 #include <cstdint>
+#include <string>
 #include <cstdio>
 
-#include "Math\Vector3.h"
-#include "Misc\Assertions.h"
 #include "..\Common.h"
+#include "Vector3.h"
 
 template <typename T>
 /**
@@ -21,7 +25,15 @@ public:
 	* @param Z - value of Z component
 	* @param W - value of W component
 	*/
-	explicit TVector4(T X = 0, T Y = 0, T Z = 0, T W = 1);
+	explicit TVector4(const T X = 0, const T Y = 0, const T Z = 0, const T W = 1);
+
+	/**
+	* Constructs vector with first 3 components of
+	* TVector3.
+	* @param Vec3 Vector with x, y, z components.
+	* @param W - The fourth component of the vec4
+	*/
+	TVector4(const TVector3<T>& Vec3, const T W);
 
 	/**
 	* Default copy constructor.
@@ -33,42 +45,65 @@ public:
 	*/
 	TVector4<T>& operator=(const TVector4<T>& Other) = default;
 
-	/**
-	* Constructs vector with first 3 components of
-	* TVector3.
-	* @param Vec3 Vector with x, y, z components.
-	*/
-	TVector4(const TVector3<T>& Vec3);
-
 	template <typename U>
 	/**
 	* Performs vector-scalar multiplication.
-	* @param scalar - Scalar to multiply by.
+	* @param Scalar - Unit to multiply by.
 	* @return Reference to this vector.
 	*/
-	TVector4<T>& operator*=(const U& scalar);
-
-	/**
-	* Performs vector addition.
-	* @param rhs - TVector4 to add.
-	* @return Reference to this vector.
-	*/
-	TVector4<T>& operator+=(const TVector4<T>& rhs);
-
-	/**
-	* Performs vector subtraction.
-	* @param rhs - TVector4 to subtract
-	* @return Reference to this vector
-	*/
-	TVector4<T>& operator-=(const TVector4<T>& rhs);
+	TVector4<T>& operator+=(const U Scalar);
 
 	template <typename U>
 	/**
 	* Performs vector division.
-	* @param rhs - Unit to divide by.
+	* @param Scalar - Unit to divide by.
 	* @return Reference to this vector
 	*/
-	TVector4<T>& operator/=(const U& scalar);
+	TVector4<T>& operator-=(const U Scalar);
+
+	template <typename U>
+	/**
+	* Performs vector-scalar multiplication.
+	* @param Scalar - Unit to multiply by.
+	* @return Reference to this vector.
+	*/
+	TVector4<T>& operator*=(const U Scalar);
+
+	template <typename U>
+	/**
+	* Performs vector division.
+	* @param Scalar - Unit to divide by.
+	* @return Reference to this vector
+	*/
+	TVector4<T>& operator/=(const U Scalar);
+
+	/**
+	* Performs vector addition.
+	* @param Rhs - TVector4 to add.
+	* @return Reference to this vector.
+	*/
+	TVector4<T>& operator+=(const TVector4<T>& Rhs);
+
+	/**
+	* Performs vector subtraction.
+	* @param Rhs - TVector4 to subtract
+	* @return Reference to this vector
+	*/
+	TVector4<T>& operator-=(const TVector4<T>& Rhs);
+
+	/**
+	* Performs component-wise vector multiplcation.
+	* @param Rhs - TVector4 to add.
+	* @return Reference to this vector.
+	*/
+	TVector4<T>& operator*=(const TVector4<T>& Rhs);
+
+	/**
+	* Performs component-wise vector division.
+	* @param Rhs - TVector4 to subtract
+	* @return Reference to this vector
+	*/
+	TVector4<T>& operator/=(const TVector4<T>& Rhs);
 
 	/**
 	* Checks vector equality.
@@ -207,300 +242,8 @@ public:
 	T w; /* W component of the vector */
 };
 
-using Vector4i = TVector4<int32_t>;	/* Vector type for integers */
-using Vector4f = TVector4<float>; /* Vector type for floats */
+using Vector4i = TVector4<int32_t>;		/* Vector type for 32-bit signed integers */
+using Vector4ui = TVector4<uint32_t>;	/* Vector type for 32-bit unsigned integers */
+using Vector4f = TVector4<float>;		/* Vector type for floats */
 
-
-///////////////////////////////////////////////////////////////////////////
-////////////////// Inlined Member Functions ///////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-TVector4<T>::TVector4(T X = 0.0f, T Y = 0.0f, T Z = 0.0f, T W = 1.0f)
-	: x(X), y(Y), z(Z), w(W){}
-
-template <typename T>
-TVector4<T>::TVector4(const TVector3<T>& Vec3)
-	: TVector4<T>(Vec3.x, Vec3.y, Vec3.z)
-{
-}
-
-template <typename T>
-template <typename U>
-inline TVector4<T>& TVector4<T>::operator*=(const U& scalar)
-{
-	x *= scalar;
-	y *= scalar;
-	z *= scalar;
-	w *= scalar;
-	return *this;
-}
-
-template <typename T>
-inline TVector4<T>& TVector4<T>::operator+=(const TVector4<T>& rhs)
-{
-	x += rhs.x;
-	y += rhs.y;
-	z += rhs.z;
-	w += rhs.w;
-	return *this;
-}
-
-template <typename T>
-inline TVector4<T>& TVector4<T>::operator-=(const TVector4<T>& rhs)
-{
-	x -= rhs.x;
-	y -= rhs.y;
-	z -= rhs.z;
-	w -= rhs.w;
-	return *this;
-}
-
-template <typename T>
-template <typename U>
-inline TVector4<T>& TVector4<T>::operator/=(const U& scalar)
-{
-	x /= scalar;
-	y /= scalar;
-	z /= scalar;
-	w /= scalar;
-	return *this;
-}
-
-template <typename T>
-inline bool TVector4<T>::operator==(const TVector4<T>& Rhs) const
-{
-	for (size_t i = 0; i < 4; i++)
-		if (*this[i] != Rhs[i])
-			return false;
-
-	return true;
-}
-
-template <typename T>
-inline bool TVector4<T>::operator!=(const TVector4<T>& Rhs) const
-{
-	for (size_t i = 0; i < 4; i++)
-		if ((*this)[i] != Rhs[i])
-			return true;
-
-	return false;
-}
-
-template <typename T>
-inline T& TVector4<T>::operator[](uint32_t idx)
-{
-	ASSERT(idx >= 0 && idx < 4 && "Vector4 index out of range.");
-	if (idx == 0)
-		return x;
-	else if (idx == 1)
-		return y;
-	else if (idx == 2)
-		return z;
-	else
-		return w;
-}
-
-template <typename T>
-inline const T& TVector4<T>::operator[](uint32_t idx) const
-{
-	ASSERT(idx >= 0 && idx < 4 && "Vector4 index out of range.");
-	if (idx == 0)
-		return x;
-	else if (idx == 1)
-		return y;
-	else if (idx == 2)
-		return z;
-	else
-		return w;
-}
-
-template <typename T>
-inline TVector4<T>& TVector4<T>::Normalize3()
-{
-	float invLength = 1.0f / Length3();
-	return *this *= invLength;
-}
-
-template <typename T>
-inline float TVector4<T>::Length4() const
-{
-	return sqrtf(x*x + y*y + z*z + w*w);
-}
-
-template <typename T>
-inline float TVector4<T>::Length3() const
-{
-	return sqrtf(x*x + y*y + z*z);
-}
-
-template <typename T>
-inline float TVector4<T>::LengthSquared4() const
-{
-	return (x*x + y*y + z*z + w*w);
-}
-
-template <typename T>
-inline float TVector4<T>::LengthSquared3() const
-{
-	return (x*x + y*y + z*z);
-}
-
-template <typename T>
-inline TVector4<T> TVector4<T>::Reflect3(const TVector4<T>& Normal) const
-{
-	return 2.0f * Dot3(*this, Normal) * Normal - *this;
-}
-
-template <typename T>
-inline TVector4<T> TVector4<T>::ProjectedOnVector(const TVector4<T>& Vector) const
-{
-	return Vector * (TVector4<T>::Dot3(*this, Vector) / Vector.LengthSquared3());
-}
-
-template <typename T>
-inline TVector4<T> TVector4<T>::ProjectedOnNormal(const TVector4<T>& Normal) const
-{
-	return Normal * TVector4<T>::Dot3(*this, Normal);
-}
-
-template <typename T>
-inline bool TVector4<T>::Perpendicular(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
-{
-	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
-	return std::abs(Dot) <= CosineThreshold;
-}
-
-template <typename T>
-inline bool TVector4<T>::Parallel(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
-{
-	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
-	return std::abs(Dot) >= CosineThreshold;
-}
-
-template <typename T>
-inline const std::string TVector4<T>::ToString() const
-{
-	char buffer[100];
-	int32_t n;
-	if (typeid(T) == typeid(float))
-		n = sprintf_s(buffer, "TVector4: %.3f %.3f %.3f %.3f", x, y, z, w);
-	else
-		n = sprintf_s(buffer, "TVector4: %d %d %d %d", x, y, z, w);
-	ASSERT(n >= 0 && "sprintf failed to write string.");
-	return std::string(buffer);
-}
-
-///////////////////////////////////////////////////////////////////////////
-////////////////// Non-Member Functions ///////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-/**
-* Calculates the dot product of two vectors with x, y, and z components.
-* @param lhs - Left operand
-* @param rhs - Right operand
-* @return
-*/
-inline T TVector4<T>::Dot3(const TVector4<T>& lhs, const TVector4<T>& rhs)
-{
-	return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
-}
-
-template <typename T>
-/**
-* Calculates the dot product of two vectors with all components.
-* @param lhs - Left operand
-* @param rhs - Right operand
-* @return
-*/
-inline T TVector4<T>::Dot4(const TVector4<T>& lhs, const TVector4<T>& rhs)
-{
-	return Dot3(lhs, rhs) + lhs.w * rhs.w;
-}
-
-template <typename T>
-/**
-* Calculates the cross product of two vectors with x, y, z components.
-* @param lhs - Left operand
-* @param rhs - Right operand
-* @return The cross product vector.
-*/
-inline TVector4<T> TVector4<T>::Cross(const TVector4<T>& lhs, const TVector4<T>& rhs)
-{
-	return TVector4<T>(	lhs.y * rhs.z - lhs.z * rhs.y,
-						lhs.z * rhs.x - lhs.x * rhs.z,
-						lhs.x * rhs.y - lhs.y * rhs.x,
-						0.0f);
-}
-
-template <typename T>
-/**
-* Adds two vectors.
-* @param lhs - Left operand
-* @param rhs - Right operand
-* @return Addition of the two vectors.
-*/
-inline TVector4<T> operator+(const TVector4<T>& lhs, const TVector4<T>& rhs)
-{
-	return TVector4<T>(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
-}
-
-template <typename T>
-/**
-* Calculates the difference of two vectors.
-* @param lhs - Left operand
-* @param rhs - Right operand
-* @return Difference of the two vectors.
-*/
-inline TVector4<T> operator-(const TVector4<T>& lhs, const TVector4<T>& rhs)
-{
-	return TVector4<T>(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w);
-}
-
-template <typename T>
-/**
-* Negates the vector components.
-* @param lhs - Left operand
-* @return The negated vector.
-*/
-inline TVector4<T> operator-(const TVector4<T>& lhs)
-{
-	return TVector4<T>(-lhs.x, -lhs.y, -lhs.z, -lhs.w);
-}
-
-template <typename T, typename U>
-/**
-* Performs vector-scalar multiplication of two vectors.
-* @param Vec - Left operand (vector)
-* @param Scalar - Right operand (scalar)
-* @return Memberwise multiplied vector
-*/
-inline TVector4<T> operator*(const TVector4<T>& Vec, const U& Scalar)
-{
-	return TVector4<T>(Vec.x * Scalar, Vec.y * Scalar, Vec.z * Scalar, Vec.w * Scalar);
-}
-
-template <typename T, typename U>
-/**
-* Performs vector-scalar multiplication of two vectors.
-* @param scalar - Left operand (scalar)
-* @param vector - Right operand (vector)
-* @return Memberwise multiplied vector
-*/
-inline TVector4<T> operator*(const U& scalar, const TVector4<T>& vector)
-{
-	return vector * scalar;
-}
-
-template <typename T, typename U>
-/**
-* Performs vector division.
-* @param Vec - Vector to divide.
-* @param Scalar - Unit to divide by.
-* @return Memberwise divided vector
-*/
-inline TVector4<T> operator/(const TVector4<T>& Vec, const U& Scalar)
-{
-	return TVector4<T>(Vec.x / Scalar, Vec.y / Scalar, Vec.z / Scalar, Vec.w / Scalar);
-}
+#include "Vector.inl"

@@ -176,11 +176,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\AtlasRoot.h" />
+    <ClInclude Include="Include\Camera.h" />
     <ClInclude Include="Include\Clock.h" />
     <ClInclude Include="Include\Common.h" />
     <ClInclude Include="Include\Debugging\ConsoleOutput.h" />
     <ClInclude Include="Include\Debugging\DebugText.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
+    <ClInclude Include="Include\Math\Transform.h" />
     <ClInclude Include="Include\ResourceHolder.h" />
     <ClInclude Include="Include\STime.h" />
     <ClInclude Include="Include\Input\MouseAxis.h" />
@@ -223,9 +225,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Camera.cpp" />
+    <ClCompile Include="Src\Math\Transform.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
+    <None Include="Include\Math\Transform.inl" />
+    <None Include="Include\Math\Vector.inl" />
     <None Include="Include\Rendering\Mesh.inl">
       <FileType>CppCode</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>

@@ -153,6 +153,12 @@
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Math\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -230,6 +236,12 @@
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Math\Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -242,6 +254,12 @@
     <None Include="Shaders\BlinnLighting.vert" />
     <None Include="Shaders\BlinnLighting.frag" />
     <None Include="Include\ResourceHolder.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Include\Math\Vector.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="Include\Math\Transform.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

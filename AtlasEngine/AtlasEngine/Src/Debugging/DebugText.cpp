@@ -31,7 +31,6 @@ void FDebugText::AddText(const wchar_t* String, const FColor Color, Vector2i Pos
 
 	// From https://code.google.com/p/freetype-gl/source/browse/trunk/demo-font.c
 	size_t i;
-	float r = Color.R, g = Color.G, b = Color.B, a = Color.A;
 	for (i = 0; i<wcslen(String); ++i)
 	{
 		texture_glyph_t *glyph = texture_font_get_glyph(mTextureFont, String[i]);
@@ -53,10 +52,10 @@ void FDebugText::AddText(const wchar_t* String, const FColor Color, Vector2i Pos
 			float t1 = glyph->t1;
 			FTextVertex vertices[4] =
 			{ 
-				{ Vector3f(x0, y0, 0), Vector2f(s0, t0), FColor(r, g, b, a) },
-				{ Vector3f(x0, y1, 0), Vector2f(s0, t1), FColor(r, g, b, a) },
-				{ Vector3f(x1, y1, 0), Vector2f(s1, t1), FColor(r, g, b, a) },
-				{ Vector3f(x1, y0, 0), Vector2f(s1, t0), FColor(r, g, b, a) }
+				{ Vector3f((float)x0, (float)y0, 0.0f), Vector2f((float)s0, (float)t0), Color },
+				{ Vector3f((float)x0, (float)y1, 0.0f), Vector2f((float)s0, (float)t1), Color },
+				{ Vector3f((float)x1, (float)y1, 0.0f), Vector2f((float)s1, (float)t1), Color },
+				{ Vector3f((float)x1, (float)y0, 0.0f), Vector2f((float)s1, (float)t0), Color }
 			};
 
 			const uint32_t BaseIndex = mMesh.AddVertex(vertices, 4);

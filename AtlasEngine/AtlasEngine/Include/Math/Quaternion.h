@@ -29,13 +29,19 @@ public:
 	*/
 	FQuaternion(const Vector3f& Axis, const float Degrees);
 
-	/** Default copy ctor */
+	/**
+	* Default copy ctor 
+	*/
 	FQuaternion(const FQuaternion& Other) = default;
 
-	/** Default copy assignment */
+	/** 
+	* Default copy assignment 
+	*/
 	FQuaternion& operator=(const FQuaternion& Other) = default;
 	
-	/** Default destructor */
+	/**
+	* Default destructor 
+	*/
 	~FQuaternion() = default;
 
 	/**
@@ -95,6 +101,13 @@ public:
 	* Linear interpolation starting at From, going to To.
 	*/
 	static FQuaternion Lerp(const FQuaternion& From, const FQuaternion& To, const float Delta);
+
+	/**
+	* Constructs a quaternion that orients a rotation toward a target position.
+	* @param Source - The source position.
+	* @param Destination - The target position.
+	*/
+	static FQuaternion LookAt(const Vector3f& Source, const Vector3f& Destination);
 
 	float w;
 	float x;

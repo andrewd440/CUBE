@@ -359,15 +359,15 @@ inline Vector3f FMatrix4::TransformNormal(const Vector3f& Normal) const
 
 inline Vector3f FMatrix4::TransformDirection(const Vector3f& Direction) const
 {
-	Vector4f vec(Direction);
-	vec.w = 0.0f;
+	Vector4f vec(Direction , 0);
 	vec = TransformVector(vec);
 	return Vector3f(vec.x, vec.y, vec.z);
 }
 
 inline Vector3f FMatrix4::TransformPosition(const Vector3f& Position) const
 {
-	Vector4f vec(TransformVector(Position));
+	Vector4f vec(Position, 1);
+	vec = TransformVector(vec);
 	return Vector3f(vec.x, vec.y, vec.z);
 }
 

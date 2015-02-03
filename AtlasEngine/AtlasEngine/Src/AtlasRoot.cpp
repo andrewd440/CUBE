@@ -58,7 +58,7 @@ FAtlasRoot::FAtlasRoot()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	glClearColor(.1, .2, .3, 1);
+	glClearColor(.1f, .2f, .3f, 1.0f);
 }
 
 FAtlasRoot::~FAtlasRoot()

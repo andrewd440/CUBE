@@ -23,6 +23,8 @@
 #ifndef NOISE_MODULE_CONST_H
 #define NOISE_MODULE_CONST_H
 
+#pragma warning( disable : 4100)
+
 #include "modulebase.h"
 
 namespace noise

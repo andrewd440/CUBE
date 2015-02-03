@@ -23,6 +23,8 @@
 #ifndef NOISEUTILS_H
 #define NOISEUTILS_H
 
+#pragma warning( disable : 4244)
+
 #include <stdlib.h>
 #include <string.h>
 #include <string>

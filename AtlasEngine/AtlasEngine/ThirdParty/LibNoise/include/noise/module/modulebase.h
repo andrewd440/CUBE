@@ -23,6 +23,8 @@
 #ifndef NOISE_MODULEBASE_H
 #define NOISE_MODULEBASE_H
 
+#pragma warning( disable : 4100)
+
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>

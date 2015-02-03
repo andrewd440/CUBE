@@ -37,13 +37,6 @@ public:
 	*/
 	TVector2<T>& operator*=(const U& Scalar);
 
-	/**
-	* Performs vector addition.
-	* @param rhs - Vector2 to add.
-	* @return Reference to this vector.
-	*/
-	TVector2<T>& operator+=(const TVector2<T>& rhs);
-
 	template <typename U>
 	/**
 	* Performs vector-scalar addition.
@@ -52,6 +45,29 @@ public:
 	*/
 	TVector2<T>& operator+=(const U& Scalar);
 
+	template <typename U>
+	/**
+	* Performs vector-scalar subtraction.
+	* @param Scalar - Unit to divide by.
+	* @return Reference to this vector
+	*/
+	TVector2<T>& operator-=(const U& Scalar);
+
+	template <typename U>
+	/**
+	* Performs vector-scalar division.
+	* @param Scalar - Unit to divide by.
+	* @return Reference to this vector
+	*/
+	TVector2<T>& operator/=(const U& Scalar);
+
+	/**
+	* Performs vector addition.
+	* @param rhs - Vector2 to add.
+	* @return Reference to this vector.
+	*/
+	TVector2<T>& operator+=(const TVector2<T>& rhs);
+
 	/**
 	* Performs vector subtraction.
 	* @param rhs - Vector2 to subtract
@@ -59,13 +75,12 @@ public:
 	*/
 	TVector2<T>& operator-=(const TVector2<T>& rhs);
 
-	template <typename U>
 	/**
-	* Performs vector division.
-	* @param Scalar - Unit to divide by.
-	* @return Reference to this vector
+	* Performs componentwise multiplication.
+	* @param Rhs - Vector to multiply by.
+	* @return Reference to this vector.
 	*/
-	TVector2<T>& operator/=(const U& Scalar);
+	TVector2<T>& operator*=(const TVector2<T>& Rhs);
 
 	/**
 	* Checks vector equality.
@@ -167,8 +182,9 @@ public:
 	T y; /* Y coordinate of the vector */
 };
 
-using Vector2i = TVector2<int32_t>;	/* Vector type for integers */
-using Vector2f = TVector2<float>; /* Vector type for floats */
+using Vector2i = TVector2<int32_t>;		/* Vector type for 32-bit integers */
+using Vector2ui = TVector2<uint32_t>;	/* Vector type for unsigned 32-bit integers */
+using Vector2f = TVector2<float>;		/* Vector type for floats */
 
 /////////////////////////////////////////////////////
 //////////// Inlined Member Functions ///////////////
@@ -220,10 +236,29 @@ inline TVector2<T>& TVector2<T>::operator+=(const U& Scalar)
 }
 
 template <typename T>
+template <typename U>
+TVector2<T>& TVector2<T>::operator-=(const U& Scalar)
+{
+	x -= Scalar;
+	y -= Scalar;
+
+	return *this;
+}
+
+template <typename T>
 inline TVector2<T>& TVector2<T>::operator-=(const TVector2<T>& rhs)
 {
 	x -= rhs.x;
 	y -= rhs.y;
+
+	return *this;
+}
+
+template <typename T>
+TVector2<T>& TVector2<T>::operator*=(const TVector2<T>& Rhs)
+{
+	x *= rhs.x;
+	y *= rhs.y;
 
 	return *this;
 }
@@ -241,7 +276,7 @@ inline bool TVector2<T>::operator==(const TVector2<T>& Rhs) const
 template <typename T>
 inline bool TVector2<T>::operator!=(const TVector2<T>& Rhs) const
 {
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < 2; i++)
 		if ((*this)[i] != Rhs[i])
 			return true;
 
@@ -350,18 +385,6 @@ inline TVector2<T> operator+(const TVector2<T>& lhs, const TVector2<T>& rhs)
 	return TVector2<T>(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
-template <typename T, typename U>
-/**
-* Performs vector-scalar addition.
-* @param Vec - Left operand (vector)
-* @param Scalar - Right operand (scalar)
-* @return Memberwise multiplied vector
-*/
-inline TVector2<T> operator+(const TVector2<T>& Vec, const U& Scalar)
-{
-	return TVector2<T>(Vec.x + Scalar, Vec.y + Scalar);
-}
-
 template <typename T>
 /**
 * Calculates the difference of two vectors.
@@ -387,6 +410,30 @@ inline TVector2<T> operator-(const TVector2<T>& lhs)
 
 template <typename T, typename U>
 /**
+* Performs vector-scalar addition.
+* @param Vec - Left operand (vector)
+* @param Scalar - Right operand (scalar)
+* @return Memberwise multiplied vector
+*/
+inline TVector2<T> operator+(const TVector2<T>& Vec, const U& Scalar)
+{
+	return TVector2<T>(Vec.x + Scalar, Vec.y + Scalar);
+}
+
+template <typename T, typename U>
+/**
+* Performs vector-scalar subtraction.
+* @param Vec - Left operand (vector)
+* @param Scalar - Right operand (scalar)
+* @return Memberwise multiplied vector
+*/
+inline TVector2<T> operator-(const TVector2<T>& Vec, const U& Scalar)
+{
+	return TVector2<T>(Vec.x - Scalar, Vec.y - Scalar);
+}
+
+template <typename T, typename U>
+/**
 * Performs vector-scalar multiplication.
 * @param Vec - Left operand (vector)
 * @param Scalar - Right operand (scalar)
@@ -406,7 +453,7 @@ template <typename T, typename U>
 */
 inline TVector2<T> operator*(const U& Scalar, const TVector2<T>& Vec)
 {
-	return TVector2<T>(Vec.x * Scalar, Vec.y * Scalar);
+	return Vec * Scalar;
 }
 
 template <typename T, typename U>
@@ -419,16 +466,4 @@ template <typename T, typename U>
 inline TVector2<T> operator/(const TVector2<T>& Vec, const U& Scalar)
 {
 	return TVector2<T>(Vec.x / Scalar, Vec.y / Scalar);
-}
-
-template <typename T, typename U>
-/**
-* Performs vector division.
-* @param Scalar - Unit to divide.
-* @param Vec - Vector to divide by.
-* @return Memberwise divided vector
-*/
-inline TVector2<T> operator/(const U& Scalar, const TVector2<T>& Vec)
-{
-	return TVector2<T>(Scalar / Vec.x, Scalar / Vec.y);
 }
