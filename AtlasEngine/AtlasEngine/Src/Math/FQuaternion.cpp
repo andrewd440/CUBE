@@ -4,6 +4,29 @@
 #include "Math\Matrix4.h"
 #include "Common.h"
 
+FQuaternion::FQuaternion(const float X, const float Y, const float Z)
+{
+	// Translate degrees to radians
+	const float HalfXRadians = FMath::ToRadians(X/2.0f);
+	const float HalfYRadians = FMath::ToRadians(Y/2.0f);
+	const float HalfZRadians = FMath::ToRadians(Z/2.0f);
+
+	// Cache reused calculations
+	const float HalfXCos = cos(HalfXRadians);
+	const float HalfXSin = sin(HalfXRadians);
+
+	const float HalfYCos = cos(HalfYRadians);
+	const float HalfYSin = sin(HalfYRadians);
+
+	const float HalfZCos = cos(HalfZRadians);
+	const float HalfZSin = sin(HalfZRadians);
+
+	w = HalfYCos * HalfXCos * HalfZCos + HalfYSin * HalfXSin * HalfZSin;
+	x = HalfYCos * HalfXSin * HalfZCos + HalfYSin * HalfXCos * HalfZSin;
+	y = HalfYSin * HalfXCos * HalfZCos - HalfYCos * HalfXSin * HalfZSin;
+	z = HalfYCos * HalfXCos * HalfZSin - HalfYSin * HalfXSin * HalfZCos;
+}
+
 Vector3f FQuaternion::EulerAngles(const FQuaternion& Quat)
 {
 	Vector3f Euler;

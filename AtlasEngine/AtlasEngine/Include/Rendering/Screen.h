@@ -14,6 +14,8 @@ public:
 
 	static TVector2<uint32_t> GetResolution();
 
+	static float GetAspectRatio();
+
 private:
 	static TVector2<uint32_t> ScreenResolution;
 };

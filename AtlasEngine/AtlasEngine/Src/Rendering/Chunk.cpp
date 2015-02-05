@@ -85,7 +85,7 @@ void FChunk::Load(const Vector3ui& LowerLeftPosition)
 			{
 				uint32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
 				mBlocks[Index].SetActive(true);
-				mBlocks[Index].SetType((x%2==0)?FBlock::BlockType::Grass:FBlock::BlockType::Dirt);
+				mBlocks[Index].SetType(FBlock::BlockType::Grass);
 				if (y > ((FChunkManager::WORLD_SIZE * FBlock::BLOCK_SIZE) / 2 + 1925))
 					mBlocks[Index].SetType(FBlock::BlockType::Snow);
 			}
@@ -106,7 +106,6 @@ void FChunk::Unload()
 	mIsLoaded = false;
 
 	// DON'T forget the run the mesh destructor.
-	mMesh->~TMesh();
 	MeshAllocator.Free(mMesh);
 	ChunkAllocator.Free(mBlocks);
 }

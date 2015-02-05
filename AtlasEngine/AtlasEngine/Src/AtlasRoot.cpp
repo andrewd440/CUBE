@@ -4,30 +4,33 @@
 #include <SFML\Window\Context.hpp>
 #include <SFML\Window\Event.hpp>
 #include <SFML\Window\VideoMode.hpp>
-#include "..\Include\Clock.h"
-#include "..\Include\STime.h"
-#include "..\Include\Input\ButtonEvent.h"
-#include "..\Include\Input\MouseAxis.h"
-#include "..\Include\Debugging\ConsoleOutput.h"
+#include "Clock.h"
+#include "STime.h"
+#include "Input\ButtonEvent.h"
+#include "Input\MouseAxis.h"
+#include "Debugging\ConsoleOutput.h"
 
 #include <GL/glew.h>
-#include "..\Include\SystemFile.h"
-#include "..\Include\Rendering\ShaderProgram.h"
-#include "..\Include\Rendering\GLUtils.h"
-#include "..\Include\Math\Vector3.h"
-#include "..\Include\Math\Matrix4.h"
-#include "..\Include\Math\PerspectiveMatrix.h"
-#include "..\Include\Rendering\UniformBlockStandard.h"
-#include "..\Include\Common.h"
-#include "..\Include\Math\Quaternion.h"
-#include "..\Include\Rendering\ChunkManager.h"
-#include "..\Include\Debugging\DebugText.h"
-#include "..\Include\Rendering\Screen.h"
+#include "SystemResources\SystemFile.h"
+#include "Rendering\ShaderProgram.h"
+#include "Rendering\GLUtils.h"
+#include "Math\Vector3.h"
+#include "Math\Matrix4.h"
+#include "Math\PerspectiveMatrix.h"
+#include "Rendering\UniformBlockStandard.h"
+#include "Common.h"
+#include "Math\Quaternion.h"
+#include "Rendering\ChunkManager.h"
+#include "Debugging\DebugText.h"
+#include "Rendering\Screen.h"
 #include "ResourceHolder.h"
+#include "Rendering\Camera.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
 
+static FCamera MainCamera;
+static const float WorldCenter{ (float)(FChunkManager::WORLD_SIZE / 2) * FChunk::CHUNK_SIZE + 1 };
 FUniformBlockStandard* UniformBuffer;
 
 FAtlasRoot::FAtlasRoot()
@@ -73,9 +76,6 @@ void FAtlasRoot::Start()
 	GameLoop();
 }
 
-static const float WorldCenter{ (float)(FChunkManager::WORLD_SIZE / 2) * FChunk::CHUNK_SIZE + 1 };
-Vector3f gEyePosition(WorldCenter, WorldCenter, WorldCenter), LookAt(32, 16, 33), Up(0, 1, 0);
-LookAtMatrix ViewTransform = LookAtMatrix{ gEyePosition, LookAt, Up };
 void GLTests();
 void UpdateCamera();
 
@@ -98,27 +98,26 @@ void FAtlasRoot::GameLoop()
 		if (SButtonEvent::GetKeyDown(sf::Keyboard::K))
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		ServiceEvents();
-
 		//// OpenGL /////////////////////
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Chunk rendering
 		UpdateCamera();
+		UniformBuffer->SetData(0, MainCamera.Transform.WorldToLocalMatrix());
 		UniformBuffer->SendBuffer();
 		Chunks.Update();
 		Chunks.Render();
 
-
 		// Debug Print
+		const Vector3f CameraPosition = MainCamera.Transform.GetPosition();
 		wchar_t String[250];
-		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), gEyePosition.x, gEyePosition.y, gEyePosition.z);
+		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z);
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 50));
 
 		swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 100));
 
-		Vector3i ChunkPosition = Vector3i(gEyePosition.x / FChunk::CHUNK_SIZE, gEyePosition.y / FChunk::CHUNK_SIZE, gEyePosition.z / FChunk::CHUNK_SIZE);
+		Vector3i ChunkPosition = Vector3i(CameraPosition.x / FChunk::CHUNK_SIZE, CameraPosition.y / FChunk::CHUNK_SIZE, CameraPosition.z / FChunk::CHUNK_SIZE);
 		swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50 , SScreen::GetResolution().y - 150));
 
@@ -128,6 +127,7 @@ void FAtlasRoot::GameLoop()
 		mGameWindow.display();
 
 		UpdateTimers();
+		ServiceEvents();
 	}
 }
 
@@ -197,8 +197,19 @@ void FAtlasRoot::UpdateTimers()
 
 void GLTests()
 {
-	FPerspectiveMatrix Projection{ (float)WindowWidth, (float)WindowHeight, 35, 1, (float)FChunkManager::VISIBILITY_DISTANCE };
-	UniformBuffer->SetData(64, Projection);
+	FTransform& CameraTransform = MainCamera.Transform;
+	const Vector3f CameraPosition = Vector3f{ WorldCenter, WorldCenter, WorldCenter };
+	const Vector3f CameraLookAt = CameraPosition + Vector3f{ 0, 0, -1 };
+	CameraTransform.SetPosition(CameraPosition);
+	CameraTransform.SetRotation(FQuaternion::LookAt(CameraPosition, CameraLookAt));
+
+	MainCamera.SetAspectRatio((float)WindowWidth / (float)WindowHeight);
+	MainCamera.SetNearPlane(1.0f);
+	MainCamera.SetFarPlane((float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE);
+	MainCamera.SetFieldOfView(75.0f);
+
+	UniformBuffer->SetData(0, CameraTransform.WorldToLocalMatrix());
+	UniformBuffer->SetData(64, MainCamera.GetProjection());
 	UniformBuffer->SetData(128, Vector3f(0, 0, 0));
 }
 
@@ -218,32 +229,20 @@ void UpdateCamera()
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		YMovement = -MoveSpeed;
 
-
 	const float LookSpeed = 10.0f * STime::GetFixedUpdate();
-	Vector3f NAxis = (LookAt - gEyePosition).Normalize();
-	Vector3f UAxis = Vector3f::Cross(NAxis, Up).Normalize();
-	// Y Rotation
-	LookAt -= gEyePosition;
-	FQuaternion RotateY{ Up, -(float)SMouseAxis::GetDelta().x * LookSpeed };
-	LookAt = RotateY * LookAt;
-	LookAt += gEyePosition;
+	FQuaternion CameraRotation = MainCamera.Transform.GetRotation();
 
-	// X Rotation
-	FQuaternion RotateX{ UAxis, -(float)SMouseAxis::GetDelta().y * LookSpeed };
-	LookAt -= gEyePosition;
-	LookAt = RotateX * LookAt;
-	LookAt += gEyePosition;
+	Vector3f CameraForward = CameraRotation * Vector3f::Forward;
+	CameraForward.y = 0.0f;
+	CameraForward.Normalize();
 
-	// Side movement
-	Vector3f CameraMovement;
-	NAxis = (LookAt - gEyePosition).Normalize();
-	UAxis = Vector3f::Cross(NAxis, Up).Normalize();
-	CameraMovement += UAxis * XMovement;
-	CameraMovement += NAxis * ZMovement;
-	CameraMovement += Up * YMovement;
-	gEyePosition += CameraMovement;
-	LookAt += CameraMovement;
+	Vector3f CameraRight = Vector3f::Cross(CameraForward, Vector3f::Up);
 
-	ViewTransform = LookAtMatrix(gEyePosition, LookAt, Up);
-	UniformBuffer->SetData(0, ViewTransform);
+	CameraRotation = FQuaternion{ CameraRight, (float)SMouseAxis::GetDelta().y * LookSpeed } * CameraRotation;
+	CameraRotation = FQuaternion{ Vector3f::Up, -(float)SMouseAxis::GetDelta().x * LookSpeed } * CameraRotation;
+
+	MainCamera.Transform.SetRotation(CameraRotation);
+
+	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
+	MainCamera.Transform.Translate(Translation);
 }

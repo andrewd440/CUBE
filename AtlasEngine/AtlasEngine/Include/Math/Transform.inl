@@ -50,7 +50,7 @@ inline Vector3f FTransform::GetPosition() const
 
 inline void FTransform::Translate(const Vector3f& Translation)
 {
-	mTranslation += Translation;
+	mTranslation += (mRotation * Translation);
 }
 
 inline void FTransform::SetRotation(const FQuaternion& NewRotation)

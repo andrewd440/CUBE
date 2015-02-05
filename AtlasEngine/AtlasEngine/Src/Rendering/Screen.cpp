@@ -11,3 +11,8 @@ TVector2<uint32_t> SScreen::GetResolution()
 {
 	return ScreenResolution;
 }
+
+float SScreen::GetAspectRatio()
+{
+	return (float)ScreenResolution.x / (float)ScreenResolution.y;
+}

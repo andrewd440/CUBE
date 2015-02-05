@@ -3,6 +3,7 @@
 #include "Debugging\ConsoleOutput.h"
 #include "Rendering\GLUtils.h"
 #include "ResourceHolder.h"
+#include "Rendering\Camera.h"
 
 namespace
 {	
@@ -60,8 +61,6 @@ const uint32_t FChunkManager::WORLD_SIZE = 256;
 const uint32_t FChunkManager::VISIBILITY_DISTANCE = 10;
 const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 10;
 
-extern Vector3f gEyePosition;
-
 FChunkManager::FChunkManager()
 	: mChunks(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE)
 	, mVisibleList()
@@ -71,7 +70,7 @@ FChunkManager::FChunkManager()
 	, mUnloadList()
 	, mRebuildList()
 	, mShader()
-	, mLastCameraChunk(TVector3<uint32_t>((uint32_t)gEyePosition.x, (uint32_t)gEyePosition.y, (uint32_t)gEyePosition.z) / FChunk::CHUNK_SIZE)
+	, mLastCameraChunk()
 	, mNoiseMap()
 {
 	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
@@ -109,6 +108,9 @@ float FChunkManager::GetNoiseHeight(uint32_t x, uint32_t z)
 
 void FChunkManager::Setup()
 {
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	mLastCameraChunk = TVector3<uint32_t>((uint32_t)CameraPosition.x, (uint32_t)CameraPosition.y, (uint32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
+
 	// Load all chunks surrounding the camera's starting position.
 	TVector3<uint32_t> CameraChunk = mLastCameraChunk;
 	CameraChunk -= VISIBILITY_DISTANCE;
@@ -210,9 +212,10 @@ void FChunkManager::UpdateLoadList()
 void FChunkManager::UpdateVisibleList()
 {
 	// Chunk coordinate of the camera
-	const TVector3<uint32_t> CameraChunk = TVector3<uint32_t>(	(uint32_t)gEyePosition.x, 
-																(uint32_t)gEyePosition.y, 
-																(uint32_t)gEyePosition.z) / FChunk::CHUNK_SIZE;
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	const TVector3<uint32_t> CameraChunk = TVector3<uint32_t>((uint32_t)CameraPosition.x,
+																(uint32_t)CameraPosition.y,
+																(uint32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
 	
 	// Only update visibility list when we move to another chunk
 	if (CameraChunk == mLastCameraChunk)

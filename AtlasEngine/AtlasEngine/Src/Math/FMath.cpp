@@ -1,4 +1,6 @@
 #include "..\..\Include\Math\FMath.h"
+#include "Math\Box.h"
+#include "Math\Plane.h"
 
 namespace FMath
 {
@@ -41,5 +43,32 @@ namespace FMath
 		BOut[0] = Vector3f::Dot(Vector3f::Cross(e1, d3), Normal) * Denom;
 		BOut[1] = Vector3f::Dot(Vector3f::Cross(e2, d1), Normal) * Denom;
 		BOut[2] = Vector3f::Dot(Vector3f::Cross(e3, d2), Normal) * Denom;
+	}
+
+	
+	IntersectionType Intersects(const FPlane& Plane, const FBox& Box)
+	{
+		// From Real-Time Collision Detection
+		const Vector3f BoxCenter = Box.GetCenter();
+		const Vector3f Extents = Box.Max - BoxCenter;
+
+		// Compute projection interval radius of box
+		float Radius = Extents.x * abs(Plane.Normal.x) + Extents.y * abs(Plane.Normal.y) + Extents.z * abs(Plane.Normal.z);
+		
+		// Compute distance of box center from plane
+		float Distance = Vector3f::Dot(Plane.Normal, BoxCenter) - Plane.DistanceFromOrigin;
+
+		if (abs(Distance) <= Radius)
+		{
+			return IntersectionType::Straddle;
+		}
+		else if (Distance >= 0)
+		{
+			return IntersectionType::Front;
+		}
+		else
+		{
+			return IntersectionType::Behind;
+		}
 	}
 }

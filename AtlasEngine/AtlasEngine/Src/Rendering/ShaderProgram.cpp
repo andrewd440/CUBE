@@ -1,6 +1,6 @@
-#include "..\..\Include\Rendering\ShaderProgram.h"
-#include "..\..\Include\SystemFile.h"
-#include "..\..\Include\Debugging\ConsoleOutput.h"
+#include "Rendering\ShaderProgram.h"
+#include "SystemResources\SystemFile.h"
+#include "Debugging\ConsoleOutput.h"
 
 #include <GL\glew.h>
 #include <GL\GL.h>

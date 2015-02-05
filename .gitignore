@@ -53,3 +53,8 @@ Temporary Items
 /AtlasEngine/AtlasEngine141229(3).vsp
 /AtlasEngine/AtlasEngine141229.vsp
 /AtlasEngine/Performance1.psess
+/AtlasEngine/BuidConfigurations/Release
+/AtlasEngine/Debug/BuidConfigurations
+*.vspx
+*.vsp
+*.psess

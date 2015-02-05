@@ -1,5 +1,5 @@
 #pragma once
-#include "SystemClock.h"
+#include "SystemResources\SystemClock.h"
 #include <cstdint>
 
 /**

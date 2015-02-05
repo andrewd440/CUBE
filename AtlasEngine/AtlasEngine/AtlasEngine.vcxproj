@@ -176,12 +176,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\AtlasRoot.h" />
-    <ClInclude Include="Include\Camera.h" />
+    <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Clock.h" />
     <ClInclude Include="Include\Common.h" />
     <ClInclude Include="Include\Debugging\ConsoleOutput.h" />
     <ClInclude Include="Include\Debugging\DebugText.h" />
     <ClInclude Include="Include\FileIO\GenericFile.h" />
+    <ClInclude Include="Include\Math\Box.h" />
+    <ClInclude Include="Include\Math\Frustum.h" />
+    <ClInclude Include="Include\Math\Plane.h" />
     <ClInclude Include="Include\Math\Transform.h" />
     <ClInclude Include="Include\ResourceHolder.h" />
     <ClInclude Include="Include\STime.h" />
@@ -217,15 +220,17 @@
     <ClInclude Include="Include\Rendering\VertexBufferObject.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\StringID.h" />
-    <ClInclude Include="Include\SystemClock.h" />
-    <ClInclude Include="Include\SystemFile.h" />
+    <ClInclude Include="Include\SystemResources\SystemClock.h" />
+    <ClInclude Include="Include\SystemResources\SystemFile.h" />
     <ClInclude Include="Include\Windows\WindowsClock.h" />
     <ClInclude Include="Include\Windows\WindowsFile.h" />
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
-    <ClCompile Include="Src\Camera.cpp" />
+    <ClCompile Include="Src\Rendering\Camera.cpp" />
+    <ClCompile Include="Src\Math\Frustum.cpp" />
+    <ClCompile Include="Src\Math\Plane.cpp" />
     <ClCompile Include="Src\Math\Transform.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>

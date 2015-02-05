@@ -161,9 +161,12 @@ public:
 
 	/**
 	* Release an object back into the memory pool.
+	* The objects' destructor is called within this function
+	* before memory is freed.
 	*/
 	void Free(ElementType* Data)
 	{
+		Data->~ElementType();
 		FPoolAllocator::Free((void*)Data);
 	}
 

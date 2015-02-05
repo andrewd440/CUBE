@@ -2,6 +2,8 @@
 #include <cstdint>
 #include "Vector3.h"
 
+class FPlane;
+struct FBox;
 
 const float _PI = 3.14159265f;
 const float _EPSILON = 0.00001f;
@@ -71,4 +73,22 @@ namespace FMath
 		static const float OneEightyOverPi = 180.0f / _PI;
 		return Radians * OneEightyOverPi;
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////// Intersection Tests ///////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	enum class IntersectionType
+	{
+		Front, // For planes
+		Behind,
+		Straddle,
+		Inside, // For boxes, sphere
+		Outside
+	};
+
+	/**
+	* Plane-AABB intersection test.
+	*/
+	IntersectionType Intersects(const FPlane& Plane, const FBox& Box);
 }

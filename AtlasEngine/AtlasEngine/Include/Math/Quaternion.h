@@ -3,6 +3,7 @@
 #include "..\Common.h"
 #include "Matrix4.h"
 #include "Vector3.h"
+#include "SystemMath.h"
 
 /** Represents a unit length 3D rotation quaternion */
 WIN_ALIGN(16)
@@ -28,6 +29,14 @@ public:
 	* @oaram Degrees of rotation.
 	*/
 	FQuaternion(const Vector3f& Axis, const float Degrees);
+
+	/**
+	* Constructs a quaternion from euler angles.
+	* @param X - Rotation, in degrees, around the x axis.
+	* @param Y - Rotation, in degrees, around the y axis.
+	* @param Z - Rotation, in degrees, around the z axis.
+	*/
+	FQuaternion(const float X, const float Y, const float Z);
 
 	/**
 	* Default copy ctor 
@@ -122,10 +131,7 @@ public:
 inline FQuaternion operator*(const FQuaternion& Lhs, const FQuaternion& Rhs)
 {
 	FQuaternion Result;
-	Result.w = Lhs.w * Rhs.w - Lhs.x * Rhs.x - Lhs.y * Rhs.y - Lhs.z * Rhs.z;
-	Result.x = Lhs.w * Rhs.x + Lhs.x * Rhs.w + Lhs.y * Rhs.z - Lhs.z * Rhs.y;
-	Result.y = Lhs.w * Rhs.y + Lhs.y * Rhs.w + Lhs.z * Rhs.x - Lhs.x * Rhs.z;
-	Result.z = Lhs.w * Rhs.z + Lhs.z * Rhs.w + Lhs.x * Rhs.y - Lhs.y * Rhs.x;
+	MultQuatQuat(Lhs, Rhs, Result);
 	return Result;
 }
 
@@ -256,5 +262,8 @@ inline float FQuaternion::Length() const
 
 inline float FQuaternion::Dot(const FQuaternion& Lhs, const FQuaternion& Rhs)
 {
-	return Lhs.w * Rhs.w + Lhs.x * Rhs.x + Lhs.y * Rhs.y + Lhs.z * Rhs.z;
+	float Result;
+	Vector4f L{ Lhs.w, Lhs.x, Lhs.y, Lhs.z }, R{ Rhs.w, Rhs.x, Rhs.y, Rhs.z };
+	Dot4Product(L, R, Result);
+	return Result;
 }
