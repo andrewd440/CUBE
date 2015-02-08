@@ -15,8 +15,6 @@ out VS_OUT
 	vec3 Viewer;
 } vs_out;
 
-//uniform float TimeDelta;
-
 layout(std140, binding = 0) uniform TransformBlock
 {
 // Member					Base Align		Aligned Offset		End

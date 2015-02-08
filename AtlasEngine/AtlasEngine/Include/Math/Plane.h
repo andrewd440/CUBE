@@ -75,6 +75,11 @@ public:
 	* Transforms this plane by a matrix.
 	*/
 	void TransformBy(const FMatrix4& Transform);
+
+	/**
+	* Normalizes the plane equation.
+	*/
+	FPlane& Normalize();
 };
 
 inline FPlane::FPlane()
@@ -117,9 +122,18 @@ inline void FPlane::TransformBy(const FMatrix4& Transform)
 	// We can treat the plane as a 4 dimensional vector and transform it similar to 
 	// transforming normal vectors with the transpose of the inverse.
 
-	const FMatrix4& CorrectTransform = Transform.GetInverse().Transpose();
-	Normal = CorrectTransform.TransformDirection(Normal);
-	DistanceFromOrigin = CorrectTransform.TransformDirection(Vector3f(DistanceFromOrigin, DistanceFromOrigin, DistanceFromOrigin)).x;
+	FMatrix4 CorrectTransform = Transform.GetInverse().Transpose();
+	const Vector4f NewPlane = CorrectTransform.TransformVector(Vector4f(Normal, DistanceFromOrigin));
+	Normal = Vector3f{ NewPlane.x, NewPlane.y, NewPlane.z };
+	DistanceFromOrigin = NewPlane.w;
+}
+
+inline FPlane& FPlane::Normalize()
+{
+	const float InvNormalLength = 1.0f / Normal.Length();
+	Normal *= InvNormalLength;
+	DistanceFromOrigin *= InvNormalLength;
+	return *this;
 }
 
 inline float FPlane::DistanceFromPoint(const Vector3f& Point) const

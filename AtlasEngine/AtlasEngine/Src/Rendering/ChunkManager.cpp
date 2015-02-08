@@ -4,6 +4,7 @@
 #include "Rendering\GLUtils.h"
 #include "ResourceHolder.h"
 #include "Rendering\Camera.h"
+#include "Math\Frustum.h"
 
 namespace
 {	
@@ -18,7 +19,7 @@ namespace
 	/**
 	* Converts a 3D chunk position into an index into the chunks array.
 	*/
-	uint32_t ChunkIndex(Vector3i Position)
+	uint32_t ChunkIndex(Vector3ui Position)
 	{
 		return ChunkIndex(Position.x, Position.y, Position.z);
 	}
@@ -58,8 +59,8 @@ namespace
 }
 
 const uint32_t FChunkManager::WORLD_SIZE = 256;
-const uint32_t FChunkManager::VISIBILITY_DISTANCE = 10;
-const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 10;
+const uint32_t FChunkManager::VISIBILITY_DISTANCE = 8;
+const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 4;
 
 FChunkManager::FChunkManager()
 	: mChunks(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE)
@@ -71,6 +72,8 @@ FChunkManager::FChunkManager()
 	, mRebuildList()
 	, mShader()
 	, mLastCameraChunk()
+	, mLastCameraPosition()
+	, mLastCameraDirection()
 	, mNoiseMap()
 {
 	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
@@ -93,7 +96,6 @@ FChunkManager::FChunkManager()
 
 }
 
-
 FChunkManager::~FChunkManager()
 {
 }
@@ -108,60 +110,91 @@ float FChunkManager::GetNoiseHeight(uint32_t x, uint32_t z)
 
 void FChunkManager::Setup()
 {
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
-	mLastCameraChunk = TVector3<uint32_t>((uint32_t)CameraPosition.x, (uint32_t)CameraPosition.y, (uint32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
+	// Store needed camera data.
+	mLastCameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
+	mLastCameraPosition = FCamera::Main->Transform.GetPosition();
+	mLastCameraChunk = TVector3<uint32_t>((uint32_t)mLastCameraPosition.x, (uint32_t)mLastCameraPosition.y, (uint32_t)mLastCameraPosition.z) / FChunk::CHUNK_SIZE;
 
 	// Load all chunks surrounding the camera's starting position.
-	TVector3<uint32_t> CameraChunk = mLastCameraChunk;
-	CameraChunk -= VISIBILITY_DISTANCE;
+	Vector3ui CameraChunk = mLastCameraChunk;
+	CameraChunk -= Vector3ui{ VISIBILITY_DISTANCE, 0, VISIBILITY_DISTANCE };
 
-	const uint32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
+	const int32_t DoubleVisibility = 2 * (int32_t)VISIBILITY_DISTANCE;
 
-	// Add all chunks in the visible range to the visible list.
-	for (int32_t Y = VISIBILITY_DISTANCE; Y >= 0; Y--)
+	// First load the xz plane that the camera is currently on.
+	for (int32_t x = 0; x < DoubleVisibility; x++)
 	{
-		for (int32_t X = 0; X <= DoubleVisibility; X++)
+		for (int32_t z = 0; z < DoubleVisibility; z++)
 		{
-			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
+			const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + x, CameraChunk.y, CameraChunk.z + z);
+			mVisibleList.push_back(VisibleChunkIndex);
+			mLoadList.push_back(VisibleChunkIndex);
+		}
+	}
+
+	// Now the world by alternating the xz planes from below to above the camera's chunk
+	for (int32_t v = 1; v <= (int32_t)VISIBILITY_DISTANCE; v++)
+	{
+		for (int32_t y = -v; y < v + 1; y += 2*v)
+		{
+			for (int32_t x = 0; x < DoubleVisibility; x++)
 			{
-				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + X, CameraChunk.y + Y, CameraChunk.z + Z);
-				mVisibleList.push_back(VisibleChunkIndex);
-				mLoadList.push_back(VisibleChunkIndex);
+				for (int32_t z = 0; z < DoubleVisibility; z++)
+				{
+					const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + x, CameraChunk.y + y, CameraChunk.z + z);
+					mVisibleList.push_back(VisibleChunkIndex);
+					mLoadList.push_back(VisibleChunkIndex);
+				}
 			}
 		}
 	}
 
-	for (int32_t Y = VISIBILITY_DISTANCE + 1; Y < DoubleVisibility; Y++)
-	{
-		for (int32_t X = 0; X <= DoubleVisibility; X++)
-		{
-			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
-			{
-				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunk.x + X, CameraChunk.y + Y, CameraChunk.z + Z);
-				mVisibleList.push_back(VisibleChunkIndex);
-				mLoadList.push_back(VisibleChunkIndex);
-			}
-		}
-	}
+	UpdateRenderList();
 }
 
 void FChunkManager::Render()
 {
-	mShader.Use();
+	// Get camera data
+	const Vector3f CameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
 
+	// Update the renderlist if the camera position or direction has changed.
+	if (mLastCameraPosition != CameraPosition || mLastCameraDirection != CameraDirection)
+	{
+		mLastCameraPosition = CameraPosition;
+		mLastCameraDirection = mLastCameraDirection;
+		UpdateRenderList();
+	}
+
+	mShader.Use();
 	for (const auto& Index : mRenderList)
 	{
-		auto Fposition = IndexToPosition(Index);
-		const Vector3f Position((float)Fposition.x, (float)Fposition.y, (float)Fposition.z);
-		mChunks[Index].Render(Position);
+		if (mChunks[Index].IsLoaded())
+		{
+			auto Fposition = IndexToPosition(Index);
+			const Vector3f Position((float)Fposition.x, (float)Fposition.y, (float)Fposition.z);
+			mChunks[Index].Render(Position);
+		}
 	}
 }
 
 void FChunkManager::Update()
 {
-	UpdateVisibleList();
 	UpdateLoadList();
 	UpdateUnloadList();
+
+	// Get the chunk that the camera is currently in.
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	const TVector3<uint32_t> CameraChunk = TVector3<uint32_t>((uint32_t)CameraPosition.x,
+																(uint32_t)CameraPosition.y,
+																(uint32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
+
+	// Only update visibility list when that camera crosses a chunk boundary
+	if (mLastCameraChunk != CameraChunk)
+	{
+		mLastCameraChunk = CameraChunk;
+		UpdateVisibleList();
+	}
 }
 
 void FChunkManager::UpdateUnloadList()
@@ -198,9 +231,8 @@ void FChunkManager::UpdateLoadList()
 		mChunks[Index].Load(IndexToPosition(Index));
 		mChunks[Index].RebuildMesh();
 
-		// Add it to the loaded and render lists
+		// Add it to the loaded lists
 		mIsLoadedList.push_back(Index);
-		mRenderList.push_back(Index);
 
 		LoadsLeft--;
 	}
@@ -211,18 +243,8 @@ void FChunkManager::UpdateLoadList()
 
 void FChunkManager::UpdateVisibleList()
 {
-	// Chunk coordinate of the camera
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
-	const TVector3<uint32_t> CameraChunk = TVector3<uint32_t>((uint32_t)CameraPosition.x,
-																(uint32_t)CameraPosition.y,
-																(uint32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
-	
-	// Only update visibility list when we move to another chunk
-	if (CameraChunk == mLastCameraChunk)
-		return;
-	
 	// Offset the camera chunk position so the loop centers the camera
-	const TVector3<uint32_t> CameraChunkOffset = CameraChunk - VISIBILITY_DISTANCE;
+	TVector3<uint32_t> CameraChunkOffset = mLastCameraChunk - Vector3ui{ VISIBILITY_DISTANCE, 0, VISIBILITY_DISTANCE };
 
 	// Get the total range of visible area.
 	const uint32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
@@ -232,39 +254,42 @@ void FChunkManager::UpdateVisibleList()
 	mVisibleList.clear();
 
 	// Add all chunks in the visible range to the visible list.
-	for (int32_t Y = VISIBILITY_DISTANCE; Y >= 0; Y--)
+	// First add the xz plane that the camera is currently on.
+	for (int32_t x = 0; x < DoubleVisibility; x++)
 	{
-		for (int32_t X = 0; X <= DoubleVisibility; X++)
+		for (int32_t z = 0; z < DoubleVisibility; z++)
 		{
-			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
-			{
-				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + X, CameraChunkOffset.y + Y, CameraChunkOffset.z + Z);
-				mVisibleList.push_back(VisibleChunkIndex);
+			const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + x, CameraChunkOffset.y, CameraChunkOffset.z + z);
+			mVisibleList.push_back(VisibleChunkIndex);
 
-				// If this visible chunk is not loaded, load it.
-				if (!mChunks[VisibleChunkIndex].IsLoaded())
-					mLoadList.push_back(VisibleChunkIndex);
-			}
+			// If this visible chunk is not loaded, load it.
+			if (!mChunks[VisibleChunkIndex].IsLoaded())
+				mLoadList.push_back(VisibleChunkIndex);
 		}
 	}
 
-	for (int32_t Y = VISIBILITY_DISTANCE + 1; Y < DoubleVisibility; Y++)
+	// Now add the world by alternating the xz planes from below to above the camera's chunk
+	for (int32_t v = 1; v <= (int32_t)VISIBILITY_DISTANCE; v++)
 	{
-		for (int32_t X = 0; X <= DoubleVisibility; X++)
+		for (int32_t y = -v; y < v + 1; y += 2 * v)
 		{
-			for (int32_t Z = 0; Z <= DoubleVisibility; Z++)
+			for (int32_t x = 0; x < DoubleVisibility; x++)
 			{
-				const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + X, CameraChunkOffset.y + Y, CameraChunkOffset.z + Z);
-				mVisibleList.push_back(VisibleChunkIndex);
+				for (int32_t z = 0; z < DoubleVisibility; z++)
+				{
+					const uint32_t VisibleChunkIndex = ChunkIndex(CameraChunkOffset.x + x, CameraChunkOffset.y + y, CameraChunkOffset.z + z);
+					mVisibleList.push_back(VisibleChunkIndex);
 
-				// If this visible chunk is not loaded, load it.
-				if (!mChunks[VisibleChunkIndex].IsLoaded())
-					mLoadList.push_back(VisibleChunkIndex);
+					// If this visible chunk is not loaded, load it.
+					if (!mChunks[VisibleChunkIndex].IsLoaded())
+						mLoadList.push_back(VisibleChunkIndex);
+				}
 			}
 		}
 	}
 
 	// Add all loaded chunks that are no longer visible to the unload list.
+	CameraChunkOffset.y -= VISIBILITY_DISTANCE;
 	for (auto Itr = mIsLoadedList.begin(); Itr != mIsLoadedList.end(); Itr++)
 	{
 		// Get the chunk coordinates of this loaded chunk.
@@ -281,11 +306,28 @@ void FChunkManager::UpdateVisibleList()
 			}
 		}
 	}
-
-	mLastCameraChunk = CameraChunk;
 }
 
 void FChunkManager::UpdateRenderList()
 {
+	// Start with a fresh list
+	mRenderList.clear();
 
+	// The the current view frustum
+	const FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
+	const float ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
+
+	// Check each visible chunk against the frustum
+	for (const auto& Chunk : mVisibleList)
+	{
+		const Vector3ui UnsignedChunkCenter = IndexToPosition(Chunk);
+		const Vector3f Center = Vector3f{ (float)UnsignedChunkCenter.x + ChunkHalfWidth, 
+										  (float)UnsignedChunkCenter.y + ChunkHalfWidth, 
+										  (float)UnsignedChunkCenter.z + ChunkHalfWidth };
+
+		if (ViewFrustum.IsUniformAABBVisible(Center, FChunk::CHUNK_SIZE))
+		{
+			mRenderList.push_back(Chunk);
+		}
+	}
 }

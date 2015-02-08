@@ -78,7 +78,7 @@ public:
 	/**
 	* Get the view frustum of the camera in world space.
 	*/
-	FFrustum GetWorldViewFrustum() const;
+	FFrustum GetWorldViewFrustum();
 
 private:
 	FMatrix4 mProjection;

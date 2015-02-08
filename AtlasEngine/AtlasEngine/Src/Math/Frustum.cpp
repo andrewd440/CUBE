@@ -1,7 +1,7 @@
 #include "Math\Frustum.h"
 #include "Math\Vector4.h"
 
-bool FFrustum::IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth)
+bool FFrustum::IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth) const
 {
 	// From Mathematics for 3D Game Programming and Computer Graphics
 	const Vector4f BoxCenterVector{ CenterPoint, 1 };

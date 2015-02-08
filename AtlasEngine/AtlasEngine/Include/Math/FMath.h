@@ -8,13 +8,6 @@ struct FBox;
 const float _PI = 3.14159265f;
 const float _EPSILON = 0.00001f;
 
-enum EAxis : uint8_t
-{
-	X = 0, 
-	Y = 1,
-	Z = 2,
-};
-
 namespace FMath
 {
 	/**

@@ -19,7 +19,7 @@ public:
 	* @param DefaultBufferSize - The estimated size, in bytes, of vertex data
 	*							that will be used for this mesh.
 	*/
-	BMesh(const GLuint UsageMode, const uint32_t DefaultBufferSize = 0);
+	BMesh(const GLuint UsageMode = GL_STATIC_DRAW, const uint32_t DefaultBufferSize = 0);
 
 	/**
 	* Copy Ctor.
@@ -33,7 +33,7 @@ public:
 	* Steals vertex data, index data and OpenGL buffers
 	* from Other.
 	*/
-	BMesh(BMesh&& Other);
+	BMesh(BMesh&& Other) _NOEXCEPT;
 
 	/**
 	* Deletes buffers held by this object.
@@ -50,7 +50,7 @@ public:
 	* vertex data, index data and OpenGL buffers
 	* from Other.
 	*/
-	BMesh& operator=(BMesh&& Other);
+	BMesh& operator=(BMesh&& Other) _NOEXCEPT;
 
 	/**
 	* Renders vertex data held by this objects' buffers.
@@ -109,7 +109,7 @@ public:
 	* @param IndexData - Indices to be mapped.
 	* @param IndexSize - The size, in bytes, of the index data.
 	*/
-	void MapAndActivateB(void* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize);
+	void MapAndActivateB(const void* VertexData, const uint32_t VertexSize, const uint32_t* IndexData, const uint32_t IndexSize);
 
 	/**
 	* Clears all vertex and index data held locally be this
@@ -131,6 +131,12 @@ public:
 	* Get the triangle count of the mesh.
 	*/
 	uint32_t TriangleCountB() const;
+
+	/**
+	* Change the usage mode of GL buffers used
+	* by this mesh.
+	*/
+	void SetUsageModeB(GLuint Usage);
 
 	/**
 	* Copies data directly into the index buffer held
@@ -203,7 +209,7 @@ public:
 	* @param DefaultBufferSize - The estimated size, in bytes, of vertex data
 	*							that will be used for this mesh.
 	*/
-	TMesh(const GLuint UsageMode, const uint32_t DefaultBufferSize = 0);
+	TMesh(const GLuint UsageMode = GL_STATIC_DRAW, const uint32_t DefaultBufferSize = 0);
 
 	/**
 	* Copy Ctor.
@@ -217,7 +223,7 @@ public:
 	* Steals vertex data, index data and OpenGL buffers
 	* from Other.
 	*/
-	TMesh(TMesh&& Other);
+	TMesh(TMesh&& Other) _NOEXCEPT;
 
 	/**
 	* Deletes buffers held by this object.
@@ -234,7 +240,7 @@ public:
 	* vertex data, index data and OpenGL buffers
 	* from Other.
 	*/
-	TMesh& operator=(TMesh&& Other);
+	TMesh& operator=(TMesh&& Other) _NOEXCEPT;
 
 	/**
 	* Renders vertex data held by this objects' buffers.
@@ -314,7 +320,13 @@ public:
 	* @param IndexData - Indices to be mapped.
 	* @param IndexSize - Number of indices to copy.
 	*/
-	void MapAndActivate(VertexType* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize);
+	void MapAndActivate(const VertexType* VertexData, const uint32_t VertexSize, const uint32_t* IndexData, const uint32_t IndexSize);
+
+	/**
+	* Change the usage mode of GL buffers used
+	* by this mesh.
+	*/
+	void SetUsageMode(GLuint Usage);
 
 	/**
 	* Copies data directly into the index buffer held
@@ -336,7 +348,7 @@ private:
 	/**
 	* Enables OpenGL vertex attributes from this mesh.
 	*/
-	void EnableAttributes();
+	void EnableAttributes() override;
 };
 
 #include "Mesh.inl"

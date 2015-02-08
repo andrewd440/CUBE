@@ -176,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\AtlasRoot.h" />
+    <ClInclude Include="Include\Debugging\DebugDraw.h" />
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Clock.h" />
     <ClInclude Include="Include\Common.h" />
@@ -228,10 +229,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Debugging\DebugDraw.cpp" />
     <ClCompile Include="Src\Rendering\Camera.cpp" />
     <ClCompile Include="Src\Math\Frustum.cpp" />
     <ClCompile Include="Src\Math\Plane.cpp" />
     <ClCompile Include="Src\Math\Transform.cpp" />
+    <ClCompile Include="Src\STime.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>

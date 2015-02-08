@@ -31,6 +31,3 @@ private:
 	static float FixedUpdate;
 };
 
-float STime::DeltaTime = 0;
-float STime::FixedUpdate = 0;
-

@@ -48,6 +48,8 @@ private:
 	// Rendering data
 	FShaderProgram mShader;
 	Vector3ui mLastCameraChunk;
+	Vector3f mLastCameraPosition;
+	Vector3f mLastCameraDirection;
 	noise::utils::NoiseMap mNoiseMap;
 };
 

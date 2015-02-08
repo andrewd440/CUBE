@@ -25,6 +25,7 @@
 #include "Rendering\Screen.h"
 #include "ResourceHolder.h"
 #include "Rendering\Camera.h"
+#include "Debugging\DebugDraw.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
@@ -79,18 +80,21 @@ void FAtlasRoot::Start()
 void GLTests();
 void UpdateCamera();
 
+
 void FAtlasRoot::GameLoop()
 {
-	STime::SetFixedUpdate(.0025f);
+	STime::SetFixedUpdate(.02f);
 	STime::SetDeltaTime(1.0f / 30.0f); // Default delta time with 30fps
 	
 	GLTests();
 	FChunkManager Chunks;
 	Chunks.Setup();
-	FDebugText Texting;
-	Texting.SetStyle("Vera.ttf", 20, FDebugText::AtlasInfo{ 512, 512, 1 });
-	
+	FDebug::Text Texting;
+	Texting.SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
+	FDebug::Draw Drawing;
+
 	// Game Loop
+	float lag = 0.0f;
 	while (mGameWindow.isOpen())
 	{	
 		if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
@@ -102,16 +106,26 @@ void FAtlasRoot::GameLoop()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Chunk rendering
-		UpdateCamera();
+		
+		lag += STime::GetDeltaTime();
+		while (lag >= STime::GetFixedUpdate())
+		{
+			UpdateCamera();
+			Chunks.Update();
+			lag -= STime::GetFixedUpdate();
+		}
+
 		UniformBuffer->SetData(0, MainCamera.Transform.WorldToLocalMatrix());
 		UniformBuffer->SendBuffer();
-		Chunks.Update();
 		Chunks.Render();
+		Drawing.Render();
+
 
 		// Debug Print
 		const Vector3f CameraPosition = MainCamera.Transform.GetPosition();
 		wchar_t String[250];
-		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z);
+		const Vector3f Direction = MainCamera.Transform.GetRotation() * -Vector3f::Forward;
+		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
 		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 50));
 
 		swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
@@ -199,9 +213,7 @@ void GLTests()
 {
 	FTransform& CameraTransform = MainCamera.Transform;
 	const Vector3f CameraPosition = Vector3f{ WorldCenter, WorldCenter, WorldCenter };
-	const Vector3f CameraLookAt = CameraPosition + Vector3f{ 0, 0, -1 };
 	CameraTransform.SetPosition(CameraPosition);
-	CameraTransform.SetRotation(FQuaternion::LookAt(CameraPosition, CameraLookAt));
 
 	MainCamera.SetAspectRatio((float)WindowWidth / (float)WindowHeight);
 	MainCamera.SetNearPlane(1.0f);
@@ -215,7 +227,7 @@ void GLTests()
 
 void UpdateCamera()
 {
-	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 20.0f * STime::GetDeltaTime();;
+	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 25.0f * STime::GetFixedUpdate();
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
@@ -229,7 +241,7 @@ void UpdateCamera()
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		YMovement = -MoveSpeed;
 
-	const float LookSpeed = 10.0f * STime::GetFixedUpdate();
+	const float LookSpeed = 5.0f * STime::GetFixedUpdate();
 	FQuaternion CameraRotation = MainCamera.Transform.GetRotation();
 
 	Vector3f CameraForward = CameraRotation * Vector3f::Forward;

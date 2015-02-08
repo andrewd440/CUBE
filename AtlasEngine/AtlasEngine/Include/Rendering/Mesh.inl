@@ -27,6 +27,11 @@ inline void BMesh::AddIndicesB(const uint32_t* Indices, const uint32_t Count)
 	mIndices.insert(mIndices.end(), Indices, Indices + Count);
 }
 
+inline void BMesh::SetUsageModeB(GLuint Usage)
+{
+	mUsageMode = Usage;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////// Inlined FMesh ///////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -41,12 +46,13 @@ template <typename T>
 inline TMesh<T>::TMesh(const TMesh<T>& Other)
 	: BMesh(Other)
 {
-
+	if (IsActiveB())
+		ActivateB();
 }
 
 template <typename T>
-inline TMesh<T>::TMesh(TMesh<T>&& Other)
-	: BMesh(Other)
+inline TMesh<T>::TMesh(TMesh<T>&& Other) _NOEXCEPT
+	: BMesh(std::move(Other))
 {
 
 }
@@ -60,12 +66,16 @@ template <typename T>
 inline TMesh<T>& TMesh<T>::operator=(const TMesh<T>& Other)
 {
 	BMesh::operator=(Other);
+	if (IsActiveB())
+		ActivateB();
+	return *this;
 }
 
 template <typename T>
-inline TMesh<T>& TMesh<T>::operator=(TMesh<T>&& Other)
+inline TMesh<T>& TMesh<T>::operator=(TMesh<T>&& Other) _NOEXCEPT
 {
-	BMesh::operator=(Other);
+	BMesh::operator=(std::move(Other));
+	return *this;
 }
 
 template <typename T>
@@ -137,9 +147,9 @@ inline uint32_t TMesh<T>::TriangleCount() const
 }
 
 template <typename T>
-inline void TMesh<T>::MapAndActivate(VertexType* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize)
+inline void TMesh<T>::MapAndActivate(const VertexType* VertexData, const uint32_t NumVertices, const uint32_t* IndexData, const uint32_t IndexSize)
 {
-	MapAndActivateB((void*)VertexData, VertexSize * sizeof(VertexType), IndexData, IndexSize);
+	MapAndActivateB((void*)VertexData, NumVertices * sizeof(VertexType), IndexData, IndexSize);
 }
 
 //template <typename T>
@@ -168,4 +178,10 @@ inline void TMesh<T>::EnableAttributes()
 			BUFFER_OFFSET(GL_Attribute<VertexType>::Offset[i]));
 		glEnableVertexAttribArray(GL_Attribute<VertexType>::Position[i]);
 	}
+}
+
+template <typename T>
+inline void TMesh<T>::SetUsageMode(GLuint Usage)
+{
+	SetUsageModeB(Usage);
 }

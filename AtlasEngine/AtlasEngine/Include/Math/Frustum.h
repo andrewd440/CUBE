@@ -50,7 +50,7 @@ public:
 	* same coordinate space.
 	* @param Box - The AABB to check.
 	*/
-	bool IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth);
+	bool IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth) const;
 private:
 	FPlane mPlanes[6];
 };

@@ -24,13 +24,9 @@ BMesh::BMesh(const BMesh& Other)
 {
 	glGenVertexArrays(1, &mVertexArray);
 	glGenBuffers(2, mBuffers);
-
-	// If copy was active, activate this one.
-	if (mIsActive)
-		ActivateB();
 }
 
-BMesh::BMesh(BMesh&& Other)
+BMesh::BMesh(BMesh&& Other) _NOEXCEPT
 	: mVertexData(std::move(Other.mVertexData))
 	, mIndices(std::move(Other.mIndices))
 	, mVertexArray(Other.mVertexArray)
@@ -67,15 +63,10 @@ BMesh& BMesh::operator=(const BMesh& Other)
 	mIndexCount = Other.mIndexCount;
 	mIsActive = Other.mIsActive;
 
-	if (mIsActive)
-		ActivateB();
-	else
-		DeactivateB();
-
 	return *this;
 }
 
-BMesh& BMesh::operator=(BMesh&& Other)
+BMesh& BMesh::operator=(BMesh&& Other) _NOEXCEPT
 {
 	// Delete buffers held
 	glDeleteVertexArrays(1, &mVertexArray);
@@ -179,7 +170,7 @@ void BMesh::AddTriangleB(const uint32_t V1, const uint32_t V2, const uint32_t V3
 	mIndices.push_back(V3);
 }
 
-void BMesh::MapAndActivateB(void* VertexData, uint32_t VertexSize, uint32_t* IndexData, uint32_t IndexSize)
+void BMesh::MapAndActivateB(const void* VertexData, const uint32_t VertexSize, const uint32_t* IndexData, const uint32_t IndexSize)
 {
 	mIsActive = true;
 

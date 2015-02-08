@@ -133,7 +133,10 @@ template <typename T>
 inline TVector4<T>& TVector4<T>::Normalize3()
 {
 	float invLength = 1.0f / Length3();
-	return *this *= invLength;
+	const float OldW = w;
+	*this *= invLength;
+	w = OldW;
+	return *this;
 }
 
 template <typename T>

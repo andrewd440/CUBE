@@ -5,8 +5,8 @@
 #include "Rendering\Screen.h"
 #include "Rendering\ChunkManager.h"
 
-FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 10000> FChunk::ChunkAllocator(__alignof(FChunk));
-FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
+FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 40000> FChunk::ChunkAllocator(__alignof(FChunk));
+FPoolAllocatorType<TMesh<FVoxelVertex>, 40000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 
 namespace
 {

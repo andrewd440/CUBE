@@ -47,9 +47,9 @@ inline FPerspectiveMatrix::FPerspectiveMatrix(const float Aspect, const float Ha
 {
 	const float TanHalfFOV = tan(FMath::ToRadians(HalfFOV));
 	*this = FMatrix4{
-		1 / (Aspect * TanHalfFOV), 0, 0, 0,
-		0, 1 / TanHalfFOV, 0, 0,
-		0, 0, -(Far + Near) / (Far - Near), -(2 * Far * Near) / (Far - Near),
+		1.0f / (Aspect * TanHalfFOV), 0, 0, 0,
+		0, 1.0f / TanHalfFOV, 0, 0,
+		0, 0, -((Far + Near) / (Far - Near)), -((2 * Far * Near) / (Far - Near)),
 		0, 0, -1, 0
 	};
 }

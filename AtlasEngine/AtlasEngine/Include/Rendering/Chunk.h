@@ -29,8 +29,8 @@ public:
 	static const uint32_t CHUNK_SIZE = 16;
 	static const uint32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 10000> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
+	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 40000> ChunkAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, 40000> MeshAllocator;
 
 public:
 	/**
