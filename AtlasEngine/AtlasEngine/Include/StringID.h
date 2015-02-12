@@ -17,13 +17,13 @@ public:
 	* Construct a string id from a c-string.
 	* @param Name for the string id
 	*/
-	FStringID(const char* Name);
+	explicit FStringID(const char* Name);
 
 	/**
 	* Construct a string id from a std::string.
 	* @param Name for the string id
 	*/
-	FStringID(const std::string& Name);
+	explicit FStringID(const std::string& Name);
 
 	// Default the copy ctor and assignment
 	FStringID(const FStringID& Other) = default;
