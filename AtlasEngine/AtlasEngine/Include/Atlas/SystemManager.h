@@ -1,4 +1,7 @@
 #pragma once
+
+#include "SystemBitManager.h"
+#include "NonCopyable.h"
 #include "System.h"
 
 #include <vector>
@@ -6,85 +9,134 @@
 
 namespace Atlas
 {
+	class FWorld;
+	class FGameObject;
 
 	/**
 	* A manager for all Systems that are used.
 	*/
-	class SystemManager : public NonCopyable
+	class FSystemManager : public NonCopyable
 	{
 	public:
 		/**
 		* Creates a new SystemManager.
 		* @param world - the World object that owns this SystemManager
 		*/
-		SystemManager();
+		FSystemManager(FWorld& World);
 
-		/**
-		* Adds a new System.
-		* Usage Example:
-		~~~~~~~~~~~~~~~~
-		* Atlas::World world;
-		* SystemManager.addSystem(Atlas::System::Ptr(new HealthSystem(world)));
-		~~~~~~~~~~~~~~~~
-		* @param system - the System to be added.
-		*/
-		void addSystem(System::Ptr system);
-		
+		~FSystemManager();
+
 		template <typename T>
 		/**
-		* Retrieves a specified System.
-		* Usage Example:
-		~~~~~~~~~~~~
-		* HealthSystem* system = SystemManager.getSystem<HealthSystem>();
-		~~~~~~~~~~~~
-		* @return pointer to the System.
+		* Adds a new System.
+		* @tparam T - The type of System to add.
 		*/
-		T* getSystem()
-		{
-			System* system = NULL;
+		void AddSystem();
+		
+		template <typename T, typename Param1>
+		/**
+		* Adds a new System.
+		* @tparam T - The type of System to add.
+		* @param P1 - The second constructor parameter for the system. The
+		*              first construct argument must always be FWorld&.
+		*/
+		void AddSystem(const Param1& P1);
 
-			for (const auto& s : mSystems)
-				if (typeid(*s) == typeid(T))
-				{
-					system = s.get();
-					break;
-				}
-
-			// make sure the System is there and cast is safe
-			assert(dynamic_cast<T*>(system));
-			return static_cast<T*>(system);
-		}
+		template <typename T>
+		/**
+		* Retrieves a type of system.
+		* @return A pointer to the System.
+		*/
+		T* GetSystem();
 
 		/**
-		* Updates all Systems.
-		* Update order is based on the order that Systems are added to the SystemManager.
-		* @param dt - update time
+		* Retrieves a system by index into this manager. System
+		* order is dependent on the order added to this manager. System
+		* removals will affected ordering.
+		* @param Index - The position that the system type was added.
+		* @param A pointer to the system
 		*/
-		void update(float dt);
+		ISystem* GetSystem(const uint32_t Index);
 
 		/**
 		* Checks to see if the any Systems contained in the SystemManager is interested 
-		* in an FGameObject based on which Components it owns.
-		* @param entity - the FGameObject to be checked
+		* in a GameObject based on which Components it owns.
+		* @param GameObject - the GameObject to be checked
 		*/
-		void checkInterest(FGameObject& entity);
+		void CheckInterest(FGameObject& GameObject);
 
 		template <typename T>
 		/**
-		* Removes a System.
-		* Usage Example:
-		~~~~~~~~~~~~~~~~
-		* systemManager.removeSystem<HealthSystem>();
-		~~~~~~~~~~~~~~~~
+		* Retrieves a type of system.
 		*/
-		void removeSystem();
+		void RemoveSystem();
 
 		/**
-		* Prints the number of active Systems and the details of each of those Systems
+		* Removes a system by index.
+		* @param Index - The position that the system type was added. System
+		*				 removals will affected ordering.
 		*/
-		void toString();
+		void RemoveSystem(const uint32_t Index);
 
 	private:
-		std::vector<System::Ptr>                            mSystems;
+		FWorld& mWorld;
+		std::vector<std::unique_ptr<ISystem>> mSystems;
 	};
+
+	template <typename T>
+	inline void FSystemManager::AddSystem()
+	{
+		std::unique_ptr<ISystem> System{ new T(mWorld) };
+
+		// Set the system type bitmask
+		System->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(System.get()));
+
+		mSystems.push_back(std::move(System));
+	}
+
+	template <typename T, typename Param1>
+	inline void FSystemManager::AddSystem(const Param1& P1)
+	{
+		std::unique_ptr<ISystem> System{ new T(mWorld, P1) };
+
+		// Set the system type bitmask
+		System->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(System.get()));
+
+		mSystems.push_back(std::move(System));
+	}
+
+	inline void FSystemManager::RemoveSystem(const uint32_t Index)
+	{
+		mSystems.erase(mSystems.begin() + Index);
+	}
+
+	template <typename T>
+	inline T* FSystemManager::GetSystem()
+	{
+		System* SystemPtr = nullptr;
+
+		for (const auto& System : mSystems)
+		{
+			if (typeid(*System) == typeid(T))
+			{
+				SystemPtr = System.get();
+				break;
+			}
+		}
+
+		// make sure the System is there and cast is safe
+		assert(dynamic_cast<T*>(SystemPtr));
+		return static_cast<T*>(SystemPtr);
+	}
+
+	inline ISystem* FSystemManager::GetSystem(const uint32_t Index)
+	{
+		return mSystems[Index].get();
+	}
+
+	template <typename Type>
+	inline void FSystemManager::RemoveSystem()
+	{
+		mSystems.erase(std::find_if(mSystems.begin(), mSystems.end(), [](std::unique_ptr<ISystem> Ptr){ return typeid(Ptr) == Type; }));
+	}
 }

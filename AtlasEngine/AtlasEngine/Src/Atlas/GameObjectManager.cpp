@@ -1,189 +1,104 @@
 #include "Atlas\GameObjectManager.h"
-
-#include <iostream>
-
-
-namespace
-{
-	const int POOLSIZE = 100;
-}
+#include "Atlas\World.h"
+#include "Atlas\ComponentTypes.h"
+#include "Atlas\GameObject.h"
+#include "Atlas\SystemManager.h"
 
 namespace Atlas
 {
-	FGameObjectManager::FGameObjectManager()
-		: mActiveFGameObjectCount(0)
-		, mNextAvaibleID(0)
-		, mActiveEntities(POOLSIZE)
-		, mDeadEntities()
-		, mComponentsByType(BITSIZE)
-		, mFGameObjectComponents()
+	FGameObjectManager::FGameObjectManager(FWorld& World)
+		: mSystemManager(World.GetSystemManager())
+		, mGameObjects()
+		, mSystemComponents()
 	{
+		mGameObjects.Init<FGameObject>(DEFAULT_CONTAINER_SIZE);
 	}
 
-	void FGameObjectManager::update()
+	void FGameObjectManager::Update()
 	{
-		// remove inactive entities
-		for (auto& entity : mActiveEntities)
-			if (entity && !entity->isActive())
-				removeFGameObject(*entity);
+		// remove destroyed GOs
+		for (auto Itr = mGameObjects.Begin<FGameObject>(); Itr != mGameObjects.End<FGameObject>(); Itr++)
+		{
+			if (Itr->mToBeDestroyed)
+				DestroyGameObject(*Itr);
+		}
 	}
 
 	FGameObject& FGameObjectManager::CreateGameObject()
 	{
-		std::unique_ptr<FGameObject> e;
+		// Get the index for the new object
+		uint32_t Index = mGameObjects.Allocate();
 
-		// If a dead entity is pooled, set it to active and it will be the created entity
-		if (!mDeadEntities.empty())
-		{
-			e = std::move(mDeadEntities.top());
-			mDeadEntities.pop();
-		}
-		// if not, allocate a new entity, move it into our vector and increament ID
-		else
-		{
-			e.reset(new FGameObject(mNextAvaibleID++));
-		}
+		// In-place allocate it with this memory
+		new (&(mGameObjects.At<FGameObject>(Index))) FGameObject(*this);
 
-		e->setActive(true);
-		mActiveFGameObjectCount++;
+		// Set the ID with the index
+		FGameObject& NewObject = mGameObjects.At<FGameObject>(Index);
+		NewObject.SetID(Index);
 
-		FGameObject::ID id = e->GetID();
-
-		// make sure the id fits the container
-		if (mActiveEntities.capacity() <= id)
-		{
-			mActiveEntities.resize(id * 2 + 1);
-		}
-
-		mActiveEntities[id] = std::move(e);
-
-		return *mActiveEntities[id];
-
+		return NewObject;
 	}
 
-	void FGameObjectManager::removeFGameObject(FGameObject& entity)
+	void FGameObjectManager::DestroyGameObject(FGameObject& GameObject)
 	{
-		// Only remove inactive entities
-		assert(!entity.isActive());
-
-		const auto& id = entity.GetID();
-
-		mWorld.getGroupManager().removeFromAllGroups(entity);
-
 		// Deactivate entity and reset properties
-		removeAllComponentsFor(entity);
-		mActiveEntities[id]->reset();
-
-		// Move entity to dead entity pool and set active element to null
-		mDeadEntities.push(std::move(mActiveEntities[id]));
-
-		mActiveEntities[id] = nullptr;
-
-		mActiveFGameObjectCount--;
+		const uint32_t ID = GameObject.mID;
+		RemoveAllComponentsFor(ID);
+		mGameObjects.Free(ID);
 	}
 
-	FGameObject& FGameObjectManager::getFGameObject(const FGameObject::ID& id) const
+	FGameObject& FGameObjectManager::GetGameObject(const uint32_t GameObjectID)
 	{
-		assert(id < mActiveEntities.size());
-		return *mActiveEntities[id];
+		ASSERT(GameObjectID < mGameObjects.Capacity());
+		return mGameObjects.At<FGameObject>(GameObjectID);
 	}
 
-	void FGameObjectManager::addComponent(FGameObject& entity, IComponent::Ptr component)
+	FRawGappedArray& FGameObjectManager::GetComponentsOfType(const EComponent::Type Type)
 	{
-		const FComponentHandle& identifier = SComponentHandleManager::getType(typeid(*component));
-		const FGameObject::ID& eID = entity.GetID();
+		return mSystemComponents[Type];
+	}
 
-		auto& typeComponents = mComponentsByType[identifier.GetID()];
+	void FGameObjectManager::RemoveComponent(FGameObject& GameObject, EComponent::Type Type)
+	{
+		GameObject.RemoveComponentBit(SComponentHandleManager::GetBitMask(Type));
+		mSystemComponents[Type].Free(GameObject.GetID());
+		GameObject.mComponents[Type] = FGameObject::NULL_COMPONENT;
 
-		// make sure the id fits the container
-		if (typeComponents.capacity() <= eID)
+		// Notify component systems
+		mSystemManager.CheckInterest(GameObject);
+	}
+
+	std::vector<IComponent*> FGameObjectManager::GetAllComponentsFor(const uint32_t ID)
+	{
+		std::vector<IComponent*> Components(EComponent::Count);
+		const FGameObject& Object = mGameObjects.At<FGameObject>(ID);
+
+		for (uint32_t i = 0; i < EComponent::Count; i++)
 		{
-			typeComponents.resize(eID * 2 + 1);
+			const uint32_t ComponentIndex = Object.mComponents[i];
+			if (ComponentIndex != FGameObject::NULL_COMPONENT)
+				Components[i] = &mSystemComponents[i].At<IComponent>(ComponentIndex);
 		}
 
-		// check if entity already has component type
-		if (typeComponents[eID] != nullptr)
-		{
-			removeComponent(entity, identifier);
-		}
-
-		entity.addComponentBit(identifier.GetBitMask());
-		typeComponents[eID] = std::move(component);
-
-		// Check all systems for interest in new component
-		mWorld.getSystemManager().checkInterest(entity);
+		return Components;
 	}
 
-	void FGameObjectManager::removeComponent(FGameObject& entity, const FComponentHandle& id)
+	void FGameObjectManager::RemoveAllComponentsFor(const uint32_t ID)
 	{
-		// Check if specific component vector not out of range
-		assert(mComponentsByType[id.GetID()].capacity() > entity.GetID());
+		FGameObject& Object = mGameObjects.At<FGameObject>(ID);
 
-		// Check if entity has component first
-		assert(mComponentsByType[id.GetID()][entity.GetID()] != nullptr);
-
-		entity.removeComponentBit(id.GetBitMask());
-		mComponentsByType[id.GetID()][entity.GetID()] = nullptr;
-
-		// Check all systems to see if still interested in entity
-		mWorld.getSystemManager().checkInterest(entity);
-	}
-
-	std::vector<IComponent*> FGameObjectManager::getAllComponentsFor(const FGameObject& entity)
-	{
-		mFGameObjectComponents.clear();
-
-		const auto& entityBits = entity.getComponentBits();
-
-		for (int i = 0; i < entityBits.size(); i++)
+		for (uint32_t i = 0; i < EComponent::Count; i++)
 		{
-			if (entityBits[i])
-				mFGameObjectComponents.push_back(mComponentsByType[i][entity.GetID()].get());
-		}
-
-		return mFGameObjectComponents;
-	}
-
-	void FGameObjectManager::removeAllComponentsFor(FGameObject& entity)
-	{
-		const auto& id = entity.GetID();
-
-		for (int i = 0; i < mComponentsByType.size(); i++)
-		{
-			// check if vector is out of range and if there is a component for the entity present
-			if (mComponentsByType[i].size() > id && mComponentsByType[i][id] != nullptr)
+			uint32_t ComponentIndex = Object.mComponents[i];
+			if (ComponentIndex != FGameObject::NULL_COMPONENT)
 			{
-				// get FComponentHandle for this component
-				const auto& type = SComponentHandleManager::getType(typeid(*mComponentsByType[i][id]));
-
-				entity.removeComponentBit(type.GetBitMask());
-				mComponentsByType[i][id] = nullptr;
+				Object.mComponents[i] = FGameObject::NULL_COMPONENT;
+				mSystemComponents[i].Free(ComponentIndex);
 			}
 		}
 
-		// Check all systems to remove entity from them
-		mWorld.getSystemManager().checkInterest(entity);
-	}
-
-	void FGameObjectManager::toString()
-	{
-		using namespace std;
-
-		cout << "-------------------------------------------------"
-			<< "\n|\t\tFGameObjectManager\t\t\t|"
-			<< "\n-------------------------------------------------"
-			<< endl;
-
-		cout << "\t\tActive Entities\t\t\t"
-			<< "\n-------------------------------------------------"
-			<< endl;
-
-		for (const auto& entity : mActiveEntities)
-			if (entity != nullptr)
-				entity->toString();
-
-		cout << "\t\tInactive Entities: " << mDeadEntities.size() << "\t\t"
-			<< "\n-------------------------------------------------"
-			<< endl << endl;
+		// Clear all component bits
+		Object.mComponentBits.reset();
+		mSystemManager.CheckInterest(Object);
 	}
 }

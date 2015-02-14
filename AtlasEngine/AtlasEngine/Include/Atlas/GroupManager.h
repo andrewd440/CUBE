@@ -1,5 +1,5 @@
 #pragma once
-#include "FGameObject.h"
+#include "GameObject.h"
 
 #include <unordered_map>
 
@@ -9,11 +9,11 @@ namespace Atlas
 	/**
 	* Used to organize entities into named groups.
 	*/
-	class GroupManager : public NonCopyable
+	class FGroupManager : public NonCopyable
 	{
 	public:
 		/** Default Constructor */
-		GroupManager();
+		FGroupManager();
 
 		/**
 		* Adds an FGameObject to a group.

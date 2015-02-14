@@ -4,92 +4,115 @@
 #include <memory>
 #include <cassert>
 
-#include "GameObject.h"
-#include "ComponentHandle.h"
-#include "Memory\GapArrayAllocator.h"
+#include "ComponentTypes.h"
+#include "Containers\RawGappedArray.h"
 
 namespace Atlas
 {
+	class FGameObject;
+	class IComponent;
+	class FWorld;
+	class FSystemManager;
+
 	/**
-	* Manages all Entities and Components within the a world.
+	* Manages all gameobjects and system components within the a world.
 	* Entities and Components will be directly or indirectly retrieved
 	* and added through the GameObject Manager.
 	*/
-	class FGameObjectManager : public NonCopyable
+	class FGameObjectManager
 	{
 	public:
 		/**
-		* Creates a new FGameObjectManager.
-		* @param world - the World object that owns this FGameObjectManager
+		* Creates a new GameObject Manager.
 		*/
-		FGameObjectManager();
+		FGameObjectManager(FWorld& World);
+
+		FGameObjectManager(const FGameObjectManager& Other) = delete;
+		FGameObjectManager& operator=(const FGameObjectManager& Other) = delete;
 
 		/**
-		* Removes all entities that have been set to inactive
+		* Updates the GameObject manager.
 		*/
 		void Update();
 
 		/**
-		* Creates an empty FGameObject
-		* @returns Reference to the new FGameObject
+		* Creates an empty GameObject
+		* @returns Reference to the new GameObject
 		*/
 		FGameObject& CreateGameObject();
 
 		/**
-		* Retreives an active FGameObject
+		* Retreives an GameObject by ID
 		* @param ID - The GameObject's ID
 		* @returns Reference to the GameObject
 		*/
-		FGameObject& GetGameObject(const FGameObject::ID GameObjectID) const;
+		FGameObject& GetGameObject(const uint32_t GameObjectID);
 
 		template <EComponent::Type Type>
 		/**
-		* Attaches a property component to a GameObject.
+		* Registers a component type to this manager. This must be a component
+		* type that is a part of the EComponent::Type enum and must have a declared
+		* set of ComponentTraits.
+		* @tparam Type - The type of component to register.
+		*/
+		void RegisterComponentType();
+
+		template <EComponent::Type Type>
+		/**
+		* Attaches a system component to a GameObject.
+		* @tparam Type - The type of component to add.
 		* @param GameObject - The GameObject to add the component to.
-		* @param ComponentType - The type of component to add.
 		* @return A reference to the added component
 		*/
-		EComponent_Type<Type>::Type& AddComponent(FGameObject& GameObject);
+		typename ComponentTraits::Object<Type>::Type& AddComponent(FGameObject& GameObject);
 
-		template <typename T>
 		/**
-		* Removes a property component from a GameObject. If the game object doesn't not have the
+		* Removes a system component from a GameObject. If the game object doesn't not have the
 		* specified component, this function will do nothing.
-		* @param GameObject - The GameObject to add the component to.
-		* @param ComponentType - The type of component to remove.
+		* @tparam Type - The type of component to remove.
+		* @param GameObject - The GameObject to remove the component from.
 		*/
-		void RemoveComponent(FGameObject& GameObject);
+		void RemoveComponent(FGameObject& GameObject, EComponent::Type Type);
 
-		template <typename T>
+		template <EComponent::Type Type>
 		/**
-		* Retieve a component type by it's index handle into the
+		* Retrieve a component type by it's index handle into the
 		* GameObject Manager's container for that specific component
 		* type.
 		* @param IndexHandle - The index into the component container.
 		* @return A reference to the component.
 		*/
-		T& GetComponent(const uint32_t IndexHandle);
-
-		template <typename T>
+		typename ComponentTraits::Object<Type>::Type& GetComponent(const uint32_t IndexHandle);
+		
+		template <EComponent::Type Type>
 		/**
-		* Retrieve a specific property component from an GameObject
+		* Retrieve a specific system component from a GameObject
 		* @param ID - The targeted FGameObject's ID
-		* @return Pointer to the derived type IComponent
+		* @return A reference to the derived type IComponent
 		*/
-		T& GetComponentFor(const FGameObject::ID ID) const;
+		typename ComponentTraits::Object<Type>::Type& GetComponentFor(const uint32_t ID);
+
+		/**
+		* Retrieve all components of a specific type.
+		* @param Type - The targeted component type
+		* @return A reference to the container of that component type held by this object.
+		*/
+		FRawGappedArray& GetComponentsOfType(const EComponent::Type Type);
 
 		/**
 		* Retrieves all the components attached to a GameObject.
 		* @param ID - The ID of the targeted GameObject
 		* @return Vector of component pointers from the GameObject
 		*/
-		std::vector<IComponent*> GetAllComponentsFor(const FGameObject::ID ID);
+		std::vector<IComponent*> GetAllComponentsFor(const uint32_t ID);
 
 		/**
 		* Removes and destroys all the Components attached to a FGameObject.
 		* @param ID - The ID of the targeted GameObject
 		*/
-		void RemoveAllComponentsFor(const FGameObject::ID ID);
+		void RemoveAllComponentsFor(const uint32_t ID);
+
+		uint32_t GetGameObjectCount() const { return mGameObjects.Size(); }
 
 	private:
 		/**
@@ -99,23 +122,18 @@ namespace Atlas
 		void DestroyGameObject(FGameObject& GameObject);
 
 	private:
-		unsigned int                mActiveFGameObjectCount;
-		FGameObject::ID                  mNextAvaibleID;
+		static const uint32_t DEFAULT_CONTAINER_SIZE = 100;
 
-		/** Holds all entities with the ID being used as an index */
-		std::vector<FGameObject::Ptr>   mActiveEntities;
+	private:
+		// The world this manager represents
+		FSystemManager& mSystemManager;
 
-		/** Used as a pool for entity reuse */
-		std::stack<FGameObject::Ptr>    mDeadEntities;
+		// Holds all gameobjects
+		FRawGappedArray mGameObjects;
 
-		/**
-		* Holds all Components sorted by its parent FGameObject and type.
-		* Rows are sorted by ComponentID
-		* Columns are sorted by ID
-		*/
-		FGapArrayAllocator mComponentsByType[EComponent::Type::Count];
-
-		/** Temp container used when retrieving components for a single FGameObject */
-		std::vector<IComponent*>      mFGameObjectComponents;
+		// Holds all system based components.
+		FRawGappedArray mSystemComponents[EComponent::Type::Count];
 	};
 }
+
+#include "GameObject.inl"

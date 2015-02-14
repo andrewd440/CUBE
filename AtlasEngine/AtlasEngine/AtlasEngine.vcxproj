@@ -133,7 +133,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;D:\Users\Andrew\Documents\GitHub\Atlas-ECS\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -175,22 +175,23 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Atlas\include\Bitsize.h" />
     <ClInclude Include="Atlas\include\GroupManager.h" />
-    <ClInclude Include="Atlas\include\NonCopyable.h" />
-    <ClInclude Include="Atlas\include\System.h" />
-    <ClInclude Include="Atlas\include\SystemBitManager.h" />
-    <ClInclude Include="Atlas\include\SystemManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
-    <ClInclude Include="Include\AtlasRoot.h" />
+    <ClInclude Include="Include\Rendering\RenderSystem.h" />
+    <ClInclude Include="Include\VoxiGineRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
     <ClInclude Include="Include\Atlas\Component.h" />
     <ClInclude Include="Include\Atlas\ComponentHandle.h" />
     <ClInclude Include="Include\Atlas\ComponentHandleManager.h" />
+    <ClInclude Include="Include\Atlas\ComponentTypes.h" />
     <ClInclude Include="Include\Atlas\GameObject.h" />
     <ClInclude Include="Include\Atlas\GameObjectManager.h" />
+    <ClInclude Include="Include\Atlas\NonCopyable.h" />
+    <ClInclude Include="Include\Atlas\System.h" />
+    <ClInclude Include="Include\Atlas\SystemBitManager.h" />
+    <ClInclude Include="Include\Atlas\SystemManager.h" />
+    <ClInclude Include="Include\Atlas\World.h" />
     <ClInclude Include="Include\Debugging\DebugDraw.h" />
-    <ClInclude Include="Include\ECS\Bitsize.h" />
     <ClInclude Include="Include\Containers\RawGappedArray.h" />
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Clock.h" />
@@ -249,12 +250,17 @@
     <ClCompile Include="Src\Atlas\ComponentHandleManager.cpp" />
     <ClCompile Include="Src\Atlas\GameObject.cpp" />
     <ClCompile Include="Src\Atlas\GameObjectManager.cpp" />
+    <ClCompile Include="Src\Atlas\System.cpp" />
+    <ClCompile Include="Src\Atlas\SystemBitManager.cpp" />
+    <ClCompile Include="Src\Atlas\SystemManager.cpp" />
+    <ClCompile Include="Src\Atlas\World.cpp" />
     <ClCompile Include="Src\Debugging\DebugDraw.cpp" />
     <ClCompile Include="Src\Containers\RawGappedArray.cpp" />
     <ClCompile Include="Src\Rendering\Camera.cpp" />
     <ClCompile Include="Src\Math\Frustum.cpp" />
     <ClCompile Include="Src\Math\Plane.cpp" />
     <ClCompile Include="Src\Math\Transform.cpp" />
+    <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Src\STime.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
@@ -266,7 +272,7 @@
       <FileType>CppCode</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </None>
-    <ClCompile Include="Src\AtlasRoot.cpp" />
+    <ClCompile Include="Src\VoxiGineRoot.cpp" />
     <ClCompile Include="Src\Debugging\ConsoleOutput.cpp" />
     <ClCompile Include="Src\Debugging\DebugText.cpp" />
     <ClCompile Include="Src\Input\MouseAxis.cpp" />

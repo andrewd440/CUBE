@@ -1,16 +1,13 @@
 // AtlasEngine.cpp : Defines the entry point for the console application.
 //
 
-#include <iostream>
-#include "Include\AtlasRoot.h"
+#include "VoxiGineRoot.h"
 
 int main()
 {
-	FAtlasRoot Root;
+	FVoxiGineRoot Root;
 	Root.Start();
 
 	return 0;
-
-
 }
 

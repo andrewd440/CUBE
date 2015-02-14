@@ -1,6 +1,6 @@
 #pragma once
 #include "Bitsize.h"
-#include "Component.h"
+#include "ComponentTypes.h"
 
 #include <memory>
 #include <cstdint>

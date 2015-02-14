@@ -1,91 +1,41 @@
-#include "System.h"
-#include <iostream>
+#include "Atlas/System.h"
 
 namespace Atlas
 {
-	System::System(World& world)
-		: mWorld(world)
-		, mTypeBits()
-		, mSystemBits()
-		, mEntities()
+	ISystem::ISystem(FWorld& World)
+		: mWorld(World)
+		, mTypeBitMask()
+		, mSystemBitMask()
+		, mGameObjectIDs()
 	{
 		////////////////////////////////////////////////////////////////////////////
 		////// Call addComponentType() in derived classes //////////////////////////
 		////////////////////////////////////////////////////////////////////////////
 	}
 
-	void System::checkInterest(FGameObject& e)
+	void ISystem::CheckInterest(FGameObject& GameObject)
 	{
-		// check if entity is already in our system and if this system is
+		// Check if GameObject is already in our system and if this system is
 		// interested in processing it
-		bool contains = (e.getSystemBits() & mSystemBits) == mSystemBits;
-		bool interest = (e.getComponentBits() & mTypeBits) == mTypeBits;
+		bool Contains = (GameObject.GetSystemBitMask() & mSystemBitMask) == mSystemBitMask;
+		bool Interest = (GameObject.GetComponentBitMask() & mTypeBitMask) == mTypeBitMask;
 
 		// It is not in the system, but we are interested
-		if (!contains && interest && mTypeBits.any())
+		if (!Contains && Interest && mTypeBitMask.any())
 		{
-			mEntities.push_back(e.GetID());
-			e.setSystemBit(mSystemBits);
+			mGameObjectIDs.push_back(GameObject.GetID());
+			GameObject.SetSystemBit(mSystemBitMask);
 		}
 		// It is in the system, but we are not interested
-		else if (contains && !interest && mTypeBits.any())
+		else if (Contains && !Interest && mTypeBitMask.any())
 		{
-			remove(e);
+			RemoveObject(GameObject);
 		}
 	}
 
-	void System::remove(FGameObject& e)
+	void ISystem::RemoveObject(FGameObject& GameObject)
 	{
-		e.removeSystemBit(mSystemBits);
-		mEntities.erase(std::find(mEntities.begin(), mEntities.end(), e.GetID()));
-	}
-
-	void System::setSystemBits(const std::bitset<BITSIZE>& bit)
-	{
-		mSystemBits = bit;
-	}
-
-	std::bitset<BITSIZE> System::getSystemBits() const
-	{
-		return mSystemBits;
-	}
-
-	std::bitset<BITSIZE> System::getTypeBits() const
-	{
-		return mTypeBits;
-	}
-
-	const std::vector<FGameObject::ID>& System::getEntities() const
-	{
-		return mEntities;
-	}
-
-	World& System::getWorld() const
-	{
-		return mWorld;
-	}
-
-	void System::toString()
-	{
-		using namespace std;
-
-		cout << "-------------------------------------------------"
-			<< "\n|\t\t" << typeidStringFormator(this) << "\t\t\t|"
-			<< "\n-------------------------------------------------"
-			<< endl;
-
-		cout << "Interested Entities: ";
-		for (const auto& e : mEntities)
-			cout << e << ", ";
-
-		cout << "\nSystemBits: " << mSystemBits
-			<< "\nComponentBits: " << mTypeBits << endl << endl;
-
-
-
-	}
-
-	System::~System()
-	{
+		GameObject.RemoveSystemBit(mSystemBitMask);
+		mGameObjectIDs.erase(std::find(mGameObjectIDs.begin(), mGameObjectIDs.end(), GameObject.GetID()));
 	}
 }

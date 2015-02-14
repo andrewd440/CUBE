@@ -81,6 +81,9 @@ public:
 	*/
 	uint32_t AllocateAndConstruct(const Param& Arg1);
 
+	template <typename T, typename Param>
+	uint32_t AllocateAndConstruct(Param& Arg1);
+
 	/**
 	* Frees data back into the allocator.
 	* @param Index - The index of the element to free.
@@ -257,15 +260,25 @@ inline uint32_t FRawGappedArray::AllocateAndConstruct(const Param& Arg1)
 	return Index;
 }
 
+template <typename T, typename Param>
+inline uint32_t FRawGappedArray::AllocateAndConstruct(Param& Arg1)
+{
+	uint32_t Index = Allocate();
+	new (mData + Index * mElementSize) T(Arg1);
+	return Index;
+}
+
 template <typename T>
 inline T& FRawGappedArray::At(const uint32_t Index)
 {
+	ASSERT(std::find(mActiveList.begin(), mActiveList.end(), Index) != mActiveList.end() && "Trying to access dead element.");
 	return *(reinterpret_cast<T*>(mData + Index * mElementSize));
 }
 
 template <typename T>
 inline const T& FRawGappedArray::At(const uint32_t Index) const
 {
+	ASSERT(std::find(mActiveList.begin(), mActiveList.end(), Index) != mActiveList.end() && "Trying to access dead element.");
 	return *(reinterpret_cast<T*>(mData + Index * mElementSize));
 }
 

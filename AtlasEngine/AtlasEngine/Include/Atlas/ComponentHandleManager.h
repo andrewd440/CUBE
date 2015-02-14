@@ -2,11 +2,9 @@
 #include "Bitsize.h"
 
 #include <unordered_map>
-#include <typeindex>
-#include <memory>
 #include <cstdint>
 
-#include "Component.h"
+//#include "Component.h"
 #include "ComponentHandle.h"
 
 namespace Atlas
@@ -37,7 +35,7 @@ namespace Atlas
 		}
 
 	private:
-		SComponentHandleManager() = default;	// Not meant for instantiation
+		SComponentHandleManager() = delete;	// Not meant for instantiation
 
 		static std::unordered_map<EComponent::Type, FComponentHandle> ComponentMap;	// Map of Components-to-ComponentHandles
 	};

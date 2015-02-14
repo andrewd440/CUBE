@@ -15,7 +15,8 @@ FRawGappedArray::FRawGappedArray()
 
 FRawGappedArray::~FRawGappedArray()
 {
-	FMemory::FreeAligned(mData);
+	if (mData != nullptr)
+		FMemory::FreeAligned(mData);
 }
 
 void FRawGappedArray::Init(const uint32_t BlockSize, const uint32_t ElementSize, const uint32_t Alignment)

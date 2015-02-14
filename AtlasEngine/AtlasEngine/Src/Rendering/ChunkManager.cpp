@@ -25,34 +25,13 @@ namespace
 	}
 
 	/**
-	* Determines the amount of bit-shift require to
-	* divide by a power of 2.
-	*/
-	uint32_t CalcShift(uint32_t Value)
-	{
-		uint32_t Shift = 0;
-		while (Value > 1)
-		{
-			Value = Value >> 1;
-			Shift++;
-		}
-
-		return Shift;
-	}
-
-	/**
 	* Convertes a chunk index into a world space 3D position.
 	*/
 	Vector3ui IndexToPosition(uint32_t Index)
 	{
-		// World diminsions will be powers of two, so chunk locations can be 
-		// calculated by shifting indexes and bitwise operations to avoid division.
-		static const uint32_t WidthShift = CalcShift(FChunkManager::WORLD_SIZE);
-		static const uint32_t HeightShift = CalcShift(FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE);
-
-		const uint32_t X = (Index >> WidthShift & (FChunkManager::WORLD_SIZE - 1)) * FChunk::CHUNK_SIZE;
-		const uint32_t Y = (Index >> HeightShift & ((FChunkManager::WORLD_SIZE << 1) - 1)) * FChunk::CHUNK_SIZE;
-		const uint32_t Z = (Index & (FChunkManager::WORLD_SIZE - 1)) * FChunk::CHUNK_SIZE;
+		const uint32_t X = (Index / FChunkManager::WORLD_SIZE % FChunkManager::WORLD_SIZE) * FChunk::CHUNK_SIZE;
+		const uint32_t Y = (Index / (FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE)) * FChunk::CHUNK_SIZE;
+		const uint32_t Z = (Index % FChunkManager::WORLD_SIZE) * FChunk::CHUNK_SIZE;
 
 		return Vector3ui(X, Y, Z);
 	}
