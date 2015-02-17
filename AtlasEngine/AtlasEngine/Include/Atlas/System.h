@@ -74,6 +74,23 @@ namespace Atlas
 		*/
 		const std::vector<FGameObject::ID>& GetGameObjectIDs() const;
 
+		std::vector<std::unique_ptr<ISystem>>& GetSubSystems();
+
+		template <typename T>
+		/**
+		* Add a sub-system to this system.
+		* @tparam T - The type of subsystem
+		*/
+		T& AddSubSystem();
+
+		template <typename T, typename Param1>
+		/**
+		* Add a sub-system to this system.
+		* @tparam T - The type of subsystem
+		* @param P1 - First argument for the system's constructor
+		*/
+		T& AddSubSystem(const Param1& P1);
+
 	private:
 		friend class FSystemManager;  // Give full access to SystemManager
 
@@ -90,10 +107,11 @@ namespace Atlas
 		void SetSystemBitMask(const std::bitset<BITSIZE>& Bit);
 
 	private:
-		FWorld&                         mWorld;
-		std::bitset<BITSIZE>            mTypeBitMask;
-		std::bitset<BITSIZE>            mSystemBitMask;
-		std::vector<FGameObject::ID>    mGameObjectIDs;
+		FWorld&                                 mWorld;
+		std::bitset<BITSIZE>                    mTypeBitMask;
+		std::bitset<BITSIZE>                    mSystemBitMask;
+		std::vector<FGameObject::ID>            mGameObjectIDs;
+		std::vector<std::unique_ptr<ISystem>>   mSubSystems;
 	};
 
 	template <EComponent::Type Type>
@@ -125,5 +143,34 @@ namespace Atlas
 	inline FWorld& ISystem::GetWorld()
 	{
 		return mWorld;
+	}
+
+	template <typename T>
+	inline T& ISystem::AddSubSystem()
+	{
+		T* RawSystem = new T(mWorld);
+		std::unique_ptr<ISystem> System{ RawSystem };
+
+		RawSystem->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(RawSystem));
+
+		mSubSystems.push_back(std::move(System));
+		return *RawSystem;
+	}
+
+	template <typename T, typename Param1>
+	inline T& ISystem::AddSubSystem(const Param1& P1)
+	{
+		T* RawSystem = new T(mWorld, P1);
+		std::unique_ptr<ISystem> System{ RawSystem };
+
+		RawSystem->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(RawSystem));
+
+		mSubSystems.push_back(std::move(System));
+		return *RawSystem;
+	}
+
+	inline std::vector<std::unique_ptr<ISystem>>& ISystem::GetSubSystems()
+	{
+		return mSubSystems;
 	}
 }

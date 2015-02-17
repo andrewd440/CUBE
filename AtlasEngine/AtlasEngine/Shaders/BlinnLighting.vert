@@ -18,20 +18,19 @@ out VS_OUT
 layout(std140, binding = 0) uniform TransformBlock
 {
 // Member					Base Align		Aligned Offset		End
-	mat4 View;			//		16					0			64
-	mat4 Projection;	//		16					64			128
-	vec4 Translation;  //		16					128			
+	mat4 ModelView;			//		16					0			64
+	mat4 Projection;		//		16					64			128
 } Transforms;
 
 
-uniform	vec4 LightPosition = vec4(20, 100000, 100000, 1);
+uniform	vec4 LightPosition = vec4(20, 1000000, 1000000, 1);
 
 void main()
 {
-	vec4 ViewPosition = Transforms.View * ( Transforms.Translation + vPosition);
+	vec4 ViewPosition = Transforms.ModelView * vPosition;
 
-	vs_out.Normal = mat3(Transforms.View) * vNormal;
-	vs_out.Light = (Transforms.View * LightPosition).xyz - ViewPosition.xyz;
+	vs_out.Normal = mat3(Transforms.ModelView) * vNormal;
+	vs_out.Light = (Transforms.ModelView * LightPosition).xyz - ViewPosition.xyz;
 	vs_out.Viewer = -ViewPosition.xyz;
 
 	gl_Position = Transforms.Projection * ViewPosition;

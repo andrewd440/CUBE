@@ -15,9 +15,10 @@ namespace FDebug
 		, mTextureFont(nullptr)
 		, mMesh(GL_DYNAMIC_DRAW, DEFAULT_BUFFER_SIZE)
 	{
-		auto& ShaderHolder = FShaderHolder::GetInstance();
-		mTextShader.AttachShader(ShaderHolder.Get("DebugTextVertex"));
-		mTextShader.AttachShader(ShaderHolder.Get("DebugTextFragment"));
+		FShader VertexShader{ L"Shaders/DebugText.vert", GL_VERTEX_SHADER };
+		FShader FragShader{ L"Shaders/DebugText.frag", GL_FRAGMENT_SHADER };
+		mTextShader.AttachShader(VertexShader);
+		mTextShader.AttachShader(FragShader);
 		mTextShader.LinkProgram();
 	}
 
@@ -73,22 +74,29 @@ namespace FDebug
 	{
 		texture_atlas_t* AtlasPtr = texture_atlas_new(Atlas.Width, Atlas.Height, Atlas.Depth);
 
-		if (mTextureFont && mTextureFont->atlas)
+		if (mTextureFont)
 			texture_atlas_delete(mTextureFont->atlas);
 
 		mTextureFont = texture_font_new_from_file(AtlasPtr, (float)FontSize, FontFile);
-
-		glBindTexture(GL_TEXTURE_2D, AtlasPtr->id);
 	}
 
 	void Text::Render()
 	{
 		mTextShader.Use();
+
 		glUniformMatrix4fv(glGetUniformLocation(mTextShader.GetID(), "Projection"), 1, GL_FALSE, &mTextProjection.M[0][0]);
-		glUniform1i(glGetUniformLocation(mTextShader.GetID(), "Texture"), 0);
+
+		glActiveTexture(GL_TEXTURE0 + GLUniformBindings::TextTexture);
+		glBindTexture(GL_TEXTURE_2D, mTextureFont->atlas->id);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		mMesh.Activate();
 		mMesh.Render();
 		mMesh.ClearData();
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_BLEND);
 	}
 }

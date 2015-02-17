@@ -1,12 +1,13 @@
 #pragma once
-#include "Singleton.h"
+
 #include "Atlas\World.h"
 #include "SFML\Window\Window.hpp"
+#include "Rendering\ChunkManager.h"
 
 /**
 * Root/Central class for the game engine
 */
-class FVoxiGineRoot : public TSingleton<FVoxiGineRoot>
+class FVoxiGineRoot
 {
 public:
 	FVoxiGineRoot();
@@ -38,5 +39,6 @@ private:
 private:
 	sf::Window mGameWindow;
 	Atlas::FWorld mWorld;
+	FChunkManager mChunkManager;
 };
 

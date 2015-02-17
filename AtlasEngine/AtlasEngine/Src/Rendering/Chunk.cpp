@@ -115,12 +115,9 @@ bool FChunk::IsLoaded() const
 	return mIsLoaded;
 }
 
-extern FUniformBlockStandard* UniformBuffer;
-void FChunk::Render(const Vector3f& WorldPosition)
+void FChunk::Render()
 {
 	ASSERT(mIsLoaded);
-	UniformBuffer->SetData(128, WorldPosition);
-	UniformBuffer->SendBuffer();
 	mMesh->Render();
 }
 

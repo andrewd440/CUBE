@@ -5,6 +5,7 @@
 #include "ResourceHolder.h"
 #include "Rendering\Camera.h"
 #include "Math\Frustum.h"
+#include "Rendering\RenderSystem.h"
 
 namespace
 {	
@@ -49,18 +50,12 @@ FChunkManager::FChunkManager()
 	, mIsLoadedList()
 	, mUnloadList()
 	, mRebuildList()
-	, mShader()
 	, mLastCameraChunk()
 	, mLastCameraPosition()
 	, mLastCameraDirection()
 	, mNoiseMap()
 {
 	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
-
-	auto& ShaderHolder = FShaderHolder::GetInstance();
-	mShader.AttachShader(ShaderHolder.Get("BlinnVertex"));
-	mShader.AttachShader(ShaderHolder.Get("BlinnFragment"));
-	mShader.LinkProgram();
 
 	// SEtup noise map
 	noise::module::Perlin Perlin;
@@ -131,7 +126,7 @@ void FChunkManager::Setup()
 	UpdateRenderList();
 }
 
-void FChunkManager::Render()
+void FChunkManager::Render(FRenderSystem& Renderer)
 {
 	// Get camera data
 	const Vector3f CameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
@@ -145,14 +140,15 @@ void FChunkManager::Render()
 		UpdateRenderList();
 	}
 
-	mShader.Use();
+	// Render everything in the renderlist
 	for (const auto& Index : mRenderList)
 	{
 		if (mChunks[Index].IsLoaded())
 		{
 			auto Fposition = IndexToPosition(Index);
 			const Vector3f Position((float)Fposition.x, (float)Fposition.y, (float)Fposition.z);
-			mChunks[Index].Render(Position);
+			Renderer.SetModelTransform(FTransform{ Position });
+			mChunks[Index].Render();
 		}
 	}
 }

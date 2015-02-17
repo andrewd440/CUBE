@@ -177,6 +177,8 @@
   <ItemGroup>
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
+    <ClInclude Include="Include\Rendering\GBuffer.h" />
+    <ClInclude Include="Include\Rendering\Light.h" />
     <ClInclude Include="Include\Rendering\RenderSystem.h" />
     <ClInclude Include="Include\VoxiGineRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
@@ -241,10 +243,12 @@
     <ClInclude Include="Include\SystemResources\SystemFile.h" />
     <ClInclude Include="Include\Windows\WindowsClock.h" />
     <ClInclude Include="Include\Windows\WindowsFile.h" />
+    <ClInclude Include="Include\Rendering\LightSystems.h" />
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Rendering\LightSystems.cpp" />
     <ClCompile Include="Src\Atlas\Component.cpp" />
     <ClCompile Include="Src\Atlas\ComponentHandle.cpp" />
     <ClCompile Include="Src\Atlas\ComponentHandleManager.cpp" />
@@ -260,6 +264,8 @@
     <ClCompile Include="Src\Math\Frustum.cpp" />
     <ClCompile Include="Src\Math\Plane.cpp" />
     <ClCompile Include="Src\Math\Transform.cpp" />
+    <ClCompile Include="Src\Rendering\GBuffer.cpp" />
+    <ClCompile Include="Src\Rendering\Light.cpp" />
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Src\STime.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">

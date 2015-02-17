@@ -8,35 +8,30 @@
 #include "STime.h"
 #include "Input\ButtonEvent.h"
 #include "Input\MouseAxis.h"
-#include "Debugging\ConsoleOutput.h"
 
 #include <GL/glew.h>
 #include "SystemResources\SystemFile.h"
-#include "Rendering\ShaderProgram.h"
-#include "Rendering\GLUtils.h"
 #include "Math\Vector3.h"
-#include "Math\Matrix4.h"
-#include "Math\PerspectiveMatrix.h"
-#include "Rendering\UniformBlockStandard.h"
 #include "Common.h"
 #include "Math\Quaternion.h"
 #include "Rendering\ChunkManager.h"
-#include "Debugging\DebugText.h"
 #include "Rendering\Screen.h"
-#include "ResourceHolder.h"
 #include "Rendering\Camera.h"
-#include "Debugging\DebugDraw.h"
+#include "Rendering\RenderSystem.h"
+#include "Rendering\Light.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
 
 static FCamera MainCamera;
 static const float WorldCenter{ (float)(FChunkManager::WORLD_SIZE / 2) * FChunk::CHUNK_SIZE + 1 };
-FUniformBlockStandard* UniformBuffer;
+
+using namespace Atlas;
 
 FVoxiGineRoot::FVoxiGineRoot()
-	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"Atlas Engine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
+	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
 	, mWorld()
+	, mChunkManager()
 {
 	IFileSystem* FileSystem = new FFileSystem;
 	mGameWindow.setMouseCursorVisible(false);
@@ -47,38 +42,29 @@ FVoxiGineRoot::FVoxiGineRoot()
 		exit(EXIT_FAILURE);
 	}
 	
-	UniformBuffer = new FUniformBlockStandard(0, 144);
 	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 
-	// Load shaders
-	FShaderHolder* Shaders = new FShaderHolder;
-	Shaders->Load("BlinnVertex", L"Shaders/BlinnLighting.vert", GL_VERTEX_SHADER);
-	Shaders->Load("BlinnFragment", L"Shaders/BlinnLighting.frag", GL_FRAGMENT_SHADER);
-	Shaders->Load("DebugTextVertex", L"Shaders/DebugText.vert", GL_VERTEX_SHADER);
-	Shaders->Load("DebugTextFragment", L"Shaders/DebugText.frag", GL_FRAGMENT_SHADER);
-	
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glClearColor(.1f, .2f, .3f, 1.0f);
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
 {
-	delete UniformBuffer;
 	delete IFileSystem::GetInstancePtr();
-	delete FShaderHolder::GetInstancePtr();
 }
+
+void CameraSetup();
 
 void FVoxiGineRoot::Start()
 {
+	CameraSetup();
+	mChunkManager.Setup();
+	
+	// Load all subsystems
+	FSystemManager& SystemManager = mWorld.GetSystemManager();
+	SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
+
 	GameLoop();
 }
 
-void GLTests();
 void UpdateCamera();
 
 
@@ -86,60 +72,36 @@ void FVoxiGineRoot::GameLoop()
 {
 	STime::SetFixedUpdate(.02f);
 	STime::SetDeltaTime(1.0f / 30.0f); // Default delta time with 30fps
-	
-	GLTests();
-	FChunkManager Chunks;
-	Chunks.Setup();
-	FDebug::Text Texting;
-	Texting.SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
-	FDebug::Draw Drawing;
+
+	FSystemManager& SystemManager = mWorld.GetSystemManager();
+	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+
+	//GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
+	//GameObjectManager.RegisterComponentType<EComponent::PointLight>();
+	//GameObjectManager.RegisterComponentType<EComponent::SpotLight>();
+
+	//auto& obj = GameObjectManager.CreateGameObject();
+	//obj.AddComponent<EComponent::PointLight>();
+
+	//auto& obj2 = GameObjectManager.CreateGameObject();
+	//obj2.AddComponent<EComponent::DirectionalLight>();
 
 	// Game Loop
 	float lag = 0.0f;
 	while (mGameWindow.isOpen())
 	{	
-		if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		if (SButtonEvent::GetKeyDown(sf::Keyboard::K))
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		//// OpenGL /////////////////////
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Chunk rendering
-		
 		lag += STime::GetDeltaTime();
 		while (lag >= STime::GetFixedUpdate())
 		{
 			UpdateCamera();
-			Chunks.Update();
+			mChunkManager.Update();
 			lag -= STime::GetFixedUpdate();
 		}
 
-		UniformBuffer->SetData(0, MainCamera.Transform.WorldToLocalMatrix());
-		UniformBuffer->SendBuffer();
-		Chunks.Render();
-		Drawing.Render();
-
-
-		// Debug Print
-		const Vector3f CameraPosition = MainCamera.Transform.GetPosition();
-		wchar_t String[250];
-		const Vector3f Direction = MainCamera.Transform.GetRotation() * -Vector3f::Forward;
-		swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
-		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 50));
-
-		swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
-		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 100));
-
-		Vector3i ChunkPosition = Vector3i(CameraPosition.x / FChunk::CHUNK_SIZE, CameraPosition.y / FChunk::CHUNK_SIZE, CameraPosition.z / FChunk::CHUNK_SIZE);
-		swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
-		Texting.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50 , SScreen::GetResolution().y - 150));
-
-		Texting.Render();
-
-		//////////////////////////////////
-		mGameWindow.display();
+		GameObjectManager.Update();
+		
+		// Render the frame
+		SystemManager.GetSystem(Systems::Render)->Update();
 
 		UpdateTimers();
 		ServiceEvents();
@@ -156,7 +118,7 @@ void FVoxiGineRoot::ServiceEvents()
 	SMouseAxis::ResetAxes();
 
 	SMouseAxis::UpdateDelta(mGameWindow);
-	static sf::Vector2i DefaultMouse(SMouseAxis::GetDefaultMousePosition().x, SMouseAxis::GetDefaultMousePosition().y);
+	static sf::Vector2i DefaultMouse(SMouseAxis::GetDefaultMousePosition().x, SMouseAxis::GetDefaultMousePosition().y); 
 	sf::Mouse::setPosition(DefaultMouse, mGameWindow);
 
 	// Service window events
@@ -210,7 +172,7 @@ void FVoxiGineRoot::UpdateTimers()
 	FrameStart = FrameEnd;
 }
 
-void GLTests()
+void CameraSetup()
 {
 	FTransform& CameraTransform = MainCamera.Transform;
 	const Vector3f CameraPosition = Vector3f{ WorldCenter, WorldCenter, WorldCenter };
@@ -220,10 +182,6 @@ void GLTests()
 	MainCamera.SetNearPlane(1.0f);
 	MainCamera.SetFarPlane((float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE);
 	MainCamera.SetFieldOfView(75.0f);
-
-	UniformBuffer->SetData(0, CameraTransform.WorldToLocalMatrix());
-	UniformBuffer->SetData(64, MainCamera.GetProjection());
-	UniformBuffer->SetData(128, Vector3f(0, 0, 0));
 }
 
 void UpdateCamera()

@@ -68,10 +68,13 @@ namespace GLAttributePosition
 	};
 }
 
-namespace GLUniformBlockBindings
+namespace GLUniformBindings
 {
 	enum
 	{
+		GBuffer0,
+		GBuffer1,
 		TransformBlock,
+		TextTexture,
 	};
 }

@@ -80,7 +80,7 @@ public:
 	/**
 	* Renders active blocks in the chunk.
 	*/
-	void Render(const Vector3f& WorldPosition);
+	void Render();
 
 	/**
 	* Builds/Rebuilds this chunks' mesh.

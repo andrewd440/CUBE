@@ -30,17 +30,28 @@ namespace Atlas
 		/**
 		* Adds a new System.
 		* @tparam T - The type of System to add.
+		* @return A reference to the new system.
 		*/
-		void AddSystem();
+		T& AddSystem();
 		
 		template <typename T, typename Param1>
 		/**
 		* Adds a new System.
 		* @tparam T - The type of System to add.
-		* @param P1 - The second constructor parameter for the system. The
-		*              first construct argument must always be FWorld&.
+		* @param P1 - The first argument for the system's constructor
+		* @return A reference to the new system.
 		*/
-		void AddSystem(const Param1& P1);
+		T& AddSystem(const Param1& P1);
+
+		template <typename T, typename Param1, typename Param2>
+		/**
+		* Adds a new System.
+		* @tparam T - The type of System to add.
+		* @param P1 - The first argument for the system's constructor
+		* @param P1 - The second argument for the system's constructor
+		*  @return A reference to the new system.
+		*/
+		T& AddSystem(Param1& P1, Param2& P2);
 
 		template <typename T>
 		/**
@@ -84,25 +95,39 @@ namespace Atlas
 	};
 
 	template <typename T>
-	inline void FSystemManager::AddSystem()
+	inline T& FSystemManager::AddSystem()
 	{
-		std::unique_ptr<ISystem> System{ new T(mWorld) };
+		T* RawSystem = new T(mWorld);
+		std::unique_ptr<ISystem> System{ RawSystem };
 
-		// Set the system type bitmask
-		System->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(System.get()));
+		RawSystem->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(RawSystem));
 
 		mSystems.push_back(std::move(System));
+		return *RawSystem;
 	}
 
 	template <typename T, typename Param1>
-	inline void FSystemManager::AddSystem(const Param1& P1)
+	inline T& FSystemManager::AddSystem(const Param1& P1)
 	{
-		std::unique_ptr<ISystem> System{ new T(mWorld, P1) };
+		T* RawSystem = new T(mWorld, P1);
+		std::unique_ptr<ISystem> System{ RawSystem };
 
-		// Set the system type bitmask
-		System->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(System.get()));
+		RawSystem->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(RawSystem));
 
 		mSystems.push_back(std::move(System));
+		return *RawSystem;
+	}
+
+	template <typename T, typename Param1, typename Param2>
+	inline T& FSystemManager::AddSystem(Param1& P1, Param2& P2)
+	{
+		T* RawSystem = new T(mWorld, P1, P2);
+		std::unique_ptr<ISystem> System{ RawSystem };
+
+		RawSystem->SetSystemBitMask(SSystemBitManager::GetBitMaskFor(RawSystem));
+
+		mSystems.push_back(std::move(System));
+		return *RawSystem;
 	}
 
 	inline void FSystemManager::RemoveSystem(const uint32_t Index)

@@ -8,6 +8,9 @@ namespace Atlas
 	{
 		enum Type : uint32_t
 		{
+			DirectionalLight,
+			SpotLight,
+			PointLight,
 			RigidBody,
 			Mesh,
 			Collider,

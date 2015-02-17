@@ -5,7 +5,7 @@
 
 //uniform float TimeDelta;
 
-uniform sampler2D Texture;
+layout (binding = 3) uniform sampler2D Texture;
 
 void main()
 {

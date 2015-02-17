@@ -4,11 +4,11 @@
 #include <queue>
 
 #include "Chunk.h"
-#include "ShaderProgram.h"
-#include "UniformBlockStandard.h"
 #include "noise\noise.h"
 #include "noise\noiseutils.h"
 #include "Singleton.h"
+
+class FRenderSystem;
 
 class FChunkManager : public TSingleton<FChunkManager>
 {
@@ -25,7 +25,7 @@ public:
 
 	void Update();
 
-	void Render();
+	void Render(FRenderSystem& Renderer);
 
 	float GetNoiseHeight(uint32_t x, uint32_t z);
 
@@ -46,7 +46,6 @@ private:
 	std::vector<uint32_t> mRebuildList;  // Index list of chunks to be rebuilt
 
 	// Rendering data
-	FShaderProgram mShader;
 	Vector3ui mLastCameraChunk;
 	Vector3f mLastCameraPosition;
 	Vector3f mLastCameraDirection;

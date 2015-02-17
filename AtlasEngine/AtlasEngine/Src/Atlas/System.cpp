@@ -31,6 +31,9 @@ namespace Atlas
 		{
 			RemoveObject(GameObject);
 		}
+
+		for (auto& SubSystem : mSubSystems)
+			SubSystem->CheckInterest(GameObject);
 	}
 
 	void ISystem::RemoveObject(FGameObject& GameObject)
