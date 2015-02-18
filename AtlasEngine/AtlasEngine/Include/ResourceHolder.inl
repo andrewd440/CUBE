@@ -37,9 +37,4 @@ inline Resource& TResourceHolder<Resource>::Get(const char* Name)
 }
 
 template <typename Resource>
-inline const Resource& TResourceHolder<Resource>::Get(const char* Name) const
-{
-	auto Found = mResourceMap.find(FString::HashCRC32(Name));
-	ASSERT(Found != mResourceMap.end() && "Resource not in resource map.");
-	return *Found->second;
-}
+std::unordered_map<uint32_t, std::unique_ptr<Resource>> TResourceHolder<Resource>::mResourceMap;

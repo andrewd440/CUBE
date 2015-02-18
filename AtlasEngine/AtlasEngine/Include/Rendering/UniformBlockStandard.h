@@ -55,17 +55,12 @@ public:
 	~FUniformBlockStandard();
 
 	/**
-	* Send all the data within this object to the gpu.
-	*/
-	void SendBuffer();
-
-	/**
 	* Retrieve a pointer to the buffer held by this object.
 	* @param Access - Type of access required for the memory.
 	* @return The pointer is returned in a unique_ptr object with a custom deleter
 	* that unbinds and unmappeds this buffer.
 	*/
-	std::unique_ptr<void, void(*)(void*)> MapBuffer(GLenum Access) const;
+	void* MapBuffer(GLenum Access) const;
 
 	/**
 	* Add data to the buffer at a specific offset within the uniform block.
@@ -87,7 +82,6 @@ public:
 	void SetData(const uint32_t DataOffset, const T& Type);
 
 private:
-	std::vector<GLbyte> mData;
 	GLuint mBufferID; // ID of the buffer object bound to this uniform block
 };
 

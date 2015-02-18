@@ -25,9 +25,8 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	: ISystem(World)
 	, mWindow(GameWindow)
 	, mChunkManager(ChunkManager)
-	, mTransformBuffer(0, TransformBuffer::Size)
+	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
 	, mDeferredRender()
-	, mDeferredLighting()
 	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_RGBA32F)
 {
 	glEnable(GL_CULL_FACE);
@@ -50,19 +49,20 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 
 void FRenderSystem::LoadShaders()
 {
-	// Load shaders
-	FShader VertexRender{ L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER };
-	FShader FragRender{ L"Shaders/DeferredRender.frag", GL_FRAGMENT_SHADER };
-	mDeferredRender.AttachShader(VertexRender);
-	mDeferredRender.AttachShader(FragRender);
+	// Load all main rendering shaders
+	SShaderHolder::Load("DeferredRender.vert", L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER);
+	SShaderHolder::Load("DeferredRender.frag", L"Shaders/DeferredRender.frag", GL_FRAGMENT_SHADER);
+	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);
+	SShaderHolder::Load("DeferredPointLighting.frag", L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER);
+	SShaderHolder::Load("DeferredLightingCommon.frag", L"Shaders/DeferredLightingCommon.frag", GL_FRAGMENT_SHADER);
+	SShaderHolder::Load("DeferredSpotLighting.frag", L"Shaders/DeferredSpotLighting.frag", GL_FRAGMENT_SHADER);
+	SShaderHolder::Load("DeferredDirectionalLighting.frag", L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER);
+	
+	
+	// Load render shaders
+	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.vert"));
+	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.frag"));
 	mDeferredRender.LinkProgram();
-
-	// Load shaders
-	FShader VertexLighting{ L"Shaders/DeferredLighting.vert", GL_VERTEX_SHADER };
-	FShader FragLighting{ L"Shaders/DeferredLighting.frag", GL_FRAGMENT_SHADER };
-	mDeferredLighting.AttachShader(VertexLighting);
-	mDeferredLighting.AttachShader(FragLighting);
-	mDeferredLighting.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
@@ -81,11 +81,11 @@ FRenderSystem::~FRenderSystem()
 void FRenderSystem::SetModelTransform(const FTransform& WorldTransform)
 {
 	mTransformBuffer.SetData(TransformBuffer::Model, WorldTransform.LocalToWorldMatrix());
-	mTransformBuffer.SendBuffer();
 }
 
 void FRenderSystem::Update()
 {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GeometryPass();
 	LightingPass();
 
@@ -118,7 +118,6 @@ void FRenderSystem::GeometryPass()
 {
 	// Send view transform to gpu
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
-	mTransformBuffer.SendBuffer();
 
 	// Open G-Buffer for writing and enable deferred render shader.
 	mGBuffer.StartWrite();
@@ -137,14 +136,20 @@ void FRenderSystem::GeometryPass()
 
 void FRenderSystem::LightingPass()
 {
+	auto& SubSystems = GetSubSystems();
+
+	// No depth testing for lights and set light blending settings.
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
+
 	 // Enable G-Buffer for reading
 	mGBuffer.StartRead();
 
-	glDisable(GL_DEPTH_TEST);
-	mDeferredLighting.Use();
-
-	// Draw screen quad
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	for (auto& SubSystem : SubSystems)
+		SubSystem->Update();
 
 	mGBuffer.EndRead();
+	glDisable(GL_BLEND);
 }

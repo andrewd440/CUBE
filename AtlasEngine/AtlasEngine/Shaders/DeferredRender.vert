@@ -12,7 +12,7 @@ out VS_OUT
 	flat uint MaterialID;
 } vs_out;
 
-layout(std140, binding = 0) uniform TransformBlock
+layout(std140, binding = 2) uniform TransformBlock
 {
 // Member					Base Align		Aligned Offset		End
 	mat4 Model;				//		16					0			64

@@ -72,7 +72,7 @@ namespace Atlas
 		* Retrieves the IDs of interested GameObjects
 		* @return List of IDs
 		*/
-		const std::vector<FGameObject::ID>& GetGameObjectIDs() const;
+		const std::vector<FGameObject*>& GetGameObjects() const;
 
 		std::vector<std::unique_ptr<ISystem>>& GetSubSystems();
 
@@ -110,7 +110,7 @@ namespace Atlas
 		FWorld&                                 mWorld;
 		std::bitset<BITSIZE>                    mTypeBitMask;
 		std::bitset<BITSIZE>                    mSystemBitMask;
-		std::vector<FGameObject::ID>            mGameObjectIDs;
+		std::vector<FGameObject*>               mGameObjectIDs;
 		std::vector<std::unique_ptr<ISystem>>   mSubSystems;
 	};
 
@@ -130,7 +130,7 @@ namespace Atlas
 		return mTypeBitMask;
 	}
 
-	inline const std::vector<FGameObject::ID>& ISystem::GetGameObjectIDs() const
+	inline const std::vector<FGameObject*>& ISystem::GetGameObjects() const
 	{
 		return mGameObjectIDs;
 	}

@@ -13,8 +13,7 @@ void FUniformBlockStandard::GetBlockSize(const char* BlockName, GLint& SizeOut)
 }
 
 FUniformBlockStandard::FUniformBlockStandard(const char* BlockName, GLuint BindingIndexToSet, const uint32_t BlockSize)
-	: mData(BlockSize)
-	, mBufferID()
+	: mBufferID()
 {
 	GLint Program;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &Program);
@@ -29,8 +28,7 @@ FUniformBlockStandard::FUniformBlockStandard(const char* BlockName, GLuint Bindi
 }
 
 FUniformBlockStandard::FUniformBlockStandard(const uint32_t BindingIndex, const uint32_t BlockSize)
-	: mData(BlockSize)
-	, mBufferID()
+	: mBufferID()
 {
 	glGenBuffers(1, &mBufferID);
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
@@ -43,21 +41,16 @@ FUniformBlockStandard::~FUniformBlockStandard()
 	glDeleteBuffers(1, &mBufferID);
 }
 
-void FUniformBlockStandard::SendBuffer()
+void FUniformBlockStandard::SetData(const uint32_t DataOffset, const uint8_t* Data, const uint32_t DataSize)
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, mData.size(), mData.data());
+	glBufferSubData(GL_UNIFORM_BUFFER, DataOffset, DataSize, Data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 
-std::unique_ptr<void, void(*)(void*)> FUniformBlockStandard::MapBuffer(GLenum Access) const
+void* FUniformBlockStandard::MapBuffer(GLenum Access) const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferID);
-	return std::unique_ptr<void, void(*)(void*)>(glMapBuffer(GL_UNIFORM_BUFFER, Access), GLUtils::BufferUnmapper<GL_UNIFORM_BUFFER>);
-}
-
-void FUniformBlockStandard::SetData(const uint32_t DataOffset, const uint8_t* Data, const uint32_t DataSize)
-{
-	std::memcpy(mData.data() + DataOffset, Data, DataSize);
+	return glMapBuffer(GL_UNIFORM_BUFFER, Access);
 }

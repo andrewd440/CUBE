@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL\glew.h>
+#include <cstdint>
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
@@ -70,11 +71,14 @@ namespace GLAttributePosition
 
 namespace GLUniformBindings
 {
-	enum
+	enum : uint32_t
 	{
-		GBuffer0,
-		GBuffer1,
-		TransformBlock,
-		TextTexture,
+		GBuffer0 = 0,
+		GBuffer1 = 1,
+		TransformBlock = 2,
+		TextTexture = 3,
+		PointLight = 10,
+		DirectionalLight = 11,
+		SpotLight = 12,
 	};
 }

@@ -23,7 +23,7 @@ namespace Atlas
 		// It is not in the system, but we are interested
 		if (!Contains && Interest && mTypeBitMask.any())
 		{
-			mGameObjectIDs.push_back(GameObject.GetID());
+			mGameObjectIDs.push_back(&GameObject);
 			GameObject.SetSystemBit(mSystemBitMask);
 		}
 		// It is in the system, but we are not interested
@@ -39,6 +39,6 @@ namespace Atlas
 	void ISystem::RemoveObject(FGameObject& GameObject)
 	{
 		GameObject.RemoveSystemBit(mSystemBitMask);
-		mGameObjectIDs.erase(std::find(mGameObjectIDs.begin(), mGameObjectIDs.end(), GameObject.GetID()));
+		mGameObjectIDs.erase(std::find(mGameObjectIDs.begin(), mGameObjectIDs.end(), &GameObject));
 	}
 }

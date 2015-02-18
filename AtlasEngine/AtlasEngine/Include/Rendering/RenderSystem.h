@@ -55,6 +55,5 @@ private:
 	FChunkManager& mChunkManager;
 	FUniformBlockStandard mTransformBuffer;
 	FShaderProgram mDeferredRender;
-	FShaderProgram mDeferredLighting;
 	GBuffer mGBuffer;
 };

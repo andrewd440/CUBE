@@ -65,7 +65,7 @@ void FVoxiGineRoot::Start()
 	GameLoop();
 }
 
-void UpdateCamera();
+void UpdateCamera(FTransform& Light);
 
 
 void FVoxiGineRoot::GameLoop()
@@ -76,15 +76,17 @@ void FVoxiGineRoot::GameLoop()
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
-	//GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
-	//GameObjectManager.RegisterComponentType<EComponent::PointLight>();
-	//GameObjectManager.RegisterComponentType<EComponent::SpotLight>();
+	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
+	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
+	GameObjectManager.RegisterComponentType<EComponent::SpotLight>();
 
-	//auto& obj = GameObjectManager.CreateGameObject();
-	//obj.AddComponent<EComponent::PointLight>();
-
-	//auto& obj2 = GameObjectManager.CreateGameObject();
-	//obj2.AddComponent<EComponent::DirectionalLight>();
+	auto& obj = GameObjectManager.CreateGameObject();
+	FPointLight& Light = obj.AddComponent<EComponent::PointLight>();
+	Light.Color = Vector3f(.6, .6, .6);
+	Light.MinDistance = 10;
+	Light.MaxDistance = 200;
+	//Light.SpotExponent = 40;
+	//obj.Transform.SetRotation(FQuaternion{ Vector3f{1,0,1}.Normalize(), -45 });
 
 	// Game Loop
 	float lag = 0.0f;
@@ -93,7 +95,7 @@ void FVoxiGineRoot::GameLoop()
 		lag += STime::GetDeltaTime();
 		while (lag >= STime::GetFixedUpdate())
 		{
-			UpdateCamera();
+			UpdateCamera(obj.Transform);
 			mChunkManager.Update();
 			lag -= STime::GetFixedUpdate();
 		}
@@ -184,7 +186,7 @@ void CameraSetup()
 	MainCamera.SetFieldOfView(75.0f);
 }
 
-void UpdateCamera()
+void UpdateCamera(FTransform& Light)
 {
 	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 25.0f * STime::GetFixedUpdate();
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
@@ -216,4 +218,7 @@ void UpdateCamera()
 
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
 	MainCamera.Transform.Translate(Translation);
+
+	Light.SetPosition(MainCamera.Transform.GetPosition());
+	//Light.SetRotation(MainCamera.Transform.GetRotation());
 }
