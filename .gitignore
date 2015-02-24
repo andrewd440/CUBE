@@ -58,3 +58,4 @@ Temporary Items
 *.vspx
 *.vsp
 *.psess
+/AtlasEngine/Debug

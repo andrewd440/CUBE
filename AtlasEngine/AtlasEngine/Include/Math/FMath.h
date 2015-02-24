@@ -2,8 +2,9 @@
 #include <cstdint>
 #include "Vector3.h"
 
-class FPlane;
+struct FPlane;
 struct FBox;
+struct FSphere;
 
 const float _PI = 3.14159265f;
 const float _EPSILON = 0.00001f;
@@ -84,4 +85,9 @@ namespace FMath
 	* Plane-AABB intersection test.
 	*/
 	IntersectionType Intersects(const FPlane& Plane, const FBox& Box);
+
+	/**
+	* Plane-Sphere intersection test.
+	*/
+	IntersectionType Intersects(const FPlane& Plane, const FSphere& Sphere);
 }

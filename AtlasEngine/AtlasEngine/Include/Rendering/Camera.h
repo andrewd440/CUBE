@@ -31,44 +31,9 @@ public:
 	FCamera& operator=(const FCamera& Other) = default;
 
 	/**
-	* Set the distance to the near plane.
+	* Get the view projection used by this camera.
 	*/
-	void SetNearPlane(const float NearPlaneDistance);
-
-	/**
-	* Get the distance to the near plane.
-	*/
-	float GetNearPlane() const;
-
-	/**
-	* Set the distance to the far plane.
-	*/
-	void SetFarPlane(const float FarPlaneDistance);
-
-	/**
-	* Set the distance to the far plane.
-	*/
-	float GetFarPlane() const;
-
-	/**
-	* Set the horizontal field of view of the camera.
-	*/
-	void SetFieldOfView(const float NewFOV);
-
-	/**
-	* Get the horizontal field of view of the camera.
-	*/
-	float GetFieldOfView() const;
-
-	/**
-	* Set the aspect ratio of the camera.
-	*/
-	void SetAspectRatio(const float NewAspect);
-
-	/**
-	* Get the aspect ratio of the camera.
-	*/
-	float GetAspectRatio() const;
+	void SetProjection(const FMatrix4& NewProjection);
 
 	/**
 	* Get the view projection used by this camera.
@@ -80,54 +45,14 @@ public:
 	*/
 	FFrustum GetWorldViewFrustum();
 
+	/**
+	* Get the view frustum of the camera in view space.
+	*/
+	FFrustum GetViewFrustum();
+
+private:
+	void GetFrustumCommon(FFrustum& Frustum, const FMatrix4& Projection) const;
+
 private:
 	FMatrix4 mProjection;
-	float mNearPlane;
-	float mFarPlane;
-	float mFieldOfView;
-	float mAspectRatio;
-	bool mIsProjectionDirty; // Dirty if the projection matrix has not been updated with new plane, FOV, or aspect values.
 };
-
-inline void FCamera::SetNearPlane(const float NearPlaneDistance)
-{
-	mNearPlane = NearPlaneDistance;
-	mIsProjectionDirty = true;
-}
-
-inline float FCamera::GetNearPlane() const
-{
-	return mNearPlane;
-}
-
-inline void FCamera::SetFarPlane(const float FarPlaneDistance)
-{
-	mFarPlane = FarPlaneDistance;
-	mIsProjectionDirty = true;
-}
-
-inline float FCamera::GetFarPlane() const
-{
-	return mFarPlane;
-}
-
-inline void FCamera::SetFieldOfView(const float NewFOV)
-{
-	mFieldOfView = NewFOV;
-	mIsProjectionDirty = true;
-}
-
-inline float FCamera::GetFieldOfView() const
-{
-	return mFieldOfView;
-}
-
-inline void FCamera::SetAspectRatio(const float NewAspect)
-{
-	mAspectRatio = NewAspect;
-}
-
-inline float FCamera::GetAspectRatio() const
-{
-	return mAspectRatio;
-}

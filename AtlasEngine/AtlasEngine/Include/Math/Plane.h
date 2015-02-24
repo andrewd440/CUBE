@@ -7,13 +7,12 @@
 /**
 * Represents an infinite 3D plane.
 **/
-class FPlane
+WIN_ALIGN(16)
+struct FPlane
 {
-public:
 	Vector3f Normal;
 	float DistanceFromOrigin;
 
-public:
 	/**
 	* Default Ctor
 	* Constructs a plane at origin, pointing upward.

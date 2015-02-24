@@ -140,7 +140,6 @@ namespace Atlas
 		uint32_t						mComponents[EComponent::Count]; // Handles for common property components.
 		ID		                        mID;            // Non-unique id for this GO.
 		bool                            mIsActive;      // If not active, this GO's components will not be processed.
-		bool                            mToBeDestroyed; // If set, this GO will be destroy on the next GO manager update.
 	};
 }
 

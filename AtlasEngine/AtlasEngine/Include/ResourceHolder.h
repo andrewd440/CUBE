@@ -16,6 +16,12 @@ public:
 	~TResourceHolder() = delete;
 
 	/**
+	* Loads a resource and stores it with
+	* a specified name.
+	*/
+	static void Load(const char* Name);
+
+	/**
 	* Loads a resource from a file and stores it with
 	* a specified name.
 	*/
@@ -45,5 +51,8 @@ private:
 
 class FShader;
 using SShaderHolder = TResourceHolder<FShader>;
+
+class FShaderProgram;
+using SShaderProgramHolder = TResourceHolder<FShaderProgram>;
 
 #include "ResourceHolder.inl"

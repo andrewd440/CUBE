@@ -16,12 +16,23 @@ struct DirectionalLight_t
 	vec3 Color;            //    16               16             28
 };
 
+
 layout(std140, binding = 11) uniform DirectionalLightBlock
 {
     DirectionalLight_t DirectionalLight;
 };
 
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment);
+vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light);
+
+void main()
+{
+	FragmentData_t Fragment;
+
+	UnpackGBuffer(ivec2(gl_FragCoord.xy), Fragment);
+
+	gl_FragColor = ApplyLighting(Fragment, DirectionalLight);
+}
 
 vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 {
@@ -46,13 +57,4 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 		Result += vec4(Diffuse + Specular, 0.0);
 	}
 	return Result;
-}
-
-void main()
-{
-	FragmentData_t Fragment;
-
-	UnpackGBuffer(ivec2(gl_FragCoord.xy), Fragment);
-
-	gl_FragColor = ApplyLighting(Fragment, DirectionalLight);
 }

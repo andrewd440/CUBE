@@ -14,10 +14,10 @@ struct FPointLight : public FDirectionalLight
 	float MaxDistance;
 };
 
-struct FSpotLight : public FPointLight
-{
-	float SpotExponent;
-};
+//struct FSpotLight : public FPointLight
+//{
+//	float SpotExponent;
+//};
 
 template <>
 struct Atlas::ComponentTraits::Object<Atlas::EComponent::DirectionalLight>
@@ -31,8 +31,8 @@ struct Atlas::ComponentTraits::Object<Atlas::EComponent::PointLight>
 	using Type = FPointLight;
 };
 
-template <>
-struct Atlas::ComponentTraits::Object<Atlas::EComponent::SpotLight>
-{
-	using Type = FSpotLight;
-};
+//template <>
+//struct Atlas::ComponentTraits::Object<Atlas::EComponent::SpotLight>
+//{
+//	using Type = FSpotLight;
+//};

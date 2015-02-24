@@ -1,8 +1,5 @@
 #pragma once
-#include <stack>
-#include <vector>
-#include <memory>
-#include <cassert>
+#include <queue>
 
 #include "ComponentTypes.h"
 #include "Containers\RawGappedArray.h"
@@ -114,12 +111,18 @@ namespace Atlas
 
 		uint32_t GetGameObjectCount() const { return mGameObjects.Size(); }
 
+		/**
+		* Sets a gameobject to be destroyed.
+		* @param GameObject - The targeted GameObject
+		*/
+		void DestroyGameObject(FGameObject& GameObject);
+
 	private:
 		/**
 		* Resets a GameObject and moves it from the active GameObject container to the dead GameObject pool
 		* @param GameObject - The targeted GameObject
 		*/
-		void DestroyGameObject(FGameObject& GameObject);
+		void DestroyGameObjectHelp(FGameObject& GameObject);
 
 	private:
 		static const uint32_t DEFAULT_CONTAINER_SIZE = 100;
@@ -133,6 +136,9 @@ namespace Atlas
 
 		// Holds all system based components.
 		FRawGappedArray mSystemComponents[EComponent::Type::Count];
+
+		// List of gameobjects set to be destroyed
+		std::queue<FGameObject*> mDestroyQueue;
 	};
 }
 

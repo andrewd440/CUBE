@@ -78,15 +78,18 @@ void FVoxiGineRoot::GameLoop()
 
 	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
 	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
-	GameObjectManager.RegisterComponentType<EComponent::SpotLight>();
 
-	auto& obj = GameObjectManager.CreateGameObject();
-	FPointLight& Light = obj.AddComponent<EComponent::PointLight>();
-	Light.Color = Vector3f(.6, .6, .6);
-	Light.MinDistance = 10;
-	Light.MaxDistance = 200;
-	//Light.SpotExponent = 40;
-	//obj.Transform.SetRotation(FQuaternion{ Vector3f{1,0,1}.Normalize(), -45 });
+	auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	DLight.Color = Vector3f(.4, .4, .4);
+	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
+
+
+	auto& PointLight = GameObjectManager.CreateGameObject();
+	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
+	PLight.Color = Vector3f(1, 1, 1);
+	PLight.MinDistance = 5;
+	PLight.MaxDistance = 15;
 
 	// Game Loop
 	float lag = 0.0f;
@@ -95,7 +98,7 @@ void FVoxiGineRoot::GameLoop()
 		lag += STime::GetDeltaTime();
 		while (lag >= STime::GetFixedUpdate())
 		{
-			UpdateCamera(obj.Transform);
+			UpdateCamera(PointLight.Transform);
 			mChunkManager.Update();
 			lag -= STime::GetFixedUpdate();
 		}
@@ -176,14 +179,12 @@ void FVoxiGineRoot::UpdateTimers()
 
 void CameraSetup()
 {
+	FCamera::Main = &MainCamera;
 	FTransform& CameraTransform = MainCamera.Transform;
 	const Vector3f CameraPosition = Vector3f{ WorldCenter, WorldCenter, WorldCenter };
 	CameraTransform.SetPosition(CameraPosition);
 
-	MainCamera.SetAspectRatio((float)WindowWidth / (float)WindowHeight);
-	MainCamera.SetNearPlane(1.0f);
-	MainCamera.SetFarPlane((float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE);
-	MainCamera.SetFieldOfView(75.0f);
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, (float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE * .75f });
 }
 
 void UpdateCamera(FTransform& Light)
@@ -220,5 +221,4 @@ void UpdateCamera(FTransform& Light)
 	MainCamera.Transform.Translate(Translation);
 
 	Light.SetPosition(MainCamera.Transform.GetPosition());
-	//Light.SetRotation(MainCamera.Transform.GetRotation());
 }

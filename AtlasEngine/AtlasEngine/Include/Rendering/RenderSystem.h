@@ -4,6 +4,7 @@
 #include "Rendering\UniformBlockStandard.h"
 #include "Rendering\ShaderProgram.h"
 #include "Rendering\GBuffer.h"
+#include "Math\Box.h"
 
 class FChunkManager;
 
@@ -30,12 +31,26 @@ public:
 	*/
 	void Update() override;
 
+	/**
+	* Sends draw calls to all the currently visible geometry with respect to
+ 	* the main camera.
+	*/
+	void RenderGeometry();
+
+	/**
+	* Get the current world space coordinates of each of the 8 corners
+	* of the view volume.
+	*/
+	FBox GetViewBounds() const;
+
 private:
 	void LoadShaders();
 	void LoadSubSystems();
 
-	void GeometryPass();
+	void ConstructGBuffer();
 	void LightingPass();
+
+	void UpdateViewBounds();
 
 private:
 	// Each type of subsystem used by the rendering system
@@ -45,7 +60,6 @@ private:
 		{
 			DirectionalLight,
 			PointLight,
-			SpotLight,
 			Count
 		};
 	};
@@ -53,7 +67,8 @@ private:
 private:
 	sf::Window& mWindow;
 	FChunkManager& mChunkManager;
-	FUniformBlockStandard mTransformBuffer;
+	EZGL::FUniformBlock mTransformBuffer;
 	FShaderProgram mDeferredRender;
 	GBuffer mGBuffer;
+	FBox mViewAABB;
 };

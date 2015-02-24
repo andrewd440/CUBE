@@ -4,10 +4,12 @@
 #include "Plane.h"
 
 struct FBox;
+struct FSphere;
 
 /**
 * Represents a volume with 6 planes.
 */
+WIN_ALIGN(16)
 class FFrustum
 {
 public:
@@ -51,6 +53,13 @@ public:
 	* @param Box - The AABB to check.
 	*/
 	bool IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth) const;
+
+	/**
+	* Checks if a sphere is visible.
+	* @param Sphere - The sphere to check.
+	*/
+	bool IsSphereVisible(const FSphere& Sphere) const;
+
 private:
 	FPlane mPlanes[6];
 };

@@ -7,6 +7,7 @@
 #include "Math\Color.h"
 #include "Rendering\Mesh.h"
 #include "Math\OrthoMatrix.h"
+#include "Rendering\Uniform.h"
 
 // Forward declaration
 struct texture_font_t;
@@ -67,10 +68,11 @@ namespace FDebug
 		void Render();
 
 	private:
-		FOrthoMatrix mTextProjection;
+		FMatrix4 mTextProjection;
 		FShaderProgram mTextShader;
 		texture_font_t* mTextureFont;
 		TMesh<FTextVertex> mMesh;
+		EZGL::FUniform mProjectionUniform;
 	};
 
 

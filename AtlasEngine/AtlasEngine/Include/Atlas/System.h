@@ -74,7 +74,7 @@ namespace Atlas
 		*/
 		const std::vector<FGameObject*>& GetGameObjects() const;
 
-		std::vector<std::unique_ptr<ISystem>>& GetSubSystems();
+		const std::vector<std::unique_ptr<ISystem>>& GetSubSystems();
 
 		template <typename T>
 		/**
@@ -89,7 +89,7 @@ namespace Atlas
 		* @tparam T - The type of subsystem
 		* @param P1 - First argument for the system's constructor
 		*/
-		T& AddSubSystem(const Param1& P1);
+		T& AddSubSystem(Param1& P1);
 
 	private:
 		friend class FSystemManager;  // Give full access to SystemManager
@@ -99,6 +99,20 @@ namespace Atlas
 		* @params GameObject - The GameObject to be removed
 		*/
 		virtual void RemoveObject(FGameObject& GameObject);
+
+		/**
+		* This function is called after a new gameobject has been
+		* added to the system.
+		* @param GameObject - The gameobject that was added.
+		*/
+		virtual void OnGameObjectAdd(FGameObject& GameObject);
+
+		/**
+		* This function is called before a gameobject is about to be
+		* removed to the system.
+		* @param GameObject - The gameobject that will be removed.
+		*/
+		virtual void OnGameObjectRemove(FGameObject& GameObject);
 
 		/**
 		* Assigns the system type bit for the System
@@ -158,7 +172,7 @@ namespace Atlas
 	}
 
 	template <typename T, typename Param1>
-	inline T& ISystem::AddSubSystem(const Param1& P1)
+	inline T& ISystem::AddSubSystem(Param1& P1)
 	{
 		T* RawSystem = new T(mWorld, P1);
 		std::unique_ptr<ISystem> System{ RawSystem };
@@ -169,7 +183,7 @@ namespace Atlas
 		return *RawSystem;
 	}
 
-	inline std::vector<std::unique_ptr<ISystem>>& ISystem::GetSubSystems()
+	inline const std::vector<std::unique_ptr<ISystem>>& ISystem::GetSubSystems()
 	{
 		return mSubSystems;
 	}

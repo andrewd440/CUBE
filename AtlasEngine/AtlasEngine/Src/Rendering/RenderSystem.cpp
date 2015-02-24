@@ -55,21 +55,30 @@ void FRenderSystem::LoadShaders()
 	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);
 	SShaderHolder::Load("DeferredPointLighting.frag", L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("DeferredLightingCommon.frag", L"Shaders/DeferredLightingCommon.frag", GL_FRAGMENT_SHADER);
-	SShaderHolder::Load("DeferredSpotLighting.frag", L"Shaders/DeferredSpotLighting.frag", GL_FRAGMENT_SHADER);
-	SShaderHolder::Load("DeferredDirectionalLighting.frag", L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER);
-	
+	SShaderHolder::Load("DeferredDirectionalLighting.frag", L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER);	
 	
 	// Load render shaders
 	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.vert"));
 	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.frag"));
 	mDeferredRender.LinkProgram();
+
+
+	// Load shader program used for shadow mapping
+	FShader Vert{ L"Shaders/DepthRender.vert", GL_VERTEX_SHADER };
+	FShader Frag{ L"Shaders/DepthRender.frag", GL_FRAGMENT_SHADER };
+
+	SShaderProgramHolder::Load("DepthShaderProgram");
+	FShaderProgram& ShaderProgram = SShaderProgramHolder::Get("DepthShaderProgram");
+
+	ShaderProgram.AttachShader(Vert);
+	ShaderProgram.AttachShader(Frag);
+	ShaderProgram.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
 {
-	AddSubSystem<FDirectionalLightSystem>();
-	AddSubSystem<FPointLightSystem>();
-	AddSubSystem<FSpotLightSystem>();
+	AddSubSystem<FDirectionalLightSystem>(*this);
+	AddSubSystem<FPointLightSystem>(*this);
 }
 
 FRenderSystem::~FRenderSystem()
@@ -86,12 +95,16 @@ void FRenderSystem::SetModelTransform(const FTransform& WorldTransform)
 void FRenderSystem::Update()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	GeometryPass();
+	
+	UpdateViewBounds();
+	ConstructGBuffer();
 	LightingPass();
 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
 
 	// Render debug draws
-	//FDebug::Draw::GetInstance().Render();
+	FDebug::Draw::GetInstance().Render();
 
 	// Debug Print
 	auto& DebugText = FDebug::Text::GetInstance();
@@ -114,10 +127,18 @@ void FRenderSystem::Update()
 	mWindow.display();
 }
 
-void FRenderSystem::GeometryPass()
+void FRenderSystem::RenderGeometry()
 {
 	// Send view transform to gpu
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
+	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
+
+	// Render geometry
+	mChunkManager.Render(*this);
+}
+
+void FRenderSystem::ConstructGBuffer()
+{
 
 	// Open G-Buffer for writing and enable deferred render shader.
 	mGBuffer.StartWrite();
@@ -126,10 +147,9 @@ void FRenderSystem::GeometryPass()
 	// Make sure depth testing is enabled
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-
-	// Render geometry
-	mChunkManager.Render(*this);
 	
+	RenderGeometry();
+
 	// Close the G-Buffer
 	mGBuffer.EndWrite();
 }
@@ -152,4 +172,43 @@ void FRenderSystem::LightingPass()
 
 	mGBuffer.EndRead();
 	glDisable(GL_BLEND);
+}
+
+FBox FRenderSystem::GetViewBounds() const
+{
+	return mViewAABB;
+}
+
+void FRenderSystem::UpdateViewBounds()
+{
+	mViewAABB = FBox{};
+	const FMatrix4 CameraTransform = FCamera::Main->Transform.LocalToWorldMatrix();
+	const FMatrix4 InvProjection = FCamera::Main->GetProjection().GetInverse();
+
+	// Opengl normalized view volume corners
+	static const Vector4f NormalizedCorners[8] =
+	{
+		Vector4f{ -1, 1, 0, 1 },	// T - L - F
+		Vector4f{ -1, -1, 0, 1 },	// B - L - F
+		Vector4f{ 1, -1, 0, 1 },    // B - R - F
+		Vector4f{ 1, 1, 0, 1 },		// T - R - F
+		Vector4f{ -1, 1, 1, 1 },	// T - L - B
+		Vector4f{ -1, -1, 1, 1 },	// B - L - B
+		Vector4f{ 1, -1, 1, 1 },	// B - R - B
+		Vector4f{ 1, 1, 1, 1 }		// T - R - B
+	};
+
+	for (int32_t i = 0; i < 8; i++)
+	{
+		// Transform each vert by inv projection
+		Vector4f Vec4 = InvProjection.TransformVector(NormalizedCorners[i]);
+
+		// Divide by W component to get correct 3D coordinates in view space
+		Vector3f Point = Vector3f{ Vec4.x, Vec4.y, Vec4.z } / Vec4.w;
+
+		FMath::UpdateBounds(mViewAABB.Min, mViewAABB.Max, Point);
+	}
+
+	// Transform into world space
+	mViewAABB.TransformAABB(CameraTransform);
 }

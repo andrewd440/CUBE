@@ -228,6 +228,15 @@
     <ClInclude Include="Include\Rendering\LightSystems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Math\Sphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\DepthRenderTarget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\Uniform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -363,6 +372,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\LightSystems.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Math\Sphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\DepthRenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Math\Box.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\Uniform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

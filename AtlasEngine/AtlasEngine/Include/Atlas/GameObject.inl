@@ -100,7 +100,7 @@ namespace Atlas
 
 	inline void FGameObject::Destroy()
 	{
-		mToBeDestroyed = true;
+		mGOManager.DestroyGameObject(*this);
 	}
 
 	inline std::bitset<BITSIZE> FGameObject::GetComponentBitMask() const

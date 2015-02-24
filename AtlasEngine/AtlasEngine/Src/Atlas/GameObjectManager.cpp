@@ -10,6 +10,7 @@ namespace Atlas
 		: mSystemManager(World.GetSystemManager())
 		, mGameObjects()
 		, mSystemComponents()
+		, mDestroyQueue()
 	{
 		mGameObjects.Init<FGameObject>(DEFAULT_CONTAINER_SIZE);
 	}
@@ -17,10 +18,10 @@ namespace Atlas
 	void FGameObjectManager::Update()
 	{
 		// remove destroyed GOs
-		for (auto Itr = mGameObjects.Begin<FGameObject>(); Itr != mGameObjects.End<FGameObject>(); Itr++)
+		while(!mDestroyQueue.empty())
 		{
-			if (Itr->mToBeDestroyed)
-				DestroyGameObject(*Itr);
+			DestroyGameObjectHelp(*mDestroyQueue.front());
+			mDestroyQueue.pop();
 		}
 	}
 
@@ -40,6 +41,11 @@ namespace Atlas
 	}
 
 	void FGameObjectManager::DestroyGameObject(FGameObject& GameObject)
+	{
+		mDestroyQueue.push(&GameObject);
+	}
+
+	void FGameObjectManager::DestroyGameObjectHelp(FGameObject& GameObject)
 	{
 		// Deactivate entity and reset properties
 		const uint32_t ID = GameObject.mID;

@@ -178,6 +178,18 @@ __forceinline void Dot4Product(const Vector4f& Vec1, const Vector4f& Vec2, float
 	ResultOut = Dot.m128_f32[0];
 }
 
+__forceinline void Dot4Product(const float* Vec1, const float* Vec2, float& ResultOut)
+{
+	const __m128* V1 = (const __m128*)Vec1;
+	const __m128* V2 = (const __m128*)Vec2;
+
+	__m128 Dot = _mm_mul_ps(*V1, *V2);
+	Dot = _mm_hadd_ps(Dot, Dot);
+	Dot = _mm_hadd_ps(Dot, Dot);
+
+	ResultOut = Dot.m128_f32[0];
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

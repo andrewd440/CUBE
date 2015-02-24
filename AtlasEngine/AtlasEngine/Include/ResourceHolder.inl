@@ -3,6 +3,15 @@
 #include "Misc\Assertions.h"
 
 template <typename Resource>
+inline void TResourceHolder<Resource>::Load(const char* Name)
+{
+	std::unique_ptr<Resource> ResourcePtr(new Resource);
+	uint32_t GUID = FString::HashCRC32(Name);
+	auto Insert = mResourceMap.insert({ GUID, std::move(ResourcePtr) });
+	ASSERT(Insert.second && "Duplicate keys in resource map.");
+}
+
+template <typename Resource>
 inline void TResourceHolder<Resource>::Load(const char* Name, const wchar_t* Filename)
 {
 	std::unique_ptr<Resource> ResourcePtr(new Resource(Filename));

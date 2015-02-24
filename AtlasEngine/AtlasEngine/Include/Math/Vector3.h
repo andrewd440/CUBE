@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <string>
 
+#include "Common.h"
+
 template <typename T>
 /**
 * Class of manipulating a vector with 3 components.

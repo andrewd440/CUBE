@@ -60,7 +60,7 @@ namespace GLUtils
 
 namespace GLAttributePosition
 {
-	enum
+	enum : uint32_t
 	{
 		Position,
 		Normal,
@@ -79,6 +79,6 @@ namespace GLUniformBindings
 		TextTexture = 3,
 		PointLight = 10,
 		DirectionalLight = 11,
-		SpotLight = 12,
+		SpotLight = 12
 	};
 }

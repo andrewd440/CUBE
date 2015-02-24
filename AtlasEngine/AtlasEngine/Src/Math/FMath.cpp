@@ -1,6 +1,7 @@
 #include "..\..\Include\Math\FMath.h"
 #include "Math\Box.h"
 #include "Math\Plane.h"
+#include "Math\Sphere.h"
 
 namespace FMath
 {
@@ -69,6 +70,24 @@ namespace FMath
 		else
 		{
 			return IntersectionType::Behind;
+		}
+	}
+
+	IntersectionType Intersects(const FPlane& Plane, const FSphere& Sphere)
+	{
+		float DistanceFromCenter = Plane.DistanceFromPoint(Sphere.Center);
+
+		if (DistanceFromCenter > Sphere.Radius)
+		{
+			return IntersectionType::Front;
+		}
+		else if (DistanceFromCenter < -Sphere.Radius)
+		{
+			return IntersectionType::Behind;
+		}
+		else
+		{
+			return IntersectionType::Straddle;
 		}
 	}
 }

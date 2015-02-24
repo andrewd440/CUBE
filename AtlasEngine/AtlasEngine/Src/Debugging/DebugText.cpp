@@ -10,16 +10,19 @@ namespace FDebug
 {
 	Text::Text()
 		: TSingleton()
-		, mTextProjection(0, (float)SScreen::GetResolution().x, (float)SScreen::GetResolution().y, 0, 0, 1)
+		, mTextProjection(FOrthoMatrix{ 0, (float)SScreen::GetResolution().x, (float)SScreen::GetResolution().y, 0, 0, 1 })
 		, mTextShader()
 		, mTextureFont(nullptr)
 		, mMesh(GL_DYNAMIC_DRAW, DEFAULT_BUFFER_SIZE)
+		, mProjectionUniform()
 	{
 		FShader VertexShader{ L"Shaders/DebugText.vert", GL_VERTEX_SHADER };
 		FShader FragShader{ L"Shaders/DebugText.frag", GL_FRAGMENT_SHADER };
 		mTextShader.AttachShader(VertexShader);
 		mTextShader.AttachShader(FragShader);
 		mTextShader.LinkProgram();
+
+		mProjectionUniform.Bind(mTextShader.GetID(), "Projection");
 	}
 
 	Text::~Text()
@@ -84,7 +87,7 @@ namespace FDebug
 	{
 		mTextShader.Use();
 
-		glUniformMatrix4fv(glGetUniformLocation(mTextShader.GetID(), "Projection"), 1, GL_FALSE, &mTextProjection.M[0][0]);
+		mProjectionUniform.SetMatrix(1, GL_FALSE, &mTextProjection);
 
 		glActiveTexture(GL_TEXTURE0 + GLUniformBindings::TextTexture);
 		glBindTexture(GL_TEXTURE_2D, mTextureFont->atlas->id);

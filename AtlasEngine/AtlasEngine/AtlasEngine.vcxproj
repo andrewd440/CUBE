@@ -177,9 +177,12 @@
   <ItemGroup>
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
+    <ClInclude Include="Include\Math\Sphere.h" />
+    <ClInclude Include="Include\Rendering\DepthRenderTarget.h" />
     <ClInclude Include="Include\Rendering\GBuffer.h" />
     <ClInclude Include="Include\Rendering\Light.h" />
     <ClInclude Include="Include\Rendering\RenderSystem.h" />
+    <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\VoxiGineRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
     <ClInclude Include="Include\Atlas\Component.h" />
@@ -248,6 +251,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Math\Box.cpp" />
+    <ClCompile Include="Src\Math\Sphere.cpp" />
+    <ClCompile Include="Src\Rendering\DepthRenderTarget.cpp" />
     <ClCompile Include="Src\Rendering\LightSystems.cpp" />
     <ClCompile Include="Src\Atlas\Component.cpp" />
     <ClCompile Include="Src\Atlas\ComponentHandle.cpp" />
@@ -267,6 +273,7 @@
     <ClCompile Include="Src\Rendering\GBuffer.cpp" />
     <ClCompile Include="Src\Rendering\Light.cpp" />
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
+    <ClCompile Include="Src\Rendering\Uniform.cpp" />
     <ClCompile Include="Src\STime.cpp" />
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
