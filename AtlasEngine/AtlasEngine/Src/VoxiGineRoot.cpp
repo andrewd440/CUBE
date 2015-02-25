@@ -81,15 +81,15 @@ void FVoxiGineRoot::GameLoop()
 
 	auto& DirectionalLight = GameObjectManager.CreateGameObject();
 	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.4, .4, .4);
+	DLight.Color = Vector3f(.7, .7, .7);
 	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
 
 
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
 	PLight.Color = Vector3f(1, 1, 1);
-	PLight.MinDistance = 5;
-	PLight.MaxDistance = 15;
+	PLight.MinDistance = 0;
+	PLight.MaxDistance = 0;
 
 	// Game Loop
 	float lag = 0.0f;

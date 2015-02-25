@@ -32,17 +32,7 @@ namespace VertexTraits
 	//////// FVoxelVertex ///////////////////////
 	/////////////////////////////////////////////
 
-	template <>
-	struct Attribute_Count < FVoxelVertex >
-	{
-		const static uint32_t Count = 3;
-	};
 
-	const uint32_t GL_Attribute<FVoxelVertex>::Position[] = { GLAttributePosition::Position, GLAttributePosition::Normal, GLAttributePosition::Color };
-	const uint32_t GL_Attribute<FVoxelVertex>::ElementCount[] = { 3, 3, 3 };
-	const uint32_t GL_Attribute<FVoxelVertex>::Type[] = { GL_FLOAT, GL_FLOAT, GL_FLOAT };
-	const bool GL_Attribute<FVoxelVertex>::Normalized[] = { GL_FALSE, GL_FALSE, GL_FALSE };
-	const uint32_t GL_Attribute<FVoxelVertex>::Offset[] = { 0, 12, 24 };
 
 
 	/////////////////////////////////////////////

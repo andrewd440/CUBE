@@ -8,6 +8,7 @@ struct FragmentData_t
 	vec3 Color;
 	vec3 Normal;
 	vec3 WorldCoord;
+	float AmbientOcclusion;
 	uint MaterialID;
 };
 
@@ -22,4 +23,5 @@ void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 	Fragment.MaterialID = Data0.w;
 
 	Fragment.WorldCoord = vec3(Data1.xyz);
+	Fragment.AmbientOcclusion = float(Data1.w);
 }

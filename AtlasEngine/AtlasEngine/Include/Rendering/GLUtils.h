@@ -62,10 +62,10 @@ namespace GLAttributePosition
 {
 	enum : uint32_t
 	{
-		Position,
-		Normal,
-		Color,
-		UV,
+		Position = 0,
+		Normal = 1,
+		Color = 2,
+		UV = 3,
 	};
 }
 

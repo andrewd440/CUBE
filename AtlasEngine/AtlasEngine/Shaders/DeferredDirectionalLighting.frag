@@ -1,10 +1,14 @@
 #version 430 core
 
+layout (binding = 0) uniform usampler2D GBuffer0;
+layout (binding = 1) uniform sampler2D GBuffer1;
+
 struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
 	vec3 WorldCoord;
+	float AmbientOcclusion;
 	uint MaterialID;
 };
 
@@ -54,7 +58,8 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 		if(dot(N, -Light.Direction) < 0.0)
 			Specular = vec3(0,0,0);
 
-		Result += vec4(Diffuse + Specular, 0.0);
+		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
+		//Result = vec4(Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, 1);
 	}
 	return Result;
 }
