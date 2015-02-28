@@ -31,6 +31,8 @@ const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Type[] = { GL_FLOAT, GL
 const bool VertexTraits::GL_Attribute<FVoxelVertex>::Normalized[] = { GL_FALSE, GL_FALSE, GL_FALSE };
 const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Offset[] = { 0, 16, 28 };
 
+class FChunkManager;
+
 /**
 * Represents a 3D mesh of voxels of CHUNK_SIZE
 * dimensions.
@@ -39,11 +41,11 @@ class FChunk
 {
 public:
 	// Dimensions of each chunk
-	static const uint32_t CHUNK_SIZE = 16;
+	static const uint32_t CHUNK_SIZE = 32;
 	static const uint32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 40000> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, 40000> MeshAllocator;
+	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 10000> ChunkAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
 
 public:
 	/**
@@ -73,6 +75,8 @@ public:
 	*/
 	FChunk& operator=(const FChunk& Other);
 
+	void SetChunkManager(FChunkManager* NewManager);
+
 	/**
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
@@ -93,12 +97,32 @@ public:
 	/**
 	* Renders active blocks in the chunk.
 	*/
-	void Render();
+	void Render(const GLenum RenderMode = GL_TRIANGLES);
 
 	/**
 	* Builds/Rebuilds this chunks' mesh.
 	*/
 	void RebuildMesh();
+
+	/**
+	* Set a block in the chunk at a specific position.
+	*/
+	void SetBlock(Vector3ui Position, FBlock::BlockType BlockType);
+
+	/**
+	* Retrieves the type of block in the chunk at a specific position.
+	*/
+	FBlock::BlockType GetBlock(Vector3ui Position) const;
+
+	/**
+	* Destroys a block in the chunk at a specific position.
+	*/
+	void DestroyBlock(Vector3ui Position);
+
+	/**
+	* Checks if this chunk contains any blocks.
+	*/
+	bool IsEmpty() const { return mIsEmpty; }
 
 private:
 	// Constants used for constructing quads with correct normals in GreedyMesh()
@@ -120,6 +144,8 @@ private:
 		Vector4i AOFactors;
 		FBlock Block;
 	};
+
+	void CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const;
 
 	/**
 	* Adds a quad from 4 vertices based on if the quad is backfaced, the direction of the surface,
@@ -183,5 +209,7 @@ private:
 private:
 	FBlock* mBlocks;
 	TMesh<FVoxelVertex>* mMesh;
+	FChunkManager* mChunkManager;
 	bool mIsLoaded;
+	bool mIsEmpty;
 };

@@ -1,10 +1,24 @@
 #include "..\Include\Windows\WindowsFile.h"
 #include <iostream>
+#include "Pathcch.h"
+
+namespace
+{
+	void PrintError()
+	{
+		LPTSTR Error = NULL;
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS
+			, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&Error, 0, NULL);
+
+		std::wcerr << Error << std::endl;
+
+		LocalFree(Error);
+	}
+}
 
 FWindowsHandle::FWindowsHandle(HANDLE FileHandle)
 	: mFileHandle(FileHandle)
 {
-	ASSERT(mFileHandle != INVALID_HANDLE_VALUE && "FWindowsHandle constructed with invalid handle.");
 }
 
 bool FWindowsHandle::Read(uint8_t* DataOut, uint32_t NumBytesToRead)
@@ -17,12 +31,7 @@ bool FWindowsHandle::Read(uint8_t* DataOut, uint32_t NumBytesToRead)
 			return true;
 	}
 	
-	DWORD Error = GetLastError();
-	if (Error == ERROR_NOACCESS)
-	{
-		std::wcerr << L"FWindowsHandle: No access to memory location on file read." << std::endl;
-	}
-
+	PrintError();
 	return false;
 }
 
@@ -36,11 +45,7 @@ bool FWindowsHandle::Write(const uint8_t* Data, const uint32_t NumBytesToWrite)
 			return true;
 	}
 
-	DWORD Error = GetLastError();
-	if (Error == ERROR_NOACCESS)
-	{
-		std::wcerr << L"FWindowsHandle: No access to memory location on file write." << std::endl;
-	}
+	PrintError();
 
 	return false;
 }
@@ -68,6 +73,7 @@ bool FWindowsHandle::FileSeek(const uint64_t Distance, const DWORD MoveMethod)
 
 	if (Li.LowPart == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
 	{
+		PrintError();
 		return false;
 	}
 
@@ -91,17 +97,21 @@ FWindowsFileSystem::FWindowsFileSystem()
 
 }
 
-std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenWritable(const wchar_t* Filename, const bool AllowRead, const bool CreateNew)
+std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenWritable(const wchar_t* Filename, const bool AllowShareRead, const bool CreateNew)
 {
 	DWORD Access = GENERIC_WRITE;
-	DWORD ShareMode = AllowRead ? FILE_SHARE_READ : 0;
+	DWORD ShareMode = AllowShareRead ? FILE_SHARE_READ : 0;
 	DWORD Creation = CreateNew ? CREATE_ALWAYS : OPEN_EXISTING;
 
 	HANDLE FileHandle = CreateFile(Filename, Access, ShareMode, nullptr, Creation, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (FileHandle == INVALID_HANDLE_VALUE)
-		return nullptr;
 
-	return std::make_unique<FWindowsHandle>(FileHandle);
+	if (FileHandle != INVALID_HANDLE_VALUE)
+	{
+		return std::make_unique<FWindowsHandle>(FileHandle);
+	}
+
+	PrintError();
+	return nullptr;
 }
 
 std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadable(const wchar_t* Filename)
@@ -110,10 +120,31 @@ std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadable(const wchar_t* Fil
 	DWORD ShareMode = FILE_SHARE_READ;
 
 	HANDLE FileHandle = CreateFile(Filename, Access, ShareMode, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (FileHandle == INVALID_HANDLE_VALUE)
-		return nullptr;
+	
+	if (FileHandle != INVALID_HANDLE_VALUE)
+	{
+		return std::make_unique<FWindowsHandle>(FileHandle);
+	}
 
-	return std::make_unique<FWindowsHandle>(FileHandle);
+	PrintError();
+	return nullptr;
+}
+
+std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadWritable(const wchar_t* FileName, const bool AllowShareRead, const bool CreateNew)
+{
+	DWORD Access = GENERIC_WRITE | GENERIC_READ;
+	DWORD ShareMode = AllowShareRead ? FILE_SHARE_READ : 0;
+	DWORD Creation = CreateNew ? CREATE_ALWAYS : OPEN_EXISTING;
+
+	HANDLE FileHandle = CreateFile(FileName, Access, ShareMode, nullptr, Creation, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+	if (FileHandle != INVALID_HANDLE_VALUE)
+	{
+		return std::make_unique<FWindowsHandle>(FileHandle);
+	}
+
+	PrintError();
+	return nullptr;
 }
 
 bool FWindowsFileSystem::DeleteFilename(const wchar_t* Filename)
@@ -122,15 +153,7 @@ bool FWindowsFileSystem::DeleteFilename(const wchar_t* Filename)
 		return true;
 	else
 	{
-		const DWORD Error = GetLastError();
-		if (Error == ERROR_FILE_NOT_FOUND)
-		{
-			std::wcerr << L"Attempt to delete file: " << Filename << L" not found." << std::endl;
-		}
-		else if (Error == ERROR_ACCESS_DENIED)
-		{
-			std::wcerr << L"Attempt to delete file: " << Filename << L" access denied." << std::endl;
-		}
+		PrintError();
 	}
 
 	return false;
@@ -142,6 +165,7 @@ bool FWindowsFileSystem::CurrentDirectory(wchar_t* DataOut, const uint32_t Buffe
 	if (DataWritten == BufferLength)
 		return true;
 
+	PrintError();
 	return false;
 }
 
@@ -151,15 +175,7 @@ bool FWindowsFileSystem::DeleteDirectory(const wchar_t* DirectoryName)
 		return true;
 	else
 	{
-		const DWORD Error = GetLastError();
-		if (Error == ERROR_DIR_NOT_EMPTY)
-		{
-			std::wcerr << L"Attempt to delete directory: " << DirectoryName << L" not empty" << std::endl;
-		}
-		else if (Error == ERROR_PATH_NOT_FOUND)
-		{
-			std::wcerr << L"Attempt to delete directory: " << DirectoryName << L" not found." << std::endl;
-		}
+		PrintError();
 	}
 
 	return false;
@@ -173,16 +189,36 @@ bool FWindowsFileSystem::CreateFileDirectory(const wchar_t* DirectoryName)
 	}
 	else
 	{
-		const DWORD Error = GetLastError();
-		if (Error == ERROR_ALREADY_EXISTS)
-		{
-			std::wcerr << L"Attempt to create directory: " << DirectoryName << L" already exists." << std::endl;
-		}
-		else if (Error == ERROR_PATH_NOT_FOUND)
-		{
-			std::wcerr << L"Attempt to create directory: " << DirectoryName << L" path not found." << std::endl;
-		}
+		PrintError();
 	}
 
 	return false;
+}
+
+bool FWindowsFileSystem::ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength)
+{
+	if (GetModuleFileName(NULL, DataOut, BufferLength) != ERROR_INSUFFICIENT_BUFFER)
+	{
+		PathCchRemoveFileSpec(DataOut, BufferLength);
+		return true;
+	}
+
+	PrintError();
+	return false;
+}
+
+bool FWindowsFileSystem::SetDirectory(const wchar_t* DirectoryName)
+{
+	if (SetCurrentDirectory(DirectoryName) != 0)
+	{
+		return true;
+	}
+	
+	PrintError();
+	return false;
+}
+
+bool FWindowsFileSystem::FileExists(const wchar_t* Filename)
+{
+	return !(INVALID_FILE_ATTRIBUTES == GetFileAttributes(Filename) && GetLastError() == ERROR_FILE_NOT_FOUND);
 }

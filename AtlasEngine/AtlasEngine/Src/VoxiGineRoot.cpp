@@ -95,6 +95,21 @@ void FVoxiGineRoot::GameLoop()
 	float lag = 0.0f;
 	while (mGameWindow.isOpen())
 	{	
+		if (SButtonEvent::GetMouseDown(sf::Mouse::Right))
+		{
+			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
+			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
+			Vector3ui IntPosition{ (uint32_t)CamPosition.x, (uint32_t)CamPosition.y, (uint32_t)CamPosition.z };
+			mChunkManager.DestroyBlock(IntPosition);
+		}
+		if (SButtonEvent::GetMouseDown(sf::Mouse::Left))
+		{
+			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
+			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
+			Vector3ui IntPosition{ (uint32_t)CamPosition.x, (uint32_t)CamPosition.y, (uint32_t)CamPosition.z };
+			mChunkManager.SetBlock(IntPosition, FBlock::Brick);
+		}
+
 		lag += STime::GetDeltaTime();
 		while (lag >= STime::GetFixedUpdate())
 		{
@@ -215,7 +230,10 @@ void UpdateCamera(FTransform& Light)
 	CameraRotation = FQuaternion{ CameraRight, (float)SMouseAxis::GetDelta().y * LookSpeed } * CameraRotation;
 	CameraRotation = FQuaternion{ Vector3f::Up, -(float)SMouseAxis::GetDelta().x * LookSpeed } * CameraRotation;
 
-	MainCamera.Transform.SetRotation(CameraRotation);
+	Vector3f NewForward = CameraRotation * Vector3f::Forward;
+	
+	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.999f)
+		MainCamera.Transform.SetRotation(CameraRotation);
 
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
 	MainCamera.Transform.Translate(Translation);

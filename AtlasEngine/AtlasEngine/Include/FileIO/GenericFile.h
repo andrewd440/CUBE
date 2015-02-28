@@ -75,13 +75,13 @@ public:
 	/**
 	* Opens or creates a file in the current working directory.
 	* @param Filename to open.
-	* @param AllowRead True if read access is required.
-	* @param CreateNew True if a new file should be created.
+	* @param AllowRead True if share read access is required.
+	* @param CreateNew True if a new file should be created, only if one doesn't exist.
 	* @return A pointer to a handle for the opened file. Nullptr if the open/create
 	* operation failed.
 	*/
 	virtual std::unique_ptr<IFileHandle> OpenWritable(const wchar_t* FileName, const bool AllowRead = false, const bool CreateNew = false) = 0;
-	
+
 	/**
 	* Opens or creates a file in the current working directory.
 	* @param Filename to open.
@@ -92,6 +92,16 @@ public:
 	*/
 	virtual std::unique_ptr<IFileHandle> OpenReadable(const wchar_t* Filename) = 0;
 	
+	/**
+	* Opens or creates a file in the current working directory.
+	* @param Filename to open.
+	* @param AllowRead True if share read access is required.
+	* @param CreateNew True if a new file should be created, only if one doesn't exist.
+	* @return A pointer to a handle for the opened file. Nullptr if the open/create
+	* operation failed.
+	*/
+	virtual std::unique_ptr<IFileHandle> OpenReadWritable(const wchar_t* FileName, const bool AllowRead = false, const bool CreateNew = false) = 0;
+
 	/**
 	* Deletes a file.
 	* @param Filename Name of the file to delete.
@@ -122,4 +132,26 @@ public:
 	*/
 	virtual bool CreateFileDirectory(const wchar_t* DirectoryName) = 0;
 
+	/**
+	* Retrieves the directory of the program .exe.
+	* @param DataOut Location for the directory to be written.
+	* @param BufferLength The size of DataOut
+	* @return True if the complete directory was written to DataOut. False if
+	*		DataOut didn't have enough space to hold the directory.
+	*/
+	virtual bool ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) = 0;
+
+	/**
+	* Changes the current working directory.
+	* @param DirectoryName - Directory to go to.
+	* @return True if the directory was entered.
+	*/
+	virtual bool SetDirectory(const wchar_t* DirectoryName) = 0;
+
+	/**
+	* Checks if a file exists.
+	* @param Filename - File to check.
+	* @return True if the file exists.
+	*/
+	virtual bool FileExists(const wchar_t* Filename) = 0;
 };

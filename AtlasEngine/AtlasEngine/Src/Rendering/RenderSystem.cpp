@@ -104,6 +104,18 @@ void FRenderSystem::Update()
 	glDepthFunc(GL_ALWAYS);
 
 	// Render debug draws
+	static bool ShowBox = false;
+	if (SButtonEvent::GetKeyDown(sf::Keyboard::B))
+		ShowBox = !ShowBox;
+
+	if (ShowBox)
+	{
+		Vector3f CamForward = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward * 4.0f;
+		Vector3f CamPosition = FCamera::Main->Transform.GetPosition() + CamForward;
+		CamPosition = Vector3f{ std::floor(CamPosition.x) + 0.5f, std::floor(CamPosition.y) + 0.5f, std::floor(CamPosition.z) + 0.5f };
+		FDebug::Draw::GetInstance().DrawBox(CamPosition, Vector3f{ 1, 1, 1 }, Vector3f{ 1, 1, 1 });
+	}
+
 	FDebug::Draw::GetInstance().Render();
 
 	// Debug Print
@@ -133,8 +145,12 @@ void FRenderSystem::RenderGeometry()
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
 
+	static bool LinesDraw = false;
+	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
+		LinesDraw = !LinesDraw;
+
 	// Render geometry
-	mChunkManager.Render(*this);
+	mChunkManager.Render(*this, LinesDraw ? GL_LINES : GL_TRIANGLES);
 }
 
 void FRenderSystem::ConstructGBuffer()

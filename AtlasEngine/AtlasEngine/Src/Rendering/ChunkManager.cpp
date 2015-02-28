@@ -40,7 +40,7 @@ namespace
 
 const uint32_t FChunkManager::WORLD_SIZE = 256;
 const uint32_t FChunkManager::VISIBILITY_DISTANCE = 8;
-const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 4;
+const uint32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 2;
 
 FChunkManager::FChunkManager()
 	: mChunks(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE)
@@ -57,10 +57,15 @@ FChunkManager::FChunkManager()
 {
 	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
 
+	for (auto& Chunk : mChunks)
+	{
+		Chunk.SetChunkManager(this);
+	}
+
 	// SEtup noise map
 	noise::module::Perlin Perlin;
 	Perlin.SetOctaveCount(1);
-	Perlin.SetPersistence(.2);
+	Perlin.SetPersistence(.1f);
 	noise::utils::NoiseMapBuilderPlane MapBuilder;
 	MapBuilder.SetSourceModule(Perlin);
 	MapBuilder.SetDestNoiseMap(mNoiseMap);
@@ -76,8 +81,8 @@ FChunkManager::~FChunkManager()
 
 float FChunkManager::GetNoiseHeight(uint32_t x, uint32_t z)
 {
-	static const int32_t MidHeight = (FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE) / 2;
-	static const int32_t HeightVariation = 10;
+	static const int32_t MidHeight = 8 + (FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE) / 2;
+	static const int32_t HeightVariation = 4;
 	const int32_t IndexOffset = x + (z * FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
 	return MidHeight + *(mNoiseMap.GetConstSlabPtr() + IndexOffset) * HeightVariation;
 }
@@ -126,7 +131,7 @@ void FChunkManager::Setup()
 	UpdateRenderList();
 }
 
-void FChunkManager::Render(FRenderSystem& Renderer)
+void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 {
 	// Get camera data
 	const Vector3f CameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
@@ -148,7 +153,7 @@ void FChunkManager::Render(FRenderSystem& Renderer)
 			auto Fposition = IndexToPosition(Index);
 			const Vector3f Position((float)Fposition.x, (float)Fposition.y, (float)Fposition.z);
 			Renderer.SetModelTransform(FTransform{ Position });
-			mChunks[Index].Render();
+			mChunks[Index].Render(RenderMode);
 		}
 	}
 }
@@ -157,6 +162,7 @@ void FChunkManager::Update()
 {
 	UpdateLoadList();
 	UpdateUnloadList();
+	UpdateRebuildList();
 
 	// Get the chunk that the camera is currently in.
 	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
@@ -170,6 +176,43 @@ void FChunkManager::Update()
 		mLastCameraChunk = CameraChunk;
 		UpdateVisibleList();
 	}
+}
+
+void FChunkManager::SetBlock(Vector3ui Position, FBlock::BlockType BlockType)
+{
+	Vector3ui ChunkPosition = Position / (uint32_t)FChunk::CHUNK_SIZE;
+	Position = Vector3ui{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+
+	uint32_t ChunkNumber = ChunkIndex(ChunkPosition);
+	mChunks[ChunkNumber].SetBlock(Position, BlockType);
+
+	mRebuildList.push_back(ChunkNumber);
+}
+
+FBlock::BlockType FChunkManager::GetBlock(Vector3ui Position) const
+{
+	Vector3ui ChunkPosition = Position / (uint32_t)FChunk::CHUNK_SIZE;
+	Position = Vector3ui{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+
+	uint32_t ChunkNumber = ChunkIndex(ChunkPosition);
+	return mChunks[ChunkNumber].GetBlock(Position);
+}
+
+void FChunkManager::DestroyBlock(Vector3ui Position)
+{
+	Vector3ui ChunkPosition = Position / (uint32_t)FChunk::CHUNK_SIZE;
+	Position = Vector3ui{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+
+	uint32_t ChunkNumber = ChunkIndex(ChunkPosition);
+	mChunks[ChunkNumber].DestroyBlock(Position);
+
+	mRebuildList.push_back(ChunkNumber);
+}
+
+Vector3ui FChunkManager::GetChunkPosition(const FChunk* Chunk) const
+{
+	std::ptrdiff_t ArrayOffset = (Chunk - mChunks.data());
+	return IndexToPosition(ArrayOffset);
 }
 
 void FChunkManager::UpdateUnloadList()
@@ -214,6 +257,16 @@ void FChunkManager::UpdateLoadList()
 
 	// Erase loaded chunks
 	mLoadList.erase(mLoadList.begin(), mLoadList.begin() + (CHUNKS_TO_LOAD_PER_FRAME - LoadsLeft));
+}
+
+void FChunkManager::UpdateRebuildList()
+{
+	for (const auto& Chunk : mRebuildList)
+	{
+		mChunks[Chunk].RebuildMesh();
+	}
+
+	mRebuildList.clear();
 }
 
 void FChunkManager::UpdateVisibleList()
@@ -300,7 +353,7 @@ void FChunkManager::UpdateRenderList()
 										  (float)UnsignedChunkCenter.y + ChunkHalfWidth, 
 										  (float)UnsignedChunkCenter.z + ChunkHalfWidth };
 
-		if (ViewFrustum.IsUniformAABBVisible(Center, FChunk::CHUNK_SIZE))
+		if (ViewFrustum.IsUniformAABBVisible(Center, FChunk::CHUNK_SIZE) && !mChunks[Chunk].IsEmpty())
 		{
 			mRenderList.push_back(Chunk);
 		}

@@ -237,6 +237,9 @@
     <ClInclude Include="Include\Rendering\Uniform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\FileIO\RegionFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -384,6 +387,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\Uniform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileIO\RegionFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

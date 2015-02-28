@@ -5,8 +5,8 @@
 #include "Rendering\Screen.h"
 #include "Rendering\ChunkManager.h"
 
-FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 40000> FChunk::ChunkAllocator(__alignof(FChunk));
-FPoolAllocatorType<TMesh<FVoxelVertex>, 40000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
+FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 10000> FChunk::ChunkAllocator(__alignof(FChunk));
+FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 
 namespace
 {
@@ -26,18 +26,26 @@ namespace
 	{
 		return BlockIndex((uint32_t)Position.x, (uint32_t)Position.y, (uint32_t)Position.z);
 	}
+
+	uint32_t BlockIndex(Vector3ui Position)
+	{
+		return BlockIndex(Position.x, Position.y, Position.z);
+	}
 }
 
 FChunk::FChunk()
 	: mBlocks(nullptr)
 	, mMesh(nullptr)
+	, mChunkManager(nullptr)
 	, mIsLoaded(false)
+	, mIsEmpty(true)
 {
 }
 
 FChunk::FChunk(const FChunk& Other)
 	: mBlocks(Other.mBlocks)
 	, mMesh(Other.mMesh)
+	, mChunkManager(Other.mChunkManager)
 	, mIsLoaded(Other.mIsLoaded)
 {
 }
@@ -62,8 +70,14 @@ FChunk& FChunk::operator=(const FChunk& Other)
 	mBlocks = Other.mBlocks;
 	mMesh = Other.mMesh;
 	mIsLoaded = Other.mIsLoaded;
+	mChunkManager = Other.mChunkManager;
 
 	return *this;
+}
+
+void FChunk::SetChunkManager(FChunkManager* NewManager)
+{
+	mChunkManager = NewManager;
 }
 
 void FChunk::Load(const Vector3ui& LowerLeftPosition)
@@ -85,7 +99,8 @@ void FChunk::Load(const Vector3ui& LowerLeftPosition)
 			{
 				uint32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
 				mBlocks[Index].Type = FBlock::Grass;
-				if (y > ((FChunkManager::WORLD_SIZE * FBlock::BLOCK_SIZE) / 2 + 1925))
+
+				if (y > (8 + (FChunkManager::WORLD_SIZE * CHUNK_SIZE * FBlock::BLOCK_SIZE) / 2))
 					mBlocks[Index].Type = FBlock::Snow;
 			}
 			for (; y < LowerLeftPosition.y + CHUNK_SIZE; y++)
@@ -113,10 +128,10 @@ bool FChunk::IsLoaded() const
 	return mIsLoaded;
 }
 
-void FChunk::Render()
+void FChunk::Render(const GLenum RenderMode)
 {
 	ASSERT(mIsLoaded);
-	mMesh->Render();
+	mMesh->Render(RenderMode);
 }
 
 void FChunk::RebuildMesh()
@@ -126,10 +141,31 @@ void FChunk::RebuildMesh()
 	GreedyMesh();
 }
 
+void FChunk::SetBlock(Vector3ui Position, FBlock::BlockType BlockType)
+{
+	mBlocks[BlockIndex(Position)].Type = BlockType;
+}
+
+FBlock::BlockType FChunk::GetBlock(Vector3ui Position) const
+{
+	if (mBlocks)
+		return mBlocks[BlockIndex(Position)].Type;
+
+	return FBlock::None;
+}
+
+void FChunk::DestroyBlock(Vector3ui Position)
+{
+	mBlocks[BlockIndex(Position)].Type = FBlock::None;
+}
+
 void FChunk::GreedyMesh()
 {
 	// Greedy mesh algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 	// Java implementation from https://github.com/roboleary/GreedyMesh/blob/master/src/mygame/Main.java
+
+	// Cache position of this chunk to check neiboring chunks in ambient occlusion tests
+	//const Vector3ui ChunkPosition = mChunkManager->GetChunkPosition(this);
 
 	// Vertex and index data to be sent to the mesh
 	std::vector<FVoxelVertex> Vertices;
@@ -206,13 +242,13 @@ void FChunk::GreedyMesh()
 							if (BackFace)
 							{
 								Mask[n].Block = Voxel2;
-								DepthOffset = 1;
+								DepthOffset = -1;
 								BlockPosition = Vector3i{ x[0] + q[0], x[1] + q[1], x[2] + q[2] };
 							}
 							else
 							{
 								Mask[n].Block = Voxel1;
-								DepthOffset = -1;
+								DepthOffset = 1;
 								BlockPosition = Vector3i{ x[0], x[1], x[2] };
 							}
 
@@ -223,60 +259,9 @@ void FChunk::GreedyMesh()
 							//  | 5 6 7 |
 							//  ---------
 							bool Sides[8] = { false, false, false, false, false, false, false, false };
-							if (!BackFace && (x[d] < (int32_t)CHUNK_SIZE - 1) || BackFace && (x[d] > 0))
-							{
-								Vector3i Temp = BlockPosition;
-								Temp[d] -= DepthOffset;
 
-								bool HasTop = BlockPosition[v] < (CHUNK_SIZE - 1);
-								bool HasBottom = BlockPosition[v] > 0;
-								bool HasLeft = BlockPosition[u] > 0;
-								bool HasRight = BlockPosition[u] < (CHUNK_SIZE - 1);
-
-								// Top Row
-								if (HasTop)
-								{
-									if (HasLeft)
-									{
-										Temp[u] = BlockPosition[u] - 1; Temp[v] = BlockPosition[v] + 1;
-										Sides[0] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-
-										Temp[u] = BlockPosition[u] - 1; Temp[v] = BlockPosition[v];
-										Sides[3] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-									}
-
-									Temp[u] = BlockPosition[u]; Temp[v] = BlockPosition[v] + 1;
-									Sides[1] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-
-									if (HasRight)
-									{
-										Temp[u] = BlockPosition[u] + 1; Temp[v] = BlockPosition[v] + 1;
-										Sides[2] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-
-										Temp[u] = BlockPosition[u] + 1; Temp[v] = BlockPosition[v];
-										Sides[4] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-									}
-								}
-
-								// Bottom Row
-								if (HasBottom)
-								{
-									if (HasLeft)
-									{
-										Temp[u] = BlockPosition[u] - 1; Temp[v] = BlockPosition[v] - 1;
-										Sides[5] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-									}
-
-									Temp[u] = BlockPosition[u]; Temp[v] = BlockPosition[v] - 1;
-									Sides[6] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-
-									if (HasRight)
-									{
-										Temp[u] = BlockPosition[u] + 1; Temp[v] = BlockPosition[v] - 1;
-										Sides[7] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
-									}
-								}
-							}
+							CheckAOSides(Sides, u, v, d, BlockPosition, DepthOffset);
+	
 							Mask[n].AOFactors = ComputeBlockFaceAO(Sides);
 
 							n++;
@@ -331,6 +316,7 @@ void FChunk::GreedyMesh()
 							dv[2] = 0;
 							dv[v] = Height;
 
+							mIsEmpty = false;
 							AddQuad(Vector3f((float)x[0], (float)x[1], (float)x[2]),
 								Vector3f((float)x[0] + (float)du[0], (float)x[1] + (float)du[1], (float)x[2] + (float)du[2]),
 								Vector3f((float)x[0] + (float)du[0] + (float)dv[0], (float)x[1] + (float)du[1] + (float)dv[1], (float)x[2] + (float)du[2] + (float)dv[2]),
@@ -368,6 +354,50 @@ void FChunk::GreedyMesh()
 
 	// Send all data directly to the gpu
 	mMesh->MapAndActivate(Vertices.data(), Vertices.size(), Indices.data(), Indices.size());
+}
+
+void FChunk::CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const
+{
+	bool HasTop = BlockPosition[v] < (CHUNK_SIZE - 1);
+	bool HasBottom = BlockPosition[v] > 0;
+	bool HasLeft = BlockPosition[u] > 0;
+	bool HasRight = BlockPosition[u] < (CHUNK_SIZE - 1);
+	bool HasFront = ((BlockPosition[d] + DepthOffset) <= (CHUNK_SIZE - 1)) && ((BlockPosition[d] + DepthOffset) >= 0);
+
+	//   4       3       2        1      0
+	// Front    Left   Right   Bottom   Top
+	uint8_t SideMask = (HasFront << 4) + (HasLeft << 3) + (HasRight << 2) + (HasBottom << 1) + HasTop;
+
+	Vector3i Temp = BlockPosition;
+	Temp[d] += DepthOffset;
+
+	// If surrounding blocks are all in this chunk
+	if (SideMask == 0x1F)
+	{
+		Temp[u] -= 1; Temp[v] += 1;
+		Sides[0] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[u] += 1;
+		Sides[1] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[u] += 1;
+		Sides[2] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[v] -= 1;
+		Sides[4] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[u] -= 2;
+		Sides[3] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[v] -= 1;
+		Sides[5] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[u] += 1;
+		Sides[6] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+
+		Temp[u] += 1;
+		Sides[7] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+	}
 }
 
 bool FChunk::IsMeshable(const MaskInfo& Lhs, const MaskInfo& Rhs) const
@@ -443,7 +473,7 @@ void FChunk::AddQuad(	const Vector3f BottomLeft,
 	}
 	
 	// Get the index offset by checking the size of the vertex list.
-	static const float AOFactors[4] = { 0.3f, 0.65f, 0.85f, 1.0f };
+	static const float AOFactors[4] = { 0.4f, 0.65f, 0.85f, 1.0f };
 	const Vector4f ComputedAOFactors{ AOFactors[FaceInfo.AOFactors.x], AOFactors[FaceInfo.AOFactors.y], AOFactors[FaceInfo.AOFactors.z], AOFactors[FaceInfo.AOFactors.w] };
 	uint32_t BaseIndex = VerticesOut.size();
 

@@ -25,9 +25,26 @@ public:
 
 	void Update();
 
-	void Render(FRenderSystem& Renderer);
+	void Render(FRenderSystem& Renderer, const GLenum RenderMode = GL_TRIANGLES);
 
 	float GetNoiseHeight(uint32_t x, uint32_t z);
+
+	/**
+	* Set a block in the world at a specific position.
+	*/
+	void SetBlock(Vector3ui Position, FBlock::BlockType BlockType);
+
+	/**
+	* Retrieves the type of block in the world at a specific position.
+	*/
+	FBlock::BlockType GetBlock(Vector3ui Position) const;
+
+	/**
+	* Destroys a block in the world at a specific position.
+	*/
+	void DestroyBlock(Vector3ui Position);
+
+	Vector3ui GetChunkPosition(const FChunk* Chunk) const;
 
 private:
 	void UpdateUnloadList();
@@ -51,4 +68,3 @@ private:
 	Vector3f mLastCameraDirection;
 	noise::utils::NoiseMap mNoiseMap;
 };
-

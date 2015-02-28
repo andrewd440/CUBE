@@ -14,8 +14,11 @@ public:
 	/**
 	* Constructs a Windows file handle.
 	*/
-	FWindowsHandle(HANDLE FileHandle);
+	FWindowsHandle(HANDLE FileHandle = INVALID_HANDLE_VALUE);
+
 	~FWindowsHandle();
+
+	FWindowsHandle& operator=(const FWindowsHandle& Other);
 
 	bool Read(uint8_t* DataOut, uint32_t NumBytesToRead) override;
 
@@ -51,8 +54,9 @@ public:
 	FWindowsFileSystem();
 	~FWindowsFileSystem() = default;
 
-	std::unique_ptr<IFileHandle> OpenWritable(const wchar_t* FileName, const bool AllowRead = false, const bool CreateNew = false) override;
+	std::unique_ptr<IFileHandle> OpenWritable(const wchar_t* FileName, const bool AllowShareRead = false, const bool CreateNew = false) override;
 	std::unique_ptr<IFileHandle> OpenReadable(const wchar_t* Filename) override;
+	std::unique_ptr<IFileHandle> OpenReadWritable(const wchar_t* FileName, const bool AllowRead = false, const bool CreateNew = false) override;
 
 	bool DeleteFilename(const wchar_t* Filename) override;
 
@@ -61,6 +65,12 @@ public:
 	bool DeleteDirectory(const wchar_t* DirectoryName) override;
 
 	bool CreateFileDirectory(const wchar_t* DirectoryName) override;
+
+	bool ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) override;
+
+	bool SetDirectory(const wchar_t* DirectoryName) override;
+
+	bool FileExists(const wchar_t* Filename) override;
 };
 
 using FFileHandle = FWindowsHandle;
