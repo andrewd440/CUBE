@@ -13,7 +13,7 @@ namespace
 	/**
 	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
 	*/
-	uint32_t BlockIndex(uint32_t X, uint32_t Y, uint32_t Z)
+	uint32_t BlockIndex(int32_t X, int32_t Y, int32_t Z)
 	{
 		ASSERT((X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE + Y * FChunk::CHUNK_SIZE + Z) >= 0 && (X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE + Y * FChunk::CHUNK_SIZE + Z) < FChunk::BLOCKS_PER_CHUNK);
 		return (X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE) + (Y * FChunk::CHUNK_SIZE) + Z;
@@ -23,11 +23,6 @@ namespace
 	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
 	*/
 	uint32_t BlockIndex(Vector3i Position)
-	{
-		return BlockIndex((uint32_t)Position.x, (uint32_t)Position.y, (uint32_t)Position.z);
-	}
-
-	uint32_t BlockIndex(Vector3ui Position)
 	{
 		return BlockIndex(Position.x, Position.y, Position.z);
 	}
@@ -80,7 +75,7 @@ void FChunk::SetChunkManager(FChunkManager* NewManager)
 	mChunkManager = NewManager;
 }
 
-void FChunk::Load(const Vector3ui& LowerLeftPosition)
+void FChunk::Load(const Vector3i& LowerLeftPosition)
 {
 	ASSERT(!mIsLoaded);
 	mIsLoaded = true;
@@ -93,11 +88,11 @@ void FChunk::Load(const Vector3ui& LowerLeftPosition)
 	{
 		FOR(z, CHUNK_SIZE)
 		{
-			const uint32_t Height = (uint32_t)FChunkManager::GetInstance().GetNoiseHeight(LowerLeftPosition.x + x, LowerLeftPosition.z + z);
-			uint32_t y = LowerLeftPosition.y;
+			const int32_t Height = FChunkManager::GetInstance().GetNoiseHeight(LowerLeftPosition.x + x, LowerLeftPosition.z + z);
+			int32_t y = LowerLeftPosition.y;
 			for (; y < Height && (y - LowerLeftPosition.y) < CHUNK_SIZE; y++)
 			{
-				uint32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
+				int32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
 				mBlocks[Index].Type = FBlock::Grass;
 
 				if (y > (8 + (FChunkManager::WORLD_SIZE * CHUNK_SIZE * FBlock::BLOCK_SIZE) / 2))
@@ -105,7 +100,7 @@ void FChunk::Load(const Vector3ui& LowerLeftPosition)
 			}
 			for (; y < LowerLeftPosition.y + CHUNK_SIZE; y++)
 			{
-				uint32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
+				int32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
 				mBlocks[Index].Type = FBlock::None;
 			}
 		}
@@ -118,7 +113,6 @@ void FChunk::Unload()
 
 	mIsLoaded = false;
 
-	// DON'T forget the run the mesh destructor.
 	MeshAllocator.Free(mMesh);
 	ChunkAllocator.Free(mBlocks);
 }
@@ -137,16 +131,17 @@ void FChunk::Render(const GLenum RenderMode)
 void FChunk::RebuildMesh()
 {
 	// Make sure mesh data is cleared
+	mIsEmpty = true;
 	mMesh->ClearData();
 	GreedyMesh();
 }
 
-void FChunk::SetBlock(Vector3ui Position, FBlock::BlockType BlockType)
+void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
 {
 	mBlocks[BlockIndex(Position)].Type = BlockType;
 }
 
-FBlock::BlockType FChunk::GetBlock(Vector3ui Position) const
+FBlock::BlockType FChunk::GetBlock(const Vector3i& Position) const
 {
 	if (mBlocks)
 		return mBlocks[BlockIndex(Position)].Type;
@@ -154,7 +149,7 @@ FBlock::BlockType FChunk::GetBlock(Vector3ui Position) const
 	return FBlock::None;
 }
 
-void FChunk::DestroyBlock(Vector3ui Position)
+void FChunk::DestroyBlock(const Vector3i& Position)
 {
 	mBlocks[BlockIndex(Position)].Type = FBlock::None;
 }
@@ -215,18 +210,18 @@ void FChunk::GreedyMesh()
 			}
 
 			// Move through the dimension from front to back
-			for (x[d] = -1; x[d] < (int32_t)CHUNK_SIZE;)
+			for (x[d] = -1; x[d] < CHUNK_SIZE;)
 			{
 				// Compute mask
 				n = 0;
 
-				for (x[v] = 0; x[v] < (int32_t)CHUNK_SIZE; x[v]++)
+				for (x[v] = 0; x[v] < CHUNK_SIZE; x[v]++)
 				{
-					for (x[u] = 0; x[u] < (int32_t)CHUNK_SIZE; x[u]++)
+					for (x[u] = 0; x[u] < CHUNK_SIZE; x[u]++)
 					{
 						// Check covering voxel
 						FBlock Voxel1 = (x[d] >= 0) ? mBlocks[BlockIndex(x[0], x[1], x[2])] : FBlock{ FBlock::None };
-						FBlock Voxel2 = (x[d] < (int32_t)CHUNK_SIZE - 1) ? mBlocks[BlockIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2])] : FBlock{ FBlock::None };
+						FBlock Voxel2 = (x[d] < CHUNK_SIZE - 1) ? mBlocks[BlockIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2])] : FBlock{ FBlock::None };
 
 						// If both voxels are active and the same type, mark the mask with an inactive block, if not
 						// choose the appropriate voxel to mark
@@ -274,23 +269,23 @@ void FChunk::GreedyMesh()
 				// Generate the mesh for the mask
 				n = 0;
 
-				for (j = 0; j < (int32_t)CHUNK_SIZE; j++)
+				for (j = 0; j < CHUNK_SIZE; j++)
 				{
-					for (i = 0; i < (int32_t)CHUNK_SIZE;)
+					for (i = 0; i < CHUNK_SIZE;)
 					{
 						if (Mask[n].Block.Type != FBlock::None)
 						{
 							// Compute the width
-							for (Width = 1; i + Width < (int32_t)CHUNK_SIZE && IsMeshable(Mask[n + Width], Mask[n]); Width++){}
+							for (Width = 1; i + Width < CHUNK_SIZE && IsMeshable(Mask[n + Width], Mask[n]); Width++){}
 
 							// Compute Height
 							bool Done = false;
 
-							for (Height = 1; j + Height < (int32_t)CHUNK_SIZE; Height++)
+							for (Height = 1; j + Height < CHUNK_SIZE; Height++)
 							{
 								for (k = 0; k < Width; k++)
 								{
-									if (!IsMeshable(Mask[n + k + Height*(int32_t)CHUNK_SIZE], Mask[n]))
+									if (!IsMeshable(Mask[n + k + Height*CHUNK_SIZE], Mask[n]))
 									{
 										Done = true;
 										break;
@@ -333,7 +328,7 @@ void FChunk::GreedyMesh()
 							{
 								for (k = 0; k < Width; k++)
 								{
-									Mask[n + k + Length * (int32_t)CHUNK_SIZE].Block.Type = FBlock::None;
+									Mask[n + k + Length * CHUNK_SIZE].Block.Type = FBlock::None;
 								}
 							}
 

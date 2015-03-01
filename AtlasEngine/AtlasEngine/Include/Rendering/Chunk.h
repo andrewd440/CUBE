@@ -41,8 +41,8 @@ class FChunk
 {
 public:
 	// Dimensions of each chunk
-	static const uint32_t CHUNK_SIZE = 32;
-	static const uint32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+	static const int32_t CHUNK_SIZE = 32;
+	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
 	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 10000> ChunkAllocator;
 	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
@@ -82,7 +82,7 @@ public:
 	* be built before rendering.
 	* @param LowerLeftPosition - The starting world position of this chunk.
 	*/
-	void Load(const Vector3ui& LowerLeftPosition);
+	void Load(const Vector3i& LowerLeftPosition);
 
 	/**
 	* Frees block and mesh data.
@@ -107,17 +107,17 @@ public:
 	/**
 	* Set a block in the chunk at a specific position.
 	*/
-	void SetBlock(Vector3ui Position, FBlock::BlockType BlockType);
+	void SetBlock(const Vector3i& Position, FBlock::BlockType BlockType);
 
 	/**
 	* Retrieves the type of block in the chunk at a specific position.
 	*/
-	FBlock::BlockType GetBlock(Vector3ui Position) const;
+	FBlock::BlockType GetBlock(const Vector3i& Position) const;
 
 	/**
 	* Destroys a block in the chunk at a specific position.
 	*/
-	void DestroyBlock(Vector3ui Position);
+	void DestroyBlock(const Vector3i& Position);
 
 	/**
 	* Checks if this chunk contains any blocks.

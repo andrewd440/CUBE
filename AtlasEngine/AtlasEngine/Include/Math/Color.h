@@ -219,6 +219,11 @@ inline const float& FColor::operator[](uint32_t idx) const
 		return A;
 }
 
+#ifdef min
+#define newmin min
+#undef min
+#endif
+
 inline FColor& FColor::Clamp()
 {
 	R = std::min(R, 1.f);
@@ -227,6 +232,11 @@ inline FColor& FColor::Clamp()
 	
 	return *this;
 }
+
+#ifdef newmin
+#define min newmin
+#undef newmin
+#endif
 
 inline const std::string FColor::ToString() const
 {

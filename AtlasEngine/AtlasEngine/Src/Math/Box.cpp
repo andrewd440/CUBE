@@ -1,5 +1,11 @@
 #include "Math\Box.h"
 #include "Math\Matrix4.h"
+#include <limits>
+
+FBox::FBox()
+	: Min(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max())
+	, Max(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max())
+{}
 
 void FBox::TransformAABB(const FMatrix4& Transform)
 {

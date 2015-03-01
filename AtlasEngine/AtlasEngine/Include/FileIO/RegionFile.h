@@ -5,19 +5,51 @@
 #include "SystemResources\SystemFile.h"
 #include <memory>
 
+/**
+* Represents a region file for storing world
+* chunk layouts.
+*/
 class FRegionFile
 {
 public:
+	/**
+	* Constructs a unbound region file.
+	*/
 	FRegionFile();
 
 	~FRegionFile();
 
+	/**
+	* Loads a specific region file. All region files for a world is placed in
+	* the Worlds/(world-name)/.vgr directory. 
+	* @param RegoinDirector - The directory of this world.
+	* @param RegionPosition - The position of the region you world to load.
+	* @return True if the region file was loaded successfully.
+	*/
 	bool Load(const wchar_t* RegionDirectory, const Vector3ui& RegionPosition);
 
+	/**
+	* Retrieve info about a specific chunk.
+	* @param ChunkPosition - Position of the chunk within this region.
+	* @param SizeOut - To put the size, in bytes, of the data for the chunk.
+	* @param SectorOffsetOut - The sector offset for this chunks data.
+	*/
 	void GetChunkDataInfo(const Vector3ui& ChunkPosition, uint32_t& SizeOut, uint32_t& SectorOffsetOut);
 
+	/**
+	* Retrieves the data for the layout of a chunk.
+ 	* @param SectorOffset - The offset of the chunks sector. Can be retrieved from GetChunkDataInfo().
+	* @param DataOut - To put the chunk data.
+	* @param DataSize - The size of this chunks data. Can be retrieved from GetChunkDataInfo().
+	*/
 	void GetChunkData(const uint32_t SectorOffset, uint8_t* DataOut, const uint32_t DataSize);
 
+	/**
+	* Writes data for a chunk to file.
+	* @param ChunkPosition - Position of the chunk within this region.
+	* @param Data - Data to write.
+	* @param SizeOut - The size of the data to write.
+	*/
 	void WriteChunkData(const Vector3ui& ChunkPosition, const uint8_t* Data, const uint32_t DataSize);
 
 public:
@@ -44,8 +76,15 @@ public:
 	};
 
 private:
+	/**
+	* Adds a new chunk to the region file.
+	*/
 	void AddNewChunk(LookupEntry& ChunkEntry, const uint8_t* Data, const uint32_t DataSize);
-	void RelocateAndAddChunkData(LookupEntry& RelocationsEntry, const uint8_t* Data, const uint32_t DataSize);
+
+	/**
+	* Shifts chunk data to the left and relocates RelocationEntry to the end of the file.
+	*/
+	void RelocateAndAddChunkData(LookupEntry& RelocationEntry, const uint8_t* Data, const uint32_t DataSize);
 
 private:
 	RegionData mRegionData;

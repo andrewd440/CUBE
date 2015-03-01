@@ -99,25 +99,25 @@ void FVoxiGineRoot::GameLoop()
 		{
 			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
 			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
-			Vector3ui IntPosition{ (uint32_t)CamPosition.x, (uint32_t)CamPosition.y, (uint32_t)CamPosition.z };
+			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
 			mChunkManager.DestroyBlock(IntPosition);
 		}
 		if (SButtonEvent::GetMouseDown(sf::Mouse::Left))
 		{
 			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
 			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
-			Vector3ui IntPosition{ (uint32_t)CamPosition.x, (uint32_t)CamPosition.y, (uint32_t)CamPosition.z };
+			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
 			mChunkManager.SetBlock(IntPosition, FBlock::Brick);
 		}
 
 		lag += STime::GetDeltaTime();
 		while (lag >= STime::GetFixedUpdate())
 		{
-			UpdateCamera(PointLight.Transform);
 			mChunkManager.Update();
 			lag -= STime::GetFixedUpdate();
 		}
-
+		
+		UpdateCamera(PointLight.Transform);
 		GameObjectManager.Update();
 		
 		// Render the frame
@@ -204,7 +204,7 @@ void CameraSetup()
 
 void UpdateCamera(FTransform& Light)
 {
-	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 25.0f * STime::GetFixedUpdate();
+	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 100.0f * STime::GetDeltaTime();
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
@@ -218,7 +218,7 @@ void UpdateCamera(FTransform& Light)
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		YMovement = -MoveSpeed;
 
-	const float LookSpeed = 5.0f * STime::GetFixedUpdate();
+	const float LookSpeed = 25.0f * STime::GetDeltaTime();
 	FQuaternion CameraRotation = MainCamera.Transform.GetRotation();
 
 	Vector3f CameraForward = CameraRotation * Vector3f::Forward;

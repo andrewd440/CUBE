@@ -2,20 +2,22 @@
 
 #include <vector>
 #include <queue>
+#include <unordered_map>
 
 #include "Chunk.h"
 #include "noise\noise.h"
 #include "noise\noiseutils.h"
 #include "Singleton.h"
+#include "FileIO\RegionFile.h"
 
 class FRenderSystem;
 
 class FChunkManager : public TSingleton<FChunkManager>
 {
 public:
-	static const uint32_t WORLD_SIZE;
-	static const uint32_t VISIBILITY_DISTANCE;
-	static const uint32_t CHUNKS_TO_LOAD_PER_FRAME;
+	static const int32_t WORLD_SIZE;
+	static const int32_t VISIBILITY_DISTANCE;
+	static const int32_t CHUNKS_TO_LOAD_PER_FRAME;
 
 public:
 	FChunkManager();
@@ -27,24 +29,24 @@ public:
 
 	void Render(FRenderSystem& Renderer, const GLenum RenderMode = GL_TRIANGLES);
 
-	float GetNoiseHeight(uint32_t x, uint32_t z);
+	float GetNoiseHeight(int32_t x, int32_t z);
 
 	/**
 	* Set a block in the world at a specific position.
 	*/
-	void SetBlock(Vector3ui Position, FBlock::BlockType BlockType);
+	void SetBlock(Vector3i Position, FBlock::BlockType BlockType);
 
 	/**
 	* Retrieves the type of block in the world at a specific position.
 	*/
-	FBlock::BlockType GetBlock(Vector3ui Position) const;
+	FBlock::BlockType GetBlock(Vector3i Position) const;
 
 	/**
 	* Destroys a block in the world at a specific position.
 	*/
-	void DestroyBlock(Vector3ui Position);
+	void DestroyBlock(Vector3i Position);
 
-	Vector3ui GetChunkPosition(const FChunk* Chunk) const;
+	Vector3i GetChunkPosition(const FChunk* Chunk) const;
 
 private:
 	void UpdateUnloadList();
@@ -62,8 +64,25 @@ private:
 	std::vector<uint32_t> mUnloadList;   // Index list of chunks to be unloaded
 	std::vector<uint32_t> mRebuildList;  // Index list of chunks to be rebuilt
 
+	struct RegionFileRecord
+	{
+		FRegionFile File;
+		uint32_t ReferenceCount;
+	};
+
+	// Hash functor for vector3
+	struct Vector3iHash
+	{
+		std::size_t operator()(const Vector3i& Val)
+		{
+			return Val.y * FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE + Val.x * FChunkManager::WORLD_SIZE + Val.z;
+		}
+	};
+
+	std::unordered_map<Vector3i, RegionFileRecord, Vector3iHash> mRegionFiles;
+
 	// Rendering data
-	Vector3ui mLastCameraChunk;
+	Vector3i mLastCameraChunk;
 	Vector3f mLastCameraPosition;
 	Vector3f mLastCameraDirection;
 	noise::utils::NoiseMap mNoiseMap;

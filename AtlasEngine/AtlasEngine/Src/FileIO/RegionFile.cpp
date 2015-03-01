@@ -72,7 +72,6 @@ void FRegionFile::GetChunkDataInfo(const Vector3ui& ChunkPosition, uint32_t& Siz
 		return;
 	}
 
-	uint32_t ChunkDataSize;
 	SectorOffsetOut = mRegionData.ChunkEntry[TableIndex].Offset;
 	mRegionFile->SeekFromStart(sizeof(RegionData) + SectorOffsetOut * RegionData::SECTOR_SIZE);
 	mRegionFile->Read((uint8_t*)&SizeOut, 4);
@@ -134,8 +133,8 @@ void FRegionFile::AddNewChunk(LookupEntry& ChunkEntry, const uint8_t* Data, cons
 void FRegionFile::RelocateAndAddChunkData(LookupEntry& RelocationEntry, const uint8_t* Data, const uint32_t DataSize)
 {
 	// Copy all data after this sector, then write it starting at this sector
-	uint64_t RelocationDataStart = sizeof(RegionData) + ((RelocationEntry.Offset + RelocationEntry.NumOfSectors) * RegionData::SECTOR_SIZE);
-	uint64_t RelocationDataSize = mRegionFile->GetFileSize() - RelocationDataStart;
+	uint32_t RelocationDataStart = sizeof(RegionData) + ((RelocationEntry.Offset + RelocationEntry.NumOfSectors) * RegionData::SECTOR_SIZE);
+	uint32_t RelocationDataSize = mRegionFile->GetFileSize() - RelocationDataStart;
 
 	// Get data to shift left
 	std::unique_ptr<uint8_t> RelocationData{ new uint8_t[RelocationDataSize] };

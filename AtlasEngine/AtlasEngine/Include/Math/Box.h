@@ -1,6 +1,5 @@
 #pragma once
 #include "Vector3.h"
-#include <limits>
 
 struct FMatrix4;
 
@@ -14,10 +13,7 @@ struct FBox
 	* point max value and max point at the floating point
 	* min value.
 	*/
-	FBox()
-		: Min(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max())
-		, Max(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max())
-	{}
+	FBox();
 
 	Vector3f GetCenter() const { return (Min + Max) * 0.5f; }
 
