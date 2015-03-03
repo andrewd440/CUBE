@@ -54,9 +54,9 @@ bool FRegionFile::Load(const wchar_t* WorldName, const Vector3i& RegionPosition)
 
 		// Add empty lookup table
 		mRegionFile->Write(FilePadding, sizeof(RegionData));
-		mRegionFile->SeekFromStart(0);
 	}
 
+	mRegionFile->SeekFromStart(0);
 	return mRegionFile->Read((uint8_t*)&mRegionData, sizeof(RegionData));
 }
 
@@ -97,7 +97,8 @@ void FRegionFile::WriteChunkData(const Vector3i& ChunkPosition, const uint8_t* D
 		if (ChunkEntry.NumOfSectors * RegionData::SECTOR_SIZE >= DataSize + 4)
 		{
 			// Add offset after region data block and offset for chunk data size (4 bytes)
-			mRegionFile->SeekFromStart((sizeof(RegionData) + ChunkEntry.Offset * RegionData::SECTOR_SIZE) + 4);
+			mRegionFile->SeekFromStart((sizeof(RegionData) + ChunkEntry.Offset * RegionData::SECTOR_SIZE));
+			mRegionFile->Write((uint8_t*)&DataSize, 4);
 			mRegionFile->Write(Data, DataSize);
 		}
 		else

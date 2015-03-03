@@ -231,7 +231,8 @@ bool FWindowsFileSystem::SetToProgramDirectory()
 
 void FWindowsFileSystem::SetProgramDirectory()
 {
-	if (ProgramDirectorySize = GetModuleFileName(NULL, ProgramDirectory, PROGRAM_DIRECTORY_CAP) < PROGRAM_DIRECTORY_CAP)
+	ProgramDirectorySize = GetModuleFileName(NULL, ProgramDirectory, PROGRAM_DIRECTORY_CAP);
+	if (ProgramDirectorySize < PROGRAM_DIRECTORY_CAP)
 	{
 		PathCchRemoveFileSpec(ProgramDirectory, PROGRAM_DIRECTORY_CAP);
 		return;

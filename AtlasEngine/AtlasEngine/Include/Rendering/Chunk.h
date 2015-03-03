@@ -48,6 +48,13 @@ public:
 	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
 
 public:
+	struct RLEBlock
+	{
+		FBlock::BlockType Type;
+		uint8_t Count;
+	};
+
+public:
 	/**
 	* Constructs chunk of voxels.
 	*/
@@ -82,12 +89,12 @@ public:
 	* be built before rendering.
 	* @param LowerLeftPosition - The starting world position of this chunk.
 	*/
-	void Load(const Vector3i& LowerLeftPosition);
+	void Load(const std::vector<uint8_t>& BlockData);
 
 	/**
 	* Frees block and mesh data.
 	*/
-	void Unload();
+	void Unload(std::vector<uint8_t>& BlockDataOut);
 
 	/**
 	* Checks if the chunk has been loaded.

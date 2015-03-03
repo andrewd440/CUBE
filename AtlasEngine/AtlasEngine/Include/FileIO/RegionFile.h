@@ -12,7 +12,7 @@
 class FRegionFile
 {
 public:
-	static Vector3i ChunkToRegionPosition(Vector3i WorldChunkPosition)
+	static Vector3i ChunkToRegionPosition(const Vector3i& WorldChunkPosition)
 	{
 		return WorldChunkPosition / (int32_t)RegionData::REGION_SIZE;
 	}
@@ -20,6 +20,13 @@ public:
 	static Vector3i ChunkToRegionPosition(int32_t x, int32_t y, int32_t z)
 	{
 		return ChunkToRegionPosition(Vector3i{x, y, z}); // vector simd
+	}
+
+	static Vector3i LocalRegionPosition(const Vector3i& WorldChunkPosition)
+	{
+		return Vector3i{ WorldChunkPosition.x % (int32_t)RegionData::REGION_SIZE,
+			WorldChunkPosition.y % (int32_t)RegionData::REGION_SIZE,
+			WorldChunkPosition.z % (int32_t)RegionData::REGION_SIZE };
 	}
 
 public:

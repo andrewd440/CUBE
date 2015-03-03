@@ -79,7 +79,7 @@ void FChunk::SetChunkManager(FChunkManager* NewManager)
 	mChunkManager = NewManager;
 }
 
-void FChunk::Load(const Vector3i& LowerLeftPosition)
+void FChunk::Load(const std::vector<uint8_t>& BlockData)
 {
 	ASSERT(!mIsLoaded);
 	mIsLoaded = true;
@@ -88,34 +88,63 @@ void FChunk::Load(const Vector3i& LowerLeftPosition)
 	mMesh = new (MeshAllocator.Allocate()) TMesh<FVoxelVertex>(GL_STATIC_DRAW);
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
 
-	FOR(x, CHUNK_SIZE)
+	// Current index to access block type
+	int32_t TypeIndex = 0;
+	int32_t DataSize = BlockData.size();
+	
+	// Write RLE data for chunk
+	for (int32_t y = 0; y < CHUNK_SIZE && TypeIndex < DataSize; y++)
 	{
-		FOR(z, CHUNK_SIZE)
+		for (int32_t x = 0; x < CHUNK_SIZE; x++)
 		{
-			const int32_t Height = FChunkManager::GetInstance().GetNoiseHeight(LowerLeftPosition.x + x, LowerLeftPosition.z + z);
-			int32_t y = LowerLeftPosition.y;
-			for (; y < Height && (y - LowerLeftPosition.y) < CHUNK_SIZE; y++)
+			int32_t BaseIndex = BlockIndex(x, y, 0);
+			for (int32_t z = 0; z < CHUNK_SIZE;)
 			{
-				int32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
-				mBlocks[Index].Type = FBlock::Grass;
+				uint8_t Count = 0;
+				uint8_t RunLength = BlockData[TypeIndex + 1];
+				for (Count = 0; Count < RunLength; Count++)
+				{
+					mBlocks[BaseIndex + z + Count].Type = (FBlock::BlockType)BlockData[TypeIndex];
+				}
 
-				if (y > (8 + (FChunkManager::WORLD_SIZE * CHUNK_SIZE * FBlock::BLOCK_SIZE) / 2))
-					mBlocks[Index].Type = FBlock::Snow;
-			}
-			for (; y < LowerLeftPosition.y + CHUNK_SIZE; y++)
-			{
-				int32_t Index = BlockIndex(x, y - LowerLeftPosition.y, z);
-				mBlocks[Index].Type = FBlock::None;
+				z += RunLength;
+				TypeIndex += 2;
 			}
 		}
 	}
+
 }
 
-void FChunk::Unload()
+void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 {
 	ASSERT(mIsLoaded);
 
 	mIsLoaded = false;
+
+	// Extract RLE data for chunk
+	for (int32_t y = 0; y < CHUNK_SIZE; y++)
+	{
+		for (int32_t x = 0; x < CHUNK_SIZE; x++)
+		{
+			for (int32_t z = 0; z < CHUNK_SIZE;)
+			{
+				const uint32_t CurrentBlockIndex = BlockIndex(x, y, z);
+				const FBlock::BlockType CurrentBlock = mBlocks[CurrentBlockIndex].Type;
+				uint8_t Length = 1;
+
+				FBlock::BlockType NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;
+				while (CurrentBlock == NextBlock && Length < CHUNK_SIZE)
+				{
+					Length++;
+					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;
+				}
+
+				// Append RLE data
+				BlockDataOut.insert(BlockDataOut.end(), { CurrentBlock, Length });
+				z += (int32_t)Length;
+			}
+		}
+	}
 
 	MeshAllocator.Free(mMesh);
 	ChunkAllocator.Free(mBlocks);

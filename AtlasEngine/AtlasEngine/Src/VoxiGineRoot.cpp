@@ -127,6 +127,8 @@ void FVoxiGineRoot::GameLoop()
 		UpdateTimers();
 		ServiceEvents();
 	}
+
+	mChunkManager.Shutdown();
 }
 
 void FVoxiGineRoot::ServiceEvents()

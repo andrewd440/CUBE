@@ -48,6 +48,8 @@ public:
 
 	Vector3i GetChunkPosition(const FChunk* Chunk) const;
 
+	void Shutdown();
+
 private:
 	void UpdateUnloadList();
 	void UpdateLoadList();

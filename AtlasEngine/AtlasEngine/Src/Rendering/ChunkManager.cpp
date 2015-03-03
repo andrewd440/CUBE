@@ -51,7 +51,7 @@ namespace
 	}
 }
 
-const int32_t FChunkManager::WORLD_SIZE = 4;
+const int32_t FChunkManager::WORLD_SIZE = 2;
 const int32_t FChunkManager::VISIBILITY_DISTANCE = 8;
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 2;
 
@@ -91,6 +91,18 @@ FChunkManager::FChunkManager()
 
 FChunkManager::~FChunkManager()
 {
+}
+
+void FChunkManager::Shutdown()
+{
+	for (const auto& Loaded : mIsLoadedList)
+	{
+		mUnloadList.push_back(Loaded);
+
+		const Vector3i Position = IndexToChunkPosition(Loaded);
+		AddRegionFileReference(Position.x, Position.y, Position.z);
+	}
+	UpdateUnloadList();
 }
 
 float FChunkManager::GetNoiseHeight(int32_t x, int32_t z)
@@ -200,7 +212,18 @@ void FChunkManager::UpdateUnloadList()
 	{
 		// Unload the chunk
 		const int32_t Index = *Itr;
-		mChunks[Index].Unload();
+		
+		// Buffer for all chunk unloading data.
+		std::vector<uint8_t> ChunkDataBuffer;
+		mChunks[Index].Unload(ChunkDataBuffer);
+
+		// Get region position info
+		const Vector3i ChunkPosition = IndexToChunkPosition(Index);
+		const Vector3i RegionPosition = FRegionFile::ChunkToRegionPosition(ChunkPosition);
+		const Vector3i LocalRegionPosition = FRegionFile::LocalRegionPosition(ChunkPosition);
+
+		// Write the data to file
+		mRegionFiles[RegionPosition].File.WriteChunkData(LocalRegionPosition, ChunkDataBuffer.data(), ChunkDataBuffer.size());
 
 		// If it is in the loaded list, remove it
 		auto Remove = std::find(mIsLoadedList.begin(), mIsLoadedList.end(), Index);
@@ -222,12 +245,29 @@ void FChunkManager::UpdateLoadList()
 {
 	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_FRAME;
 
+	// Buffer for all chunk data
+	std::vector<uint8_t> ChunkData;
+
 	for (auto Itr = mLoadList.begin(); Itr != mLoadList.end() && LoadsLeft > 0; Itr++)
 	{
 		const int32_t Index = *Itr;
 
+		// Get region position info
+		const Vector3i ChunkPosition = IndexToChunkPosition(Index);
+		const Vector3i RegionPosition = FRegionFile::ChunkToRegionPosition(ChunkPosition);
+		const Vector3i LocalRegionPosition = FRegionFile::LocalRegionPosition(ChunkPosition);
+		
+		// Get info for chunk data within its region
+		uint32_t ChunkDataSize, ChunkSectorOffset;
+		FRegionFile& RegionFile = mRegionFiles[RegionPosition].File;
+		RegionFile.GetChunkDataInfo(LocalRegionPosition, ChunkDataSize, ChunkSectorOffset);
+		
+		// Obtain info for chunk
+		ChunkData.resize(ChunkDataSize);
+		RegionFile.GetChunkData(ChunkSectorOffset, ChunkData.data(), ChunkDataSize);
+
 		// Load and build the chunk
-		mChunks[Index].Load(IndexToWorldPosition(Index));
+		mChunks[Index].Load(ChunkData);
 		mChunks[Index].RebuildMesh();
 
 		// Add it to the loaded lists
