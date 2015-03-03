@@ -1,10 +1,14 @@
 #version 430 core
 
+layout (binding = 0) uniform usampler2D GBuffer0;
+layout (binding = 1) uniform sampler2D GBuffer1;
+
 struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
 	vec3 WorldCoord;
+	float AmbientOcclusion;
 	uint MaterialID;
 };
 
@@ -16,14 +20,23 @@ struct DirectionalLight_t
 	vec3 Color;            //    16               16             28
 };
 
+
 layout(std140, binding = 11) uniform DirectionalLightBlock
 {
     DirectionalLight_t DirectionalLight;
 };
 
-layout (binding = 15) uniform sampler2D ShadowMap;
-
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment);
+vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light);
+
+void main()
+{
+	FragmentData_t Fragment;
+
+	UnpackGBuffer(ivec2(gl_FragCoord.xy), Fragment);
+
+	gl_FragColor = ApplyLighting(Fragment, DirectionalLight);
+}
 
 vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 {
@@ -45,17 +58,8 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 		if(dot(N, -Light.Direction) < 0.0)
 			Specular = vec3(0,0,0);
 
-		Result += vec4(Diffuse + Specular, 0.0);
+		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
+		//Result = vec4(Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, 1);
 	}
 	return Result;
-}
-
-void main()
-{
-	FragmentData_t Fragment;
-
-	UnpackGBuffer(ivec2(gl_FragCoord.xy), Fragment);
-
-	//gl_FragColor = ApplyLighting(Fragment, DirectionalLight);
-	gl_FragColor = texelFetch(ShadowMap, ivec2(gl_FragCoord.xy), 0);
 }

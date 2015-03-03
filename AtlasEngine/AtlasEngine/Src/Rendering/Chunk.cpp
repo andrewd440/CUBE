@@ -13,18 +13,22 @@ namespace
 	/**
 	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
 	*/
-	uint32_t BlockIndex(int32_t X, int32_t Y, int32_t Z)
+	int32_t BlockIndex(Vector3i Position)
 	{
-		ASSERT((X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE + Y * FChunk::CHUNK_SIZE + Z) >= 0 && (X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE + Y * FChunk::CHUNK_SIZE + Z) < FChunk::BLOCKS_PER_CHUNK);
-		return (X * FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE) + (Y * FChunk::CHUNK_SIZE) + Z;
+		ASSERT(Position.x >= 0 && Position.x < FChunk::CHUNK_SIZE &&
+			Position.y >= 0 && Position.y < FChunk::CHUNK_SIZE &&
+			Position.z >= 0 && Position.z < FChunk::CHUNK_SIZE)
+
+		const Vector3i PositionToIndex{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE, 1 };
+		return Vector3i::Dot(Position, PositionToIndex);
 	}
 
 	/**
 	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
 	*/
-	uint32_t BlockIndex(Vector3i Position)
+	int32_t BlockIndex(int32_t X, int32_t Y, int32_t Z)
 	{
-		return BlockIndex(Position.x, Position.y, Position.z);
+		return BlockIndex(Vector3i{X, Y, Z});
 	}
 }
 

@@ -34,6 +34,7 @@ FVoxiGineRoot::FVoxiGineRoot()
 	, mChunkManager()
 {
 	IFileSystem* FileSystem = new FFileSystem;
+
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
 
@@ -204,7 +205,9 @@ void CameraSetup()
 
 void UpdateCamera(FTransform& Light)
 {
-	float ZMovement = 0, XMovement = 0, YMovement = 0, MoveSpeed = 100.0f * STime::GetDeltaTime();
+	float ZMovement = 0, XMovement = 0, YMovement = 0;
+	float MoveSpeed = (100.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))

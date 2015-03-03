@@ -252,6 +252,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\FileIO\GenericFile.cpp" />
     <ClCompile Include="Src\FileIO\RegionFile.cpp" />
     <ClCompile Include="Src\Math\Box.cpp" />
     <ClCompile Include="Src\Math\Sphere.cpp" />

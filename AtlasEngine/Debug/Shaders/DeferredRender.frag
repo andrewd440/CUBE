@@ -8,6 +8,7 @@ in VS_OUT
 	vec3 WorldCoord;
 	vec3 Normal;
 	vec3 Color;
+	float AmbientOcclusion;
 	flat uint MaterialID;
 } fs_in;
 
@@ -21,7 +22,8 @@ void main()
 	OutVec0.z = packHalf2x16(fs_in.Normal.yz);
 	OutVec0.w = fs_in.MaterialID;
 
-	OutVec1.xyz = fs_in.WorldCoord;
+	OutVec1.xyz = vec3(fs_in.WorldCoord);
+	OutVec1.w = fs_in.AmbientOcclusion;
 
 	color0 = OutVec0;
 	color1 = OutVec1;

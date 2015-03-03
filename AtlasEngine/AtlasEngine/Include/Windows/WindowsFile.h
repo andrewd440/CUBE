@@ -66,11 +66,16 @@ public:
 
 	bool CreateFileDirectory(const wchar_t* DirectoryName) override;
 
-	bool ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) override;
+	bool GetProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) override;
 
 	bool SetDirectory(const wchar_t* DirectoryName) override;
 
 	bool FileExists(const wchar_t* Filename) override;
+
+	bool SetToProgramDirectory() override;
+
+private:
+	void SetProgramDirectory();
 };
 
 using FFileHandle = FWindowsHandle;

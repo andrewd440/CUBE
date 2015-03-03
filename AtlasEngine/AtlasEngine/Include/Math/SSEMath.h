@@ -7,6 +7,7 @@ class FQuaternion;
 template <typename T>
 class TVector4;
 using Vector4f = TVector4<float>;
+using Vector4i = TVector4<int32_t>;
 
 #define SHUFFLE_PARAM(x, y, z, w) \
 	((x) | ((y) << 2) | ((z) << 4) | ((w) << 6))
@@ -188,6 +189,19 @@ __forceinline void Dot4Product(const float* Vec1, const float* Vec2, float& Resu
 	Dot = _mm_hadd_ps(Dot, Dot);
 
 	ResultOut = Dot.m128_f32[0];
+}
+
+template <>
+__forceinline void Dot4Product(const Vector4i& Vec1, const Vector4i& Vec2, int32_t& ResultOut)
+{
+	const __m128i* V1 = (const __m128i*)&Vec1;
+	const __m128i* V2 = (const __m128i*)&Vec2;
+
+	__m128i Dot = _mm_mullo_epi32(*V1, *V2);
+	Dot = _mm_hadd_epi32(Dot, Dot);
+	Dot = _mm_hadd_epi32(Dot, Dot);
+
+	ResultOut = Dot.m128i_i32[0];
 }
 
 

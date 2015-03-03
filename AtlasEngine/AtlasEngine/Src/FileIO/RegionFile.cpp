@@ -4,11 +4,10 @@
 
 namespace 
 {
-	uint32_t GetTableIndex(Vector3ui Position)
+	uint32_t GetTableIndex(Vector3i Position)
 	{
-		return (Position.z % FRegionFile::RegionData::REGION_SIZE) +
-			((Position.x % FRegionFile::RegionData::REGION_SIZE) * FRegionFile::RegionData::REGION_SIZE) +
-			(Position.y * FRegionFile::RegionData::REGION_SIZE * FRegionFile::RegionData::REGION_SIZE);
+		const Vector3i PositionToIndex{ (int32_t)FRegionFile::RegionData::REGION_SIZE, (int32_t)FRegionFile::RegionData::REGION_SIZE * FRegionFile::RegionData::REGION_SIZE, 1 };
+		return (uint32_t)Vector3i::Dot(Position, PositionToIndex);
 	}
 }
 
@@ -26,21 +25,21 @@ FRegionFile::~FRegionFile()
 	mRegionFile->Write((uint8_t*)&mRegionData, sizeof(RegionData));
 }
 
-bool FRegionFile::Load(const wchar_t* FileDirectory, const Vector3ui& RegionPosition)
+bool FRegionFile::Load(const wchar_t* WorldName, const Vector3i& RegionPosition)
 {
 	auto& FileSystem = IFileSystem::GetInstance();
 
 	static const uint32_t DirectoryBufferSize = 300;
 
 	// Get the program directory
-	wchar_t ProgramDirectory[DirectoryBufferSize];
-	FileSystem.ProgramDirectory(ProgramDirectory, DirectoryBufferSize);
-	FileSystem.SetDirectory(ProgramDirectory);
+	FileSystem.SetToProgramDirectory();
+	FileSystem.SetDirectory(L"Worlds");
 
 	// Enter the file directory for this region
-	FileSystem.CreateFileDirectory(FileDirectory);
-	FileSystem.SetDirectory(FileDirectory);
+	FileSystem.CreateFileDirectory(WorldName);
+	FileSystem.SetDirectory(WorldName);
 
+	wchar_t ProgramDirectory[DirectoryBufferSize];
 	int32_t CharCount = swprintf(ProgramDirectory, DirectoryBufferSize, L"x%dy%dz%d.vgr", RegionPosition.x, RegionPosition.y, RegionPosition.z);
 	ProgramDirectory[CharCount] = L'\0';
 
@@ -61,7 +60,7 @@ bool FRegionFile::Load(const wchar_t* FileDirectory, const Vector3ui& RegionPosi
 	return mRegionFile->Read((uint8_t*)&mRegionData, sizeof(RegionData));
 }
 
-void FRegionFile::GetChunkDataInfo(const Vector3ui& ChunkPosition, uint32_t& SizeOut, uint32_t& SectorOffsetOut)
+void FRegionFile::GetChunkDataInfo(const Vector3i& ChunkPosition, uint32_t& SizeOut, uint32_t& SectorOffsetOut)
 {
 	uint32_t TableIndex = GetTableIndex(ChunkPosition);
 
@@ -86,7 +85,7 @@ void FRegionFile::GetChunkData(const uint32_t SectorOffset, uint8_t* DataOut, co
 	mRegionFile->Read(DataOut, DataSize);
 }
 
-void FRegionFile::WriteChunkData(const Vector3ui& ChunkPosition, const uint8_t* Data, const uint32_t DataSize)
+void FRegionFile::WriteChunkData(const Vector3i& ChunkPosition, const uint8_t* Data, const uint32_t DataSize)
 {
 	uint32_t TableIndex = GetTableIndex(ChunkPosition);
 	LookupEntry& ChunkEntry = mRegionData.ChunkEntry[TableIndex];

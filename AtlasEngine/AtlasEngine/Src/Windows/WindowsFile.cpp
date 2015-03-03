@@ -94,7 +94,7 @@ FWindowsHandle::~FWindowsHandle()
 FWindowsFileSystem::FWindowsFileSystem()
 	: IFileSystem()
 {
-
+	SetProgramDirectory();
 }
 
 std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenWritable(const wchar_t* Filename, const bool AllowShareRead, const bool CreateNew)
@@ -189,22 +189,17 @@ bool FWindowsFileSystem::CreateFileDirectory(const wchar_t* DirectoryName)
 	}
 	else
 	{
-		PrintError();
+		if (GetLastError() == ERROR_PATH_NOT_FOUND)
+			std::wcerr << L"Directory path not found when creating directory." << std::endl;
 	}
 
 	return false;
 }
 
-bool FWindowsFileSystem::ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength)
+bool FWindowsFileSystem::GetProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength)
 {
-	if (GetModuleFileName(NULL, DataOut, BufferLength) != ERROR_INSUFFICIENT_BUFFER)
-	{
-		PathCchRemoveFileSpec(DataOut, BufferLength);
-		return true;
-	}
-
-	PrintError();
-	return false;
+	std::memcpy(DataOut, ProgramDirectory, min(BufferLength, ProgramDirectorySize));
+	return BufferLength < ProgramDirectorySize;
 }
 
 bool FWindowsFileSystem::SetDirectory(const wchar_t* DirectoryName)
@@ -221,4 +216,26 @@ bool FWindowsFileSystem::SetDirectory(const wchar_t* DirectoryName)
 bool FWindowsFileSystem::FileExists(const wchar_t* Filename)
 {
 	return !(INVALID_FILE_ATTRIBUTES == GetFileAttributes(Filename) && GetLastError() == ERROR_FILE_NOT_FOUND);
+}
+
+bool FWindowsFileSystem::SetToProgramDirectory()
+{
+	if (SetCurrentDirectory(ProgramDirectory) != 0)
+	{
+		return true;
+	}
+
+	PrintError();
+	return false;
+}
+
+void FWindowsFileSystem::SetProgramDirectory()
+{
+	if (ProgramDirectorySize = GetModuleFileName(NULL, ProgramDirectory, PROGRAM_DIRECTORY_CAP) < PROGRAM_DIRECTORY_CAP)
+	{
+		PathCchRemoveFileSpec(ProgramDirectory, PROGRAM_DIRECTORY_CAP);
+		return;
+	}
+
+	PrintError();
 }

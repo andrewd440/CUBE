@@ -65,6 +65,11 @@ public:
 */
 class IFileSystem : public TSingleton<IFileSystem>
 {
+protected:
+	static const uint32_t PROGRAM_DIRECTORY_CAP = 300;
+	static uint32_t ProgramDirectorySize;
+	static wchar_t ProgramDirectory[PROGRAM_DIRECTORY_CAP];
+
 public:
 	IFileSystem()
 		: TSingleton()
@@ -139,7 +144,7 @@ public:
 	* @return True if the complete directory was written to DataOut. False if
 	*		DataOut didn't have enough space to hold the directory.
 	*/
-	virtual bool ProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) = 0;
+	virtual bool GetProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) = 0;
 
 	/**
 	* Changes the current working directory.
@@ -154,4 +159,11 @@ public:
 	* @return True if the file exists.
 	*/
 	virtual bool FileExists(const wchar_t* Filename) = 0;
+
+	/**
+	* Sets the current working directory to the directory of
+	* the running program .exe.
+	* @return True if the directory successfully changed.
+	*/
+	virtual bool SetToProgramDirectory() = 0;
 };

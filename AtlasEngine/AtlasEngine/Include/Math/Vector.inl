@@ -132,7 +132,7 @@ inline const T& TVector4<T>::operator[](uint32_t idx) const
 template <typename T>
 inline TVector4<T>& TVector4<T>::Normalize3()
 {
-	float invLength = 1.0f / Length3();
+	T invLength = 1.0f / Length3();
 	const float OldW = w;
 	*this *= invLength;
 	w = OldW;
@@ -184,14 +184,14 @@ inline TVector4<T> TVector4<T>::ProjectedOnNormal(const TVector4<T>& Normal) con
 template <typename T>
 inline bool TVector4<T>::Perpendicular(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
 {
-	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
+	const T Dot = TVector4<T>::Dot3(Normal1, Normal2);
 	return std::abs(Dot) <= CosineThreshold;
 }
 
 template <typename T>
 inline bool TVector4<T>::Parallel(const TVector4<T>& Normal1, const TVector4<T>& Normal2, const float CosineThreshold)
 {
-	const float Dot = TVector4<T>::Dot3(Normal1, Normal2);
+	const T Dot = TVector4<T>::Dot3(Normal1, Normal2);
 	return std::abs(Dot) >= CosineThreshold;
 }
 
@@ -221,7 +221,7 @@ template <typename T>
 */
 inline T TVector4<T>::Dot3(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	float Result;
+	T Result;
 	auto L = lhs;
 	auto R = rhs;
 	L.z = R.z = 0;
@@ -238,7 +238,7 @@ template <typename T>
 */
 inline T TVector4<T>::Dot4(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	float Result;
+	T Result;
 	Dot4Product(lhs, rhs, Result);
 	return Result;
 }
@@ -682,14 +682,14 @@ inline TVector3<T> TVector3<T>::Cross(const TVector3<T>& lhs, const TVector3<T>&
 template <typename T>
 inline bool TVector3<T>::Perpendicular(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold)
 {
-	const float Dot = TVector3<T>::Dot(Normal1, Normal2);
+	const T Dot = TVector3<T>::Dot(Normal1, Normal2);
 	return std::abs(Dot) <= CosineThreshold;
 }
 
 template <typename T>
 inline bool TVector3<T>::Parallel(const TVector3<T>& Normal1, const TVector3<T>& Normal2, const float CosineThreshold)
 {
-	const float Dot = TVector3<T>::Dot(Normal1, Normal2);
+	const T Dot = TVector3<T>::Dot(Normal1, Normal2);
 	return std::abs(Dot) >= CosineThreshold;
 }
 

@@ -55,6 +55,15 @@ private:
 	void UpdateVisibleList();
 	void UpdateRenderList();
 
+	/**
+	* Adds a reference the a region file in the region map. If the
+	* region file is not present, one is created.
+	* @param X, Y, Z Coordinates of the chunk.
+	*/
+	void AddRegionFileReference(int32_t X, int32_t Y, int32_t Z);
+
+	void RemoveRegionFileReference(const Vector3i& ChunkPosition);
+
 private:
 	std::vector<FChunk> mChunks;        // All world chunks
 	std::vector<uint32_t> mVisibleList; // Index list of potentially visible chunks

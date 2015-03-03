@@ -12,6 +12,17 @@
 class FRegionFile
 {
 public:
+	static Vector3i ChunkToRegionPosition(Vector3i WorldChunkPosition)
+	{
+		return WorldChunkPosition / (int32_t)RegionData::REGION_SIZE;
+	}
+
+	static Vector3i ChunkToRegionPosition(int32_t x, int32_t y, int32_t z)
+	{
+		return ChunkToRegionPosition(Vector3i{x, y, z}); // vector simd
+	}
+
+public:
 	/**
 	* Constructs a unbound region file.
 	*/
@@ -22,11 +33,11 @@ public:
 	/**
 	* Loads a specific region file. All region files for a world is placed in
 	* the Worlds/(world-name)/.vgr directory. 
-	* @param RegoinDirector - The directory of this world.
+	* @param WorldName - The name of this world this region is a part of.
 	* @param RegionPosition - The position of the region you world to load.
 	* @return True if the region file was loaded successfully.
 	*/
-	bool Load(const wchar_t* RegionDirectory, const Vector3ui& RegionPosition);
+	bool Load(const wchar_t* WorldName, const Vector3i& RegionPosition);
 
 	/**
 	* Retrieve info about a specific chunk.
@@ -34,7 +45,7 @@ public:
 	* @param SizeOut - To put the size, in bytes, of the data for the chunk.
 	* @param SectorOffsetOut - The sector offset for this chunks data.
 	*/
-	void GetChunkDataInfo(const Vector3ui& ChunkPosition, uint32_t& SizeOut, uint32_t& SectorOffsetOut);
+	void GetChunkDataInfo(const Vector3i& ChunkPosition, uint32_t& SizeOut, uint32_t& SectorOffsetOut);
 
 	/**
 	* Retrieves the data for the layout of a chunk.
@@ -50,7 +61,7 @@ public:
 	* @param Data - Data to write.
 	* @param SizeOut - The size of the data to write.
 	*/
-	void WriteChunkData(const Vector3ui& ChunkPosition, const uint8_t* Data, const uint32_t DataSize);
+	void WriteChunkData(const Vector3i& ChunkPosition, const uint8_t* Data, const uint32_t DataSize);
 
 public:
 	/**

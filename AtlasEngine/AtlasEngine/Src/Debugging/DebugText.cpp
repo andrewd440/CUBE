@@ -3,6 +3,7 @@
 #include "freetype-gl.h"
 #include "Rendering\Screen.h"
 #include "ResourceHolder.h"
+#include "SystemResources\SystemFile.h"
 
 static const uint32_t DEFAULT_BUFFER_SIZE = 200;
 
@@ -33,8 +34,6 @@ namespace FDebug
 
 	void Text::AddText(const wchar_t* String, const FColor Color, Vector2i Position)
 	{
-		texture_font_load_glyphs(mTextureFont, String);
-
 		// From https://code.google.com/p/freetype-gl/source/browse/trunk/demo-font.c
 		size_t i;
 		for (i = 0; i < wcslen(String); ++i)
