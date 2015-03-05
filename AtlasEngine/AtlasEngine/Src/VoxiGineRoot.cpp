@@ -24,7 +24,6 @@ const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
 
 static FCamera MainCamera;
-static const float WorldCenter{ (float)(FChunkManager::WORLD_SIZE / 2) * FChunk::CHUNK_SIZE + 1 };
 
 using namespace Atlas;
 
@@ -57,7 +56,7 @@ void CameraSetup();
 void FVoxiGineRoot::Start()
 {
 	CameraSetup();
-	mChunkManager.Setup();
+	mChunkManager.LoadWorld(L"GenWorld");
 	
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -117,7 +116,7 @@ void FVoxiGineRoot::GameLoop()
 			mChunkManager.Update();
 			lag -= STime::GetFixedUpdate();
 		}
-		
+
 		UpdateCamera(PointLight.Transform);
 		GameObjectManager.Update();
 		
@@ -185,10 +184,10 @@ void FVoxiGineRoot::UpdateTimers()
 	float DeltaTime = FClock::CyclesToSeconds(PostUpdateTimer - PreUpdateTimer);
 
 	// If large delta time, we were probably in a breakpoint
-	if (DeltaTime > 1.5f)
-	{
-		DeltaTime = 1.0f / 30.0f;
-	}
+	//if (DeltaTime > 1.5f)
+	//{
+	//	DeltaTime = 1.0f / 30.0f;
+	//}
 
 	// Set delta time for this frame
 	STime::SetDeltaTime(DeltaTime);
@@ -199,7 +198,7 @@ void CameraSetup()
 {
 	FCamera::Main = &MainCamera;
 	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ WorldCenter, WorldCenter, WorldCenter };
+	const Vector3f CameraPosition = Vector3f{ 36.0f, 36.0f, 36.0f };
 	CameraTransform.SetPosition(CameraPosition);
 
 	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, (float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE * .75f });
@@ -208,7 +207,7 @@ void CameraSetup()
 void UpdateCamera(FTransform& Light)
 {
 	float ZMovement = 0, XMovement = 0, YMovement = 0;
-	float MoveSpeed = (100.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
+	float MoveSpeed = (75.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
@@ -223,7 +222,7 @@ void UpdateCamera(FTransform& Light)
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		YMovement = -MoveSpeed;
 
-	const float LookSpeed = 25.0f * STime::GetDeltaTime();
+	const float LookSpeed = 15.0f * STime::GetDeltaTime();
 	FQuaternion CameraRotation = MainCamera.Transform.GetRotation();
 
 	Vector3f CameraForward = CameraRotation * Vector3f::Forward;

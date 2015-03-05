@@ -48,11 +48,11 @@ public:
 	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
 
 public:
-	struct RLEBlock
-	{
-		FBlock::BlockType Type;
-		uint8_t Count;
-	};
+	/**
+	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
+	*/
+	static int32_t BlockIndex(Vector3i Position);
+	static int32_t FChunk::BlockIndex(int32_t X, int32_t Y, int32_t Z);
 
 public:
 	/**

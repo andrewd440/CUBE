@@ -7,56 +7,11 @@
 #include "Math\Frustum.h"
 #include "Rendering\RenderSystem.h"
 
-namespace
-{	
-	/**
-	* Converts a 3D chunk position into an index into the chunks array.
-	*/
-	int32_t ChunkIndex(Vector3i Position)
-	{
-		ASSERT(Position.x >= 0 && Position.x < FChunkManager::WORLD_SIZE &&
-				Position.y >= 0 && Position.y < FChunkManager::WORLD_SIZE &&
-				Position.z >= 0 && Position.z < FChunkManager::WORLD_SIZE)
-
-		const Vector3i PositionToIndex{ FChunkManager::WORLD_SIZE, FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE, 1 };
-		return Vector3i::Dot(Position, PositionToIndex);
-	}
-
-	/**
-	* Converts a 3D chunk position into an index into the chunks array.
-	*/
-	int32_t ChunkIndex(int32_t X, int32_t Y, int32_t Z)
-	{
-		return ChunkIndex(Vector3i{X, Y, Z});
-	}
-
-	/**
-	* Convertes a chunk index into a chunk space 3D coordinate.
-	*/
-	Vector3i IndexToChunkPosition(int32_t Index)
-	{
-		const int32_t X = (Index / FChunkManager::WORLD_SIZE % FChunkManager::WORLD_SIZE);
-		const int32_t Y = (Index / (FChunkManager::WORLD_SIZE * FChunkManager::WORLD_SIZE));
-		const int32_t Z = (Index % FChunkManager::WORLD_SIZE);
-
-		return Vector3i(X, Y, Z);
-	}
-
-	/**
-	* Convertes a chunk index into a world space 3D position.
-	*/
-	Vector3i IndexToWorldPosition(int32_t Index)
-	{
-		return IndexToChunkPosition(Index) * FChunk::CHUNK_SIZE;
-	}
-}
-
-const int32_t FChunkManager::WORLD_SIZE = 2;
-const int32_t FChunkManager::VISIBILITY_DISTANCE = 8;
-const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 2;
+const int32_t FChunkManager::VISIBILITY_DISTANCE = 10;
+const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 1;
 
 FChunkManager::FChunkManager()
-	: mChunks(WORLD_SIZE * WORLD_SIZE * WORLD_SIZE)
+	: mChunks()
 	, mVisibleList()
 	, mRenderList()
 	, mLoadList()
@@ -67,26 +22,9 @@ FChunkManager::FChunkManager()
 	, mLastCameraChunk()
 	, mLastCameraPosition()
 	, mLastCameraDirection()
-	, mNoiseMap()
+	, mWorldSize(2)
+	, mWorldName()
 {
-	ASSERT((WORLD_SIZE & (WORLD_SIZE - 1)) == 0x0 && "World width must be a power of two.");
-
-	for (auto& Chunk : mChunks)
-	{
-		Chunk.SetChunkManager(this);
-	}
-
-	// SEtup noise map
-	noise::module::Perlin Perlin;
-	Perlin.SetOctaveCount(1);
-	Perlin.SetPersistence(.1f);
-	noise::utils::NoiseMapBuilderPlane MapBuilder;
-	MapBuilder.SetSourceModule(Perlin);
-	MapBuilder.SetDestNoiseMap(mNoiseMap);
-	MapBuilder.SetDestSize(FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE, FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
-	MapBuilder.SetBounds(0.0, FChunkManager::WORLD_SIZE, 0.0, FChunkManager::WORLD_SIZE);
-	MapBuilder.Build();
-
 }
 
 FChunkManager::~FChunkManager()
@@ -94,6 +32,44 @@ FChunkManager::~FChunkManager()
 }
 
 void FChunkManager::Shutdown()
+{
+	UnloadAllChunks();
+}
+
+void FChunkManager::LoadWorld(const wchar_t* WorldName)
+{
+	// Set world name and extract world size from file
+	mWorldName = WorldName;
+
+	IFileSystem& FileSystem = IFileSystem::GetInstance();
+	FileSystem.SetToProgramDirectory();
+	FileSystem.SetDirectory(L"Worlds");
+	FileSystem.SetDirectory(WorldName);
+
+	auto WorldInfoFile = FileSystem.OpenReadable(L"WorldInfo.vgw");
+	WorldInfoFile->Read((uint8_t*)&mWorldSize, 4);
+	ASSERT((mWorldSize & (mWorldSize - 1)) == 0x0 && "World size must be a power of two.");
+
+	ResizeWorld();
+}
+
+void FChunkManager::ResizeWorld()
+{
+	UnloadAllChunks();
+	mLoadList.clear();
+	mRegionFiles.clear();
+	mVisibleList.clear();
+	mRenderList.clear();
+	mChunks.resize(mWorldSize * mWorldSize * mWorldSize);
+
+	for (auto& Chunk : mChunks)
+	{
+		Chunk.SetChunkManager(this);
+	}
+	PostWorldSetup();
+}
+
+void FChunkManager::UnloadAllChunks()
 {
 	for (const auto& Loaded : mIsLoadedList)
 	{
@@ -105,15 +81,7 @@ void FChunkManager::Shutdown()
 	UpdateUnloadList();
 }
 
-float FChunkManager::GetNoiseHeight(int32_t x, int32_t z)
-{
-	static const int32_t MidHeight = 8 + (FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE) / 2;
-	static const int32_t HeightVariation = 4;
-	const int32_t IndexOffset = x + (z * FChunkManager::WORLD_SIZE * FChunk::CHUNK_SIZE);
-	return MidHeight + *(mNoiseMap.GetConstSlabPtr() + IndexOffset) * HeightVariation;
-}
-
-void FChunkManager::Setup()
+void FChunkManager::PostWorldSetup()
 {
 	// Store needed camera data.
 	mLastCameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
@@ -198,12 +166,6 @@ void FChunkManager::DestroyBlock(Vector3i Position)
 	mChunks[ChunkNumber].DestroyBlock(Position);
 
 	mRebuildList.push_back(ChunkNumber);
-}
-
-Vector3i FChunkManager::GetChunkPosition(const FChunk* Chunk) const
-{
-	std::ptrdiff_t ArrayOffset = (Chunk - mChunks.data());
-	return IndexToWorldPosition(ArrayOffset);
 }
 
 void FChunkManager::UpdateUnloadList()
@@ -302,21 +264,22 @@ void FChunkManager::UpdateVisibleList()
 	// Clear previous load and visibile list when moving across chunks.
 	mLoadList.clear();
 	mVisibleList.clear();
+	mRegionFiles.clear();
 
 	// Add all chunks in the visible range to the visible list.
 	// First add the xz plane that the camera is currently on.
-	if (CameraChunkOffset.y < WORLD_SIZE && CameraChunkOffset.y >= 0)
+	if (CameraChunkOffset.y < mWorldSize && CameraChunkOffset.y >= 0)
 	{
 		for (int32_t x = 0; x < DoubleVisibility; x++)
 		{
 			const int32_t xPosition = CameraChunkOffset.x + x;
-			if (xPosition >= WORLD_SIZE || xPosition < 0)
+			if (xPosition >= mWorldSize || xPosition < 0)
 				continue;
 
 			for (int32_t z = 0; z < DoubleVisibility; z++)
 			{
 				const int32_t zPosition = CameraChunkOffset.z + z;
-				if (zPosition >= WORLD_SIZE || zPosition < 0)
+				if (zPosition >= mWorldSize || zPosition < 0)
 					continue;
 
 				const int32_t VisibleChunkIndex = ChunkIndex(xPosition, CameraChunkOffset.y, zPosition);
@@ -339,21 +302,21 @@ void FChunkManager::UpdateVisibleList()
 		{
 			const int32_t yPosition = CameraChunkOffset.y + y;
 
-			if (yPosition >= WORLD_SIZE || yPosition < 0)
+			if (yPosition >= mWorldSize || yPosition < 0)
 				continue;
 
 			for (int32_t x = 0; x < DoubleVisibility; x++)
 			{
 				const int32_t xPosition = CameraChunkOffset.x + x;
 
-				if (xPosition >= WORLD_SIZE || xPosition < 0)
+				if (xPosition >= mWorldSize || xPosition < 0)
 					continue;
 
 				for (int32_t z = 0; z < DoubleVisibility; z++)
 				{
 					const int32_t zPosition = CameraChunkOffset.z + z;
 
-					if (zPosition >= WORLD_SIZE || zPosition < 0)
+					if (zPosition >= mWorldSize || zPosition < 0)
 						continue;
 
 					const int32_t VisibleChunkIndex = ChunkIndex(xPosition, yPosition, zPosition);
@@ -405,7 +368,7 @@ void FChunkManager::AddRegionFileReference(int32_t X, int32_t Y, int32_t Z)
 		// Add the file if not loaded
 		RegionFileRecord& Record = mRegionFiles[RegionName];
 		Record.ReferenceCount = 1;
-		Record.File.Load(L"TestWorld", RegionName);
+		Record.File.Load(L"GenWorld", RegionName);
 	}
 }
 

@@ -1,6 +1,6 @@
 #include "..\Include\Windows\WindowsFile.h"
 #include <iostream>
-#include "Pathcch.h"
+#include "Shlwapi.h"
 
 namespace
 {
@@ -234,7 +234,7 @@ void FWindowsFileSystem::SetProgramDirectory()
 	ProgramDirectorySize = GetModuleFileName(NULL, ProgramDirectory, PROGRAM_DIRECTORY_CAP);
 	if (ProgramDirectorySize < PROGRAM_DIRECTORY_CAP)
 	{
-		PathCchRemoveFileSpec(ProgramDirectory, PROGRAM_DIRECTORY_CAP);
+		PathRemoveFileSpec(ProgramDirectory);
 		return;
 	}
 

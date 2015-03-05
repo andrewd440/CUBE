@@ -8,28 +8,19 @@
 FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, 10000> FChunk::ChunkAllocator(__alignof(FChunk));
 FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 
-namespace
+int32_t FChunk::BlockIndex(Vector3i Position)
 {
-	/**
-	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
-	*/
-	int32_t BlockIndex(Vector3i Position)
-	{
-		ASSERT(Position.x >= 0 && Position.x < FChunk::CHUNK_SIZE &&
-			Position.y >= 0 && Position.y < FChunk::CHUNK_SIZE &&
-			Position.z >= 0 && Position.z < FChunk::CHUNK_SIZE)
+	ASSERT(Position.x >= 0 && Position.x < CHUNK_SIZE &&
+		Position.y >= 0 && Position.y < CHUNK_SIZE &&
+		Position.z >= 0 && Position.z < CHUNK_SIZE);
 
-		const Vector3i PositionToIndex{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE * FChunk::CHUNK_SIZE, 1 };
-		return Vector3i::Dot(Position, PositionToIndex);
-	}
+	const Vector3i PositionToIndex{ CHUNK_SIZE, CHUNK_SIZE * CHUNK_SIZE, 1 };
+	return Vector3i::Dot(Position, PositionToIndex);
+}
 
-	/**
-	* Returns the index of a block in the mBlocks array based on 3D coordinates within the chunk.
-	*/
-	int32_t BlockIndex(int32_t X, int32_t Y, int32_t Z)
-	{
-		return BlockIndex(Vector3i{X, Y, Z});
-	}
+int32_t FChunk::BlockIndex(int32_t X, int32_t Y, int32_t Z)
+{
+	return FChunk::BlockIndex(Vector3i{ X, Y, Z });
 }
 
 FChunk::FChunk()
@@ -133,7 +124,7 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 				uint8_t Length = 1;
 
 				FBlock::BlockType NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;
-				while (CurrentBlock == NextBlock && Length < CHUNK_SIZE)
+				while (CurrentBlock == NextBlock && Length + z < CHUNK_SIZE)
 				{
 					Length++;
 					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;

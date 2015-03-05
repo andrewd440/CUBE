@@ -23,6 +23,11 @@ namespace FMath
 		return ((1 - Value) * From) + (Value * To);
 	}
 
+	inline float MapValue(const float Value, const float MinOriginal, const float MaxOriginal, const float MinResult, const float MaxResult)
+	{
+		return (Value - MinOriginal) / (MaxOriginal - MinOriginal) * (MaxResult - MinResult) + MinResult;
+	}
+
 	/**
 	* Checks the bounds of a vector against current min and max bounds.
 	* The min and max bounds are updated if the new point is outside the current
