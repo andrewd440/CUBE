@@ -19,6 +19,9 @@
 #include "Rendering\Camera.h"
 #include "Rendering\RenderSystem.h"
 #include "Rendering\Light.h"
+#include "Components\Collider.h"
+#include "Components\RigidBody.h"
+#include "Physics\PhysicsSystem.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
@@ -61,6 +64,7 @@ void FVoxiGineRoot::Start()
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
+	SystemManager.AddSystem<FPhysicsSystem>();
 
 	GameLoop();
 }
@@ -78,18 +82,21 @@ void FVoxiGineRoot::GameLoop()
 
 	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
 	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
+	GameObjectManager.RegisterComponentType<EComponent::Collider>();
+	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
 
-	auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.7, .7, .7);
-	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
+	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	//DLight.Color = Vector3f(.7, .7, .7);
+	//DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
 
-
+	
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
 	PLight.Color = Vector3f(1, 1, 1);
-	PLight.MinDistance = 0;
-	PLight.MaxDistance = 0;
+	PLight.MinDistance = 10;
+	PLight.MaxDistance = 350;
+	PointLight.Transform.SetPosition(Vector3f{0,300,0});
 
 	// Game Loop
 	float lag = 0.0f;
@@ -110,13 +117,15 @@ void FVoxiGineRoot::GameLoop()
 			mChunkManager.SetBlock(IntPosition, FBlock::Brick);
 		}
 
-		lag += STime::GetDeltaTime();
-		while (lag >= STime::GetFixedUpdate())
-		{
-			mChunkManager.Update();
-			lag -= STime::GetFixedUpdate();
-		}
+		//lag += STime::GetDeltaTime();
+		//while (lag >= STime::GetFixedUpdate())
+		//{
+		//	mChunkManager.Update();
+		//	lag -= STime::GetFixedUpdate();
+		//}
 
+		mChunkManager.Update();
+		SystemManager.GetSystem(Systems::Physics)->Update();
 		UpdateCamera(PointLight.Transform);
 		GameObjectManager.Update();
 		
@@ -184,10 +193,10 @@ void FVoxiGineRoot::UpdateTimers()
 	float DeltaTime = FClock::CyclesToSeconds(PostUpdateTimer - PreUpdateTimer);
 
 	// If large delta time, we were probably in a breakpoint
-	//if (DeltaTime > 1.5f)
-	//{
-	//	DeltaTime = 1.0f / 30.0f;
-	//}
+	if (DeltaTime > 1.5f)
+	{
+		DeltaTime = 1.0f / 30.0f;
+	}
 
 	// Set delta time for this frame
 	STime::SetDeltaTime(DeltaTime);
@@ -242,5 +251,5 @@ void UpdateCamera(FTransform& Light)
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
 	MainCamera.Transform.Translate(Translation);
 
-	Light.SetPosition(MainCamera.Transform.GetPosition());
+	//Light.SetPosition(MainCamera.Transform.GetPosition());
 }

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="btgui">
+      <UniqueIdentifier>{7FEB77BC-569D-0948-AFA6-5C212B74BDBF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui\lua-5.2.3">
+      <UniqueIdentifier>{AD7EFCDE-A6B9-BD4A-916E-9BB825998474}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui\lua-5.2.3\src">
+      <UniqueIdentifier>{E513EE0E-397E-574E-A6BE-990D242BFC24}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lapi.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lauxlib.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lcode.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lctype.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\ldebug.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\ldo.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lfunc.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lgc.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\llex.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\llimits.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lmem.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lobject.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lopcodes.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lparser.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lstate.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lstring.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\ltable.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\ltm.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lua.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\luaconf.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lualib.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lundump.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lvm.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\lua-5.2.3\src\lzio.h">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lapi.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lauxlib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lbaselib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lbitlib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lcode.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lcorolib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lctype.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ldblib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ldebug.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ldo.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ldump.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lfunc.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lgc.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\linit.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\liolib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\llex.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lmathlib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lmem.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\loadlib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lobject.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lopcodes.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\loslib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lparser.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lstate.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lstring.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lstrlib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ltable.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ltablib.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\ltm.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lundump.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lvm.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\lua-5.2.3\src\lzio.c">
+      <Filter>btgui\lua-5.2.3\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="btgui">
+      <UniqueIdentifier>{61DF6DC3-7F27-4B4D-BFA7-7836E250B534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui\OpenGLWindow">
+      <UniqueIdentifier>{6BE99D0C-30C9-604A-9881-7111A635A5CB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui\OpenGLWindow\GlewWindows">
+      <UniqueIdentifier>{281AEB66-E701-A64C-8CAF-A6680D049BF4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\b3gWindowInterface.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\CommonGraphicsApp.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\CommonRenderInterface.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\fontstash.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLInstanceGraphicsShape.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLInstanceRendererInternalData.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLInstancingRenderer.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLPrimInternalData.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLPrimitiveRenderer.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GLRenderToTexture.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\GwenOpenGL3CoreRenderer.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\LoadShader.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\MacOpenGLWindow.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\OpenGL2Include.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\OpenGLInclude.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\opengl_fontstashcallbacks.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\ShapeData.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\SimpleCamera.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\SimpleOpenGL2App.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\SimpleOpenGL2Renderer.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\SimpleOpenGL3App.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\stb_image_write.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\stb_truetype.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\TwFonts.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\Win32InternalWindowData.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\Win32OpenGLWindow.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\Win32Window.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\OpenGLWindow\X11OpenGLWindow.h">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\GlewWindows\glew.c">
+      <Filter>btgui\OpenGLWindow\GlewWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\fontstash.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\GLInstancingRenderer.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\GLPrimitiveRenderer.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\GLRenderToTexture.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\LoadShader.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\opengl_fontstashcallbacks.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\OpenSans.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\SimpleCamera.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\SimpleOpenGL2App.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\SimpleOpenGL2Renderer.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\SimpleOpenGL3App.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\TwFonts.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\Win32OpenGLWindow.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\OpenGLWindow\Win32Window.cpp">
+      <Filter>btgui\OpenGLWindow</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

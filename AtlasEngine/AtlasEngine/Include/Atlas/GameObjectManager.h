@@ -124,6 +124,10 @@ namespace Atlas
 		*/
 		void DestroyGameObjectHelp(FGameObject& GameObject);
 
+		void* AllocateComponentForObject(const EComponent::Type Type, FGameObject& GameObject);
+
+		void UpdateComponentSystems(FGameObject& GameObject, IComponent& UpdatedComponent);
+
 	private:
 		static const uint32_t DEFAULT_CONTAINER_SIZE = 100;
 

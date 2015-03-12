@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{74914036-1BBA-5445-A8FC-50D8A18C2D65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\clew">
+      <UniqueIdentifier>{C2B0E36F-2C4A-EB49-BA54-66BD84827F82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{1587CA48-0039-124F-B285-FA488612A2C1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\OpenCL">
+      <UniqueIdentifier>{33DF2661-D919-D240-AB54-4233D34CB85E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\OpenCL\RadixSortBenchmark">
+      <UniqueIdentifier>{C2A6DF7D-A706-D74B-96E7-BC7B8BB3543F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Bullet3OpenCL">
+      <UniqueIdentifier>{453F2258-EE52-CB49-9E22-D9EB9CE7F25D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Bullet3OpenCL\Initialize">
+      <UniqueIdentifier>{4D040F89-5D75-5445-BC5F-95967C821B21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Bullet3OpenCL\ParallelPrimitives">
+      <UniqueIdentifier>{2A43EF82-3C69-7E40-B519-69B88D0B6760}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Bullet3Common">
+      <UniqueIdentifier>{7ECEE77D-E11C-1047-BD0C-31E2629F324C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui">
+      <UniqueIdentifier>{179E4B9B-F6CE-3E47-AF28-A2244D060C8A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="btgui\Bullet3AppSupport">
+      <UniqueIdentifier>{3760801C-1C21-1445-87BB-779DC0B69E3E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\clew\clew.h">
+      <Filter>src\clew</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Bullet3OpenCL\Initialize\b3OpenCLUtils.h">
+      <Filter>src\Bullet3OpenCL\Initialize</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Bullet3Common\b3AlignedAllocator.h">
+      <Filter>src\Bullet3Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Bullet3Common\b3AlignedObjectArray.h">
+      <Filter>src\Bullet3Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Bullet3Common\b3Logging.h">
+      <Filter>src\Bullet3Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\Bullet3AppSupport\b3Quickprof.h">
+      <Filter>btgui\Bullet3AppSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\btgui\Bullet3AppSupport\b3Clock.h">
+      <Filter>btgui\Bullet3AppSupport</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\clew\clew.c">
+      <Filter>src\clew</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\OpenCL\RadixSortBenchmark\main.cpp">
+      <Filter>test\OpenCL\RadixSortBenchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3OpenCL\Initialize\b3OpenCLUtils.cpp">
+      <Filter>src\Bullet3OpenCL\Initialize</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3OpenCL\ParallelPrimitives\b3FillCL.cpp">
+      <Filter>src\Bullet3OpenCL\ParallelPrimitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3OpenCL\ParallelPrimitives\b3PrefixScanCL.cpp">
+      <Filter>src\Bullet3OpenCL\ParallelPrimitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3OpenCL\ParallelPrimitives\b3RadixSort32CL.cpp">
+      <Filter>src\Bullet3OpenCL\ParallelPrimitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3OpenCL\ParallelPrimitives\b3LauncherCL.cpp">
+      <Filter>src\Bullet3OpenCL\ParallelPrimitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3Common\b3AlignedAllocator.cpp">
+      <Filter>src\Bullet3Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bullet3Common\b3Logging.cpp">
+      <Filter>src\Bullet3Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\Bullet3AppSupport\b3Quickprof.cpp">
+      <Filter>btgui\Bullet3AppSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\btgui\Bullet3AppSupport\b3Clock.cpp">
+      <Filter>btgui\Bullet3AppSupport</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

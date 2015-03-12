@@ -13,7 +13,7 @@ namespace Atlas
 		////////////////////////////////////////////////////////////////////////////
 	}
 
-	void ISystem::CheckInterest(FGameObject& GameObject)
+	void ISystem::CheckInterest(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
 		// Check if GameObject is already in our system and if this system is
 		// interested in processing it
@@ -25,17 +25,17 @@ namespace Atlas
 		{
 			mGameObjectIDs.push_back(&GameObject);
 			GameObject.SetSystemBit(mSystemBitMask);
-			OnGameObjectAdd(GameObject);
+			OnGameObjectAdd(GameObject, UpdateComponent);
 		}
 		// It is in the system, but we are not interested
 		else if (Contains && !Interest && mTypeBitMask.any())
 		{
-			OnGameObjectRemove(GameObject);
+			OnGameObjectRemove(GameObject, UpdateComponent);
 			RemoveObject(GameObject);
 		}
 
 		for (auto& SubSystem : mSubSystems)
-			SubSystem->CheckInterest(GameObject);
+			SubSystem->CheckInterest(GameObject, UpdateComponent);
 	}
 
 	void ISystem::RemoveObject(FGameObject& GameObject)
@@ -44,12 +44,12 @@ namespace Atlas
 		mGameObjectIDs.erase(std::find(mGameObjectIDs.begin(), mGameObjectIDs.end(), &GameObject));
 	}
 
-	void ISystem::OnGameObjectAdd(FGameObject& GameObject)
+	void ISystem::OnGameObjectAdd(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
 
 	}
 
-	void ISystem::OnGameObjectRemove(FGameObject& GameObject)
+	void ISystem::OnGameObjectRemove(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
 
 	}

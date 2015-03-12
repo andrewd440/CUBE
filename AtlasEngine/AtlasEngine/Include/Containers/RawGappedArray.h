@@ -92,7 +92,7 @@ public:
 
 	template <typename T>
 	/**
-	* Indexes into the data container held by the allocator. 
+	* Typed index into the data container held by the allocator. 
 	* Only use this if you know the index of an allocated object.
 	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
 	* FGapArrayAllocator::End() iterators.
@@ -101,12 +101,28 @@ public:
 
 	template <typename T>
 	/**
-	* Indexes into the data container held by the allocator.
+	* Typed index into the data container held by the allocator.
 	* Only use this if you know the index of an allocated object.
 	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
 	* FGapArrayAllocator::End() iterators.
 	*/
 	const T& At(const uint32_t Index) const;
+
+	/**
+	* Untyped index into the data container held by the allocator.
+	* Only use this if you know the index of an allocated object.
+	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
+	* FGapArrayAllocator::End() iterators.
+	*/
+	void* operator[](const size_t Index) { return mData + Index * mElementSize; };
+
+	/**
+	* Untyped index into the data container held by the allocator.
+	* Only use this if you know the index of an allocated object.
+	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
+	* FGapArrayAllocator::End() iterators.
+	*/
+	const void* operator[](const size_t Index) const { return mData + Index * mElementSize; };
 
 	template <typename T>
 	/**

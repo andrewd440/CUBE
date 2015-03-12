@@ -32,6 +32,7 @@ private:
 		enum Index : uint32_t
 		{
 			Render,
+			Physics,
 			Count
 		};
 	};

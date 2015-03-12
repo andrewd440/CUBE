@@ -72,9 +72,10 @@ namespace Atlas
 		/**
 		* Checks to see if the any Systems contained in the SystemManager is interested 
 		* in a GameObject based on which Components it owns.
-		* @param GameObject - the GameObject to be checked
+		* @param GameObject - The GameObject to be checked
+		* @param UpdatedComponent - The component that was added/removed for the object.
 		*/
-		void CheckInterest(FGameObject& GameObject);
+		void CheckInterest(FGameObject& GameObject, IComponent& UpdatedComponent);
 
 		template <typename T>
 		/**

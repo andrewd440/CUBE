@@ -93,19 +93,22 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;freetype.lib;freetype-gl.lib;glu32.lib;sfml-window-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;sfml-window-d.lib;sfml-system-d.lib;freetype.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,11 +136,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,10 +149,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <Profile>true</Profile>
-      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;freetype.lib;freetype-gl.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;freetype.lib;sfml-window.lib;sfml-system.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -177,7 +182,10 @@
   <ItemGroup>
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
+    <ClInclude Include="Include\Components\Collider.h" />
+    <ClInclude Include="Include\Components\RigidBody.h" />
     <ClInclude Include="Include\Math\Sphere.h" />
+    <ClInclude Include="Include\Physics\PhysicsSystem.h" />
     <ClInclude Include="Include\Rendering\DepthRenderTarget.h" />
     <ClInclude Include="Include\Rendering\GBuffer.h" />
     <ClInclude Include="Include\Rendering\Light.h" />
@@ -253,10 +261,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Components\Collider.cpp" />
+    <ClCompile Include="Src\Components\RigidBody.cpp" />
     <ClCompile Include="Src\FileIO\GenericFile.cpp" />
     <ClCompile Include="Src\FileIO\RegionFile.cpp" />
     <ClCompile Include="Src\Math\Box.cpp" />
     <ClCompile Include="Src\Math\Sphere.cpp" />
+    <ClCompile Include="Src\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="Src\Rendering\DepthRenderTarget.cpp" />
     <ClCompile Include="Src\Rendering\LightSystems.cpp" />
     <ClCompile Include="Src\Atlas\Component.cpp" />
@@ -326,6 +337,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\freetype-gl\Build\freetype-gl.vcxproj">
       <Project>{f4705548-1560-4bf2-ba01-27c9276db0dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\BulletCollision.vcxproj">
+      <Project>{06881b38-235a-cc45-8c79-97ff62204414}</Project>
+    </ProjectReference>
+    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\BulletDynamics.vcxproj">
+      <Project>{cea2e5cf-d896-9145-9c78-2e6b4fe4fb96}</Project>
+    </ProjectReference>
+    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\LinearMath.vcxproj">
+      <Project>{6700517c-bb93-5e46-acbe-d560e2d0f02f}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

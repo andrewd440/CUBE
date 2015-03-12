@@ -12,6 +12,8 @@
 namespace Atlas
 {
 	class FWorld;
+	class IComponent;
+
 	/**
 	* Base class for all Systems
 	* If a system only processes one type of component, it should retrieve the
@@ -41,8 +43,9 @@ namespace Atlas
 		* a component type. If the System is no longer interested in a GameObject that
 		* it already contains, the GameObject will be removed from the system.
 		* @param GameObject - The GameObject to be checked
+		* @param UpdatedComponent - The component that was added/removed from the object.
 		*/
-		virtual void CheckInterest(FGameObject& GameObject);
+		virtual void CheckInterest(FGameObject& GameObject, IComponent& UpdateComponent);
 
 		/**
 		* Retrieves the system type bits that are assigned to this system.
@@ -104,15 +107,17 @@ namespace Atlas
 		* This function is called after a new gameobject has been
 		* added to the system.
 		* @param GameObject - The gameobject that was added.
+		* @param UpdatedComponent - The component that was added from the object.
 		*/
-		virtual void OnGameObjectAdd(FGameObject& GameObject);
+		virtual void OnGameObjectAdd(FGameObject& GameObject, IComponent& UpdateComponent);
 
 		/**
 		* This function is called before a gameobject is about to be
 		* removed to the system.
 		* @param GameObject - The gameobject that will be removed.
+		* @param UpdatedComponent - The component that was removed from the object.
 		*/
-		virtual void OnGameObjectRemove(FGameObject& GameObject);
+		virtual void OnGameObjectRemove(FGameObject& GameObject, IComponent& UpdateComponent);
 
 		/**
 		* Assigns the system type bit for the System

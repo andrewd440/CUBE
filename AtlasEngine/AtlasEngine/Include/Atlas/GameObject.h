@@ -4,6 +4,7 @@
 #include <memory>
 #include "ComponentTypes.h"
 #include "Math\Transform.h"
+#include "btBulletCollisionCommon.h"
 
 namespace Atlas
 {
@@ -13,7 +14,7 @@ namespace Atlas
 	* Used to represent any game object. 
 	* Acts as a grouping/container for Components.
 	*/
-	class FGameObject
+	class FGameObject : public btMotionState
 	{
 	public:
 		using ID = uint32_t;
@@ -98,6 +99,18 @@ namespace Atlas
 		* Retrieves the component bits in use by this GameObject.
 		*/
 		std::bitset<BITSIZE> GetComponentBitMask() const;
+
+		/**
+		* Bullet Physics callback for retrieving the current motion
+		* state.
+		*/
+		void getWorldTransform(btTransform& WorldTransform) const override;
+
+		/**
+		* Bullet Physics callback for setting the current motion state
+		* of this object based on rigidbody physics.
+		*/
+		void setWorldTransform(const btTransform& WorldTransform) override;
 
 	private:
 		friend class FGameObjectManager;

@@ -4,11 +4,13 @@
 #include "GameObjectManager.h"
 #include "GameObject.h"
 #include "SystemManager.h"
+#include "Components\RigidBody.h"
+#include "Components\Collider.h"
 
 namespace Atlas
 {
 	template <EComponent::Type Type>
-	void FGameObjectManager::RegisterComponentType()
+	inline void FGameObjectManager::RegisterComponentType()
 	{
 		using ComponentType = ComponentTraits::Object<Type>::Type;
 		mSystemComponents[Type].Init<ComponentType>(DEFAULT_CONTAINER_SIZE);
@@ -18,19 +20,47 @@ namespace Atlas
 	inline typename ComponentTraits::Object<Type>::Type& FGameObjectManager::AddComponent(FGameObject& GameObject)
 	{
 		using ComponentType = ComponentTraits::Object<Type>::Type;
+		ComponentType& Component = *reinterpret_cast<ComponentType*>(AllocateComponentForObject(Type, GameObject));
 
-		// Check if the object already has this component
-		ASSERT(GameObject.mComponents[Type] == FGameObject::NULL_COMPONENT && "Trying to add duplicate component to gameobject.");
+		UpdateComponentSystems(GameObject, *reinterpret_cast<IComponent*>(&Component));
 
-		GameObject.AddComponentBit(SComponentHandleManager::GetBitMask(Type));
-		uint32_t ComponentIndex = mSystemComponents[Type].Allocate();
-		GameObject.mComponents[Type] = ComponentIndex;
-
-		// Notify component systems
-		mSystemManager.CheckInterest(GameObject);
-
-		return mSystemComponents[Type].At<ComponentType>(ComponentIndex);
+		return Component;
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////// RigidBody and Collider specializations ////////////////////////////////////////////////////////////////////////
+	template <>
+	inline typename ComponentTraits::Object<EComponent::RigidBody>::Type& FGameObjectManager::AddComponent<EComponent::RigidBody>(FGameObject& GameObject)
+	{
+		const EComponent::Type Type = EComponent::RigidBody;
+		using ComponentType = ComponentTraits::Object<Type>::Type;
+
+		// Allocate then construct the component
+		ComponentType* Component = reinterpret_cast<ComponentType*>(AllocateComponentForObject(Type, GameObject));
+		new (Component) ComponentType(static_cast<btMotionState*>(&GameObject));
+
+		UpdateComponentSystems(GameObject, *reinterpret_cast<IComponent*>(Component));
+
+		return *Component;
+	}
+
+	template <>
+	inline typename ComponentTraits::Object<EComponent::Collider>::Type& FGameObjectManager::AddComponent<EComponent::Collider>(FGameObject& GameObject)
+	{
+		const EComponent::Type Type = EComponent::Collider;
+		using ComponentType = ComponentTraits::Object<Type>::Type;
+
+		// Allocate then construct the component
+		ComponentType* Component = reinterpret_cast<ComponentType*>(AllocateComponentForObject(Type, GameObject));
+		new (Component)ComponentType(static_cast<btMotionState*>(&GameObject));
+
+		UpdateComponentSystems(GameObject, *reinterpret_cast<IComponent*>(Component));
+
+		return *Component;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <EComponent::Type Type>
 	inline typename ComponentTraits::Object<Type>::Type& FGameObjectManager::GetComponent(const uint32_t IndexHandle)

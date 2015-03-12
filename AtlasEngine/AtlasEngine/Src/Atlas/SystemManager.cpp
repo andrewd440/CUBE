@@ -14,10 +14,10 @@ namespace Atlas
 
 	}
 
-	void FSystemManager::CheckInterest(FGameObject& GameObject)
+	void FSystemManager::CheckInterest(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
 		// Delegate the all current systems
 		for (auto& System : mSystems)
-			System->CheckInterest(GameObject);
+			System->CheckInterest(GameObject, UpdateComponent);
 	}
 }

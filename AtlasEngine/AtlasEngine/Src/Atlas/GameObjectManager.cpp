@@ -67,11 +67,17 @@ namespace Atlas
 	void FGameObjectManager::RemoveComponent(FGameObject& GameObject, EComponent::Type Type)
 	{
 		GameObject.RemoveComponentBit(SComponentHandleManager::GetBitMask(Type));
-		mSystemComponents[Type].Free(GameObject.GetID());
-		GameObject.mComponents[Type] = FGameObject::NULL_COMPONENT;
+
+		const uint32_t ComponentIndex = GameObject.mComponents[Type];
+		IComponent& RemovedComponent = mSystemComponents[Type].At<IComponent>(ComponentIndex);
 
 		// Notify component systems
-		mSystemManager.CheckInterest(GameObject);
+		mSystemManager.CheckInterest(GameObject, RemovedComponent);
+
+		// Free the component
+		mSystemComponents[Type].Free(ComponentIndex);
+
+		GameObject.mComponents[Type] = FGameObject::NULL_COMPONENT;
 	}
 
 	std::vector<IComponent*> FGameObjectManager::GetAllComponentsFor(const uint32_t ID)
@@ -98,13 +104,28 @@ namespace Atlas
 			uint32_t ComponentIndex = Object.mComponents[i];
 			if (ComponentIndex != FGameObject::NULL_COMPONENT)
 			{
-				Object.mComponents[i] = FGameObject::NULL_COMPONENT;
-				mSystemComponents[i].Free(ComponentIndex);
+				RemoveComponent(Object, Atlas::EComponent::Type(i));
 			}
 		}
+	}
 
-		// Clear all component bits
-		Object.mComponentBits.reset();
-		mSystemManager.CheckInterest(Object);
+	void* FGameObjectManager::AllocateComponentForObject(const EComponent::Type Type, FGameObject& GameObject)
+	{
+		// Check if the object already has this component
+		ASSERT(GameObject.mComponents[Type] == FGameObject::NULL_COMPONENT && "Trying to add duplicate component to gameobject.");
+
+		GameObject.AddComponentBit(SComponentHandleManager::GetBitMask(Type));
+		uint32_t ComponentIndex = mSystemComponents[Type].Allocate();
+		GameObject.mComponents[Type] = ComponentIndex;
+
+		// Notify component systems and return component
+		void* Component = mSystemComponents[Type][ComponentIndex];
+
+		return Component;
+	}
+
+	void FGameObjectManager::UpdateComponentSystems(FGameObject& GameObject, IComponent& UpdatedComponent)
+	{
+		mSystemManager.CheckInterest(GameObject, UpdatedComponent);
 	}
 }
