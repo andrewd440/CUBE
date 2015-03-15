@@ -36,6 +36,8 @@ namespace FDebug
 	{
 		// From https://code.google.com/p/freetype-gl/source/browse/trunk/demo-font.c
 		size_t i;
+		IFileSystem::GetInstance().SetToProgramDirectory();
+		texture_font_load_glyphs(mTextureFont, String);
 		for (i = 0; i < wcslen(String); ++i)
 		{
 			texture_glyph_t *glyph = texture_font_get_glyph(mTextureFont, String[i]);

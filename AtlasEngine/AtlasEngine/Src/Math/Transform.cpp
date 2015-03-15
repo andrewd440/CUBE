@@ -21,7 +21,7 @@ FMatrix4 FTransform::LocalToWorldMatrix() const
 		return LocalToWorld;
 	}
 
-	return LocalToWorldMatrix() * LocalToWorld;
+	return mParent->LocalToWorldMatrix() * LocalToWorld;
 }
 
 FMatrix4 FTransform::WorldToLocalMatrix() const

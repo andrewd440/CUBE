@@ -7,9 +7,10 @@
 #include "..\Common.h"
 #include "Block.h"
 #include "Mesh.h"
+#include "btBulletCollisionCommon.h"
 
 /**
-* Voxel vertex (P, N, C)
+* Voxel vertex { PositionAO, Normal, Color }
 */
 struct FVoxelVertex
 {
@@ -32,6 +33,7 @@ const bool VertexTraits::GL_Attribute<FVoxelVertex>::Normalized[] = { GL_FALSE, 
 const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Offset[] = { 0, 16, 28 };
 
 class FChunkManager;
+class FPhysicsSystem;
 
 /**
 * Represents a 3D mesh of voxels of CHUNK_SIZE
@@ -39,13 +41,30 @@ class FChunkManager;
 */
 class FChunk
 {
+private:
+	WIN_ALIGN(16)
+	struct CollisionData
+	{
+		CollisionData()
+			: Mesh()
+			, Shape(&Mesh, false, false)
+			, Object()
+		{}
+		btTriangleIndexVertexArray Mesh;
+		btBvhTriangleMeshShape     Shape;
+		btCollisionObject          Object;
+	};
+
 public:
 	// Dimensions of each chunk
 	static const int32_t CHUNK_SIZE = 32;
 	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, 10000> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, 10000> MeshAllocator;
+	// Memory pools
+	static const uint32_t POOL_SIZE = 10000;
+	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, POOL_SIZE> ChunkAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE> MeshAllocator;
+	static FPoolAllocatorType<CollisionData, POOL_SIZE> CollisionAllocator;
 
 public:
 	/**
@@ -87,14 +106,17 @@ public:
 	/**
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
-	* @param LowerLeftPosition - The starting world position of this chunk.
+	* @param BlockData - RLE block layout for this chunk.
+	* @param PhysicsSystem - The current physics system.
 	*/
-	void Load(const std::vector<uint8_t>& BlockData);
+	void Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& PhysicsSystem, const Vector3f& WorldPosition);
 
 	/**
 	* Frees block and mesh data.
+	* @param BlockDataOut - Memory to place RLE block layout for this chunk.
+	* @param PhysicsSystem - The current physics system.
 	*/
-	void Unload(std::vector<uint8_t>& BlockDataOut);
+	void Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsSystem);
 
 	/**
 	* Checks if the chunk has been loaded.
@@ -142,16 +164,24 @@ private:
 
 private:
 	/**
-	* Voxel mesh algorithm to minimize triangle count on chunk meshes.
-	* Algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
+	* Info used to determine if faces of a voxel can be
+	* mesh together.
 	*/
-	void GreedyMesh();
 	struct MaskInfo
 	{
 		Vector4i AOFactors;
 		FBlock Block;
 	};
 
+	/**
+	* Voxel mesh algorithm to minimize triangle count on chunk meshes.
+	* Algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
+	*/
+	void GreedyMesh();
+
+	/**
+	* Determines the status of surround ambient occlusion voxel for a specific voxel.
+	*/
 	void CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const;
 
 	/**
@@ -217,6 +247,9 @@ private:
 	FBlock* mBlocks;
 	TMesh<FVoxelVertex>* mMesh;
 	FChunkManager* mChunkManager;
+	CollisionData* mCollisionData;
 	bool mIsLoaded;
 	bool mIsEmpty;
+
+
 };

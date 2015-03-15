@@ -2,6 +2,8 @@
 #include "STime.h"
 #include "Components\RigidBody.h"
 #include "Components\Collider.h"
+#include "Debugging\DebugDraw.h"
+#include "SFML\Window\Keyboard.hpp"
 
 FPhysicsSystem::FPhysicsSystem(Atlas::FWorld& World)
 	: ISystem(World)
@@ -12,6 +14,8 @@ FPhysicsSystem::FPhysicsSystem(Atlas::FWorld& World)
 	, mDynamicsWorld(&mCollisionDispatcher, &mBroadPhase, &mConstraintSolver, &mCollisionConfig)
 {
 	mDynamicsWorld.setGravity(btVector3{ 0, -10, 0 });
+	mDynamicsWorld.setDebugDrawer(FDebug::Draw::GetInstancePtr());
+
 	AddSubSystem<FRigidBodySystem>(mDynamicsWorld);
 	AddSubSystem<FColliderSystem>(mDynamicsWorld);
 }
@@ -25,6 +29,34 @@ FPhysicsSystem::~FPhysicsSystem()
 void FPhysicsSystem::Update()
 {
 	mDynamicsWorld.stepSimulation(STime::GetDeltaTime());
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::U))
+		RenderCollisionObjects();
+}
+
+void FPhysicsSystem::RenderCollisionObjects()
+{
+	mDynamicsWorld.debugDrawWorld();
+}
+
+void FPhysicsSystem::AddCollider(btCollisionObject& CollisionObject)
+{
+	mDynamicsWorld.addCollisionObject(&CollisionObject);
+}
+
+void FPhysicsSystem::RemoveCollider(btCollisionObject& CollisionObject)
+{
+	mDynamicsWorld.removeCollisionObject(&CollisionObject);
+}
+
+void FPhysicsSystem::AddRigidBody(btRigidBody& RigidBody)
+{
+	mDynamicsWorld.addRigidBody(&RigidBody);
+}
+
+void FPhysicsSystem::RemoveRigidBody(btRigidBody& RigidBody)
+{
+	mDynamicsWorld.removeRigidBody(&RigidBody);
 }
 
 void FPhysicsSystem::CheckInterest(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdatedComponent)
@@ -32,12 +64,6 @@ void FPhysicsSystem::CheckInterest(Atlas::FGameObject& GameObject, Atlas::ICompo
 	// Only delegate to subsystems
 	for (auto& SubSystem : GetSubSystems())
 		SubSystem->CheckInterest(GameObject, UpdatedComponent);
-}
-
-
-void FPhysicsSystem::RemoveObject(Atlas::FGameObject& GameObject)
-{
-	// Not holding object IDs, so do nothing.
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

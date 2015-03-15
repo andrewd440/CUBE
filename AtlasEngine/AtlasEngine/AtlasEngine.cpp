@@ -13,8 +13,8 @@
 
 int main()
 {
-	FVoxiGineRoot Root;
-	Root.Start();
+	FVoxiGineRoot root;
+	root.Start();
 	
 	//IFileSystem* FileSys = new FFileSystem;
 	//FileSys->SetToProgramDirectory();
@@ -26,14 +26,14 @@ int main()
 
 	//FWorldGenerator Generator;
 	//Generator.SetBounds(Vector2f{ 1.0f, 1.0f }, Vector2f{ 10.0f, 10.0f });
-	//Generator.SetWorldSizeInChunks(8);
-	//Generator.SetMaxHeight(128);
-	//Generator.SetMinHeight(110);
+	//Generator.SetWorldSizeInChunks(2);
+	//Generator.SetMaxHeight(38);
+	//Generator.SetMinHeight(30);
 
 	//Generator.AddTerrainLevel(0, FBlock::Brick);
-	//Generator.AddTerrainLevel(70, FBlock::Dirt);
-	//Generator.AddTerrainLevel(119, FBlock::Grass);
-	//Generator.AddTerrainLevel(130, FBlock::Snow);
+	//Generator.AddTerrainLevel(20, FBlock::Dirt);
+	//Generator.AddTerrainLevel(30, FBlock::Grass);
+	//Generator.AddTerrainLevel(40, FBlock::Snow);
 
 	//Generator.Build(Module, L"GenWorld");
 

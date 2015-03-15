@@ -24,6 +24,7 @@ FChunkManager::FChunkManager()
 	, mLastCameraDirection()
 	, mWorldSize(2)
 	, mWorldName()
+	, mPhysicsSystem(nullptr)
 {
 }
 
@@ -168,6 +169,11 @@ void FChunkManager::DestroyBlock(Vector3i Position)
 	mRebuildList.push_back(ChunkNumber);
 }
 
+void FChunkManager::SetPhysicsSystem(FPhysicsSystem& Physics)
+{
+	mPhysicsSystem = &Physics;
+}
+
 void FChunkManager::UpdateUnloadList()
 {
 	for (auto Itr = mUnloadList.begin(); Itr != mUnloadList.end(); Itr++)
@@ -177,7 +183,7 @@ void FChunkManager::UpdateUnloadList()
 		
 		// Buffer for all chunk unloading data.
 		std::vector<uint8_t> ChunkDataBuffer;
-		mChunks[Index].Unload(ChunkDataBuffer);
+		mChunks[Index].Unload(ChunkDataBuffer, *mPhysicsSystem);
 
 		// Get region position info
 		const Vector3i ChunkPosition = IndexToChunkPosition(Index);
@@ -215,7 +221,7 @@ void FChunkManager::UpdateLoadList()
 		const int32_t Index = *Itr;
 
 		// Get region position info
-		const Vector3i ChunkPosition = IndexToChunkPosition(Index);
+		Vector3i ChunkPosition = IndexToChunkPosition(Index);
 		const Vector3i RegionPosition = FRegionFile::ChunkToRegionPosition(ChunkPosition);
 		const Vector3i LocalRegionPosition = FRegionFile::LocalRegionPosition(ChunkPosition);
 		
@@ -229,7 +235,9 @@ void FChunkManager::UpdateLoadList()
 		RegionFile.GetChunkData(ChunkSectorOffset, ChunkData.data(), ChunkDataSize);
 
 		// Load and build the chunk
-		mChunks[Index].Load(ChunkData);
+		ChunkPosition *= FChunk::CHUNK_SIZE;
+		const Vector3f FPosition{ (float)ChunkPosition.x, (float)ChunkPosition.y, (float)ChunkPosition.z };
+		mChunks[Index].Load(ChunkData, *mPhysicsSystem, FPosition);
 		mChunks[Index].RebuildMesh();
 
 		// Add it to the loaded lists

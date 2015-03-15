@@ -12,7 +12,7 @@ WIN_ALIGN(16)
 struct FCollider : public Atlas::IComponent
 {
 	FCollider(const btMotionState* StartState = nullptr)
-		: BoxCollider(btVector3{})
+		: BoxCollider(btVector3{0.5f, 0.5f, 0.5f})
 		, CollisionObject()
 	{
 		CollisionObject.setCollisionShape(&BoxCollider);

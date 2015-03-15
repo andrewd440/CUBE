@@ -9,6 +9,9 @@ namespace FDebug
 {
 	Draw::Draw()
 		: mObjects()
+		, mLines(GL_DYNAMIC_DRAW)
+		, mShader()
+		, mDebugMode(btIDebugDraw::DBG_DrawWireframe)
 	{
 		FShader VertexShader{ L"Shaders/DebugDraw.vert", GL_VERTEX_SHADER };
 		FShader FragShader{ L"Shaders/DebugDraw.frag", GL_FRAGMENT_SHADER };
@@ -19,6 +22,20 @@ namespace FDebug
 
 	Draw::~Draw()
 	{
+	}
+
+	void Draw::drawLine(const btVector3& From, const btVector3& To, const btVector3& Color)
+	{
+		const float Verts[12] = 
+		{
+			From.x(), From.y(), From.z(), Color.x(), Color.y(), Color.z(),
+			To.x(), To.y(), To.z(), Color.x(), Color.y(), Color.z()
+		};
+
+		const uint32_t BaseIndex = mLines.GetIndexCount();
+		const uint32_t Indices[2] = { BaseIndex + 0, BaseIndex + 1 };
+		mLines.AddVertex((DrawVertex*)Verts, 2);
+		mLines.AddIndices(Indices, 2);
 	}
 
 	void Draw::DrawFrustum(FCamera& Camera, const Vector3f& Color, const float Lifetime)
@@ -123,5 +140,9 @@ namespace FDebug
 			else
 				Itr++;
 		}
+
+		mLines.Activate();
+		mLines.Render(GL_LINES);
+		mLines.ClearData();
 	}
 }

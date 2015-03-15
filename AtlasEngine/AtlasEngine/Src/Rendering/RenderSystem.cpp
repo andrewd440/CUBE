@@ -36,12 +36,6 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	LoadShaders();
 	LoadSubSystems();
 
-	// Initialize debug text
-	FDebug::Draw* DebugDraw = new FDebug::Draw;
-	FDebug::Text* DebugText = new FDebug::Text;
-	DebugText->SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
-	
-
 	// Setup transform buffer with default values
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
@@ -62,18 +56,6 @@ void FRenderSystem::LoadShaders()
 	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.vert"));
 	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.frag"));
 	mDeferredRender.LinkProgram();
-
-
-	// Load shader program used for shadow mapping
-	FShader Vert{ L"Shaders/DepthRender.vert", GL_VERTEX_SHADER };
-	FShader Frag{ L"Shaders/DepthRender.frag", GL_FRAGMENT_SHADER };
-
-	SShaderProgramHolder::Load("DepthShaderProgram");
-	FShaderProgram& ShaderProgram = SShaderProgramHolder::Get("DepthShaderProgram");
-
-	ShaderProgram.AttachShader(Vert);
-	ShaderProgram.AttachShader(Frag);
-	ShaderProgram.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
@@ -84,8 +66,7 @@ void FRenderSystem::LoadSubSystems()
 
 FRenderSystem::~FRenderSystem()
 {
-	delete FDebug::Draw::GetInstancePtr();
-	delete FDebug::Text::GetInstancePtr();
+
 }
 
 void FRenderSystem::SetModelTransform(const FTransform& WorldTransform)
@@ -117,11 +98,12 @@ void FRenderSystem::Update()
 		FDebug::Draw::GetInstance().DrawBox(CamPosition, Vector3f{ 1, 1, 1 }, Vector3f{ 1, 1, 1 });
 	}
 
+
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
 	FDebug::Draw::GetInstance().Render();
 
 	// Debug Print
 	auto& DebugText = FDebug::Text::GetInstance();
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
 	wchar_t String[250];
 	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
 	swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
@@ -146,12 +128,8 @@ void FRenderSystem::RenderGeometry()
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
 
-	static bool LinesDraw = false;
-	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
-		LinesDraw = !LinesDraw;
-
 	// Render geometry
-	mChunkManager.Render(*this, LinesDraw ? GL_LINES : GL_TRIANGLES);
+	mChunkManager.Render(*this, GL_TRIANGLES);
 }
 
 void FRenderSystem::ConstructGBuffer()

@@ -22,6 +22,8 @@
 #include "Components\Collider.h"
 #include "Components\RigidBody.h"
 #include "Physics\PhysicsSystem.h"
+#include "Debugging\DebugDraw.h"
+#include "Debugging\DebugText.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
@@ -47,11 +49,17 @@ FVoxiGineRoot::FVoxiGineRoot()
 	
 	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 
+	// Initialize debug text
+	FDebug::Draw* DebugDraw = new FDebug::Draw;
+	FDebug::Text* DebugText = new FDebug::Text;
+	DebugText->SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
 {
 	delete IFileSystem::GetInstancePtr();
+	delete FDebug::Draw::GetInstancePtr();
+	delete FDebug::Text::GetInstancePtr();
 }
 
 void CameraSetup();
@@ -64,7 +72,20 @@ void FVoxiGineRoot::Start()
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
-	SystemManager.AddSystem<FPhysicsSystem>();
+	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
+
+	mChunkManager.SetPhysicsSystem(Physics);
+
+	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
+	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
+	GameObjectManager.RegisterComponentType<EComponent::Collider>();
+	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
+	
+	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	//DLight.Color = Vector3f(.7, .7, .7);
+	//DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
 
 	GameLoop();
 }
@@ -80,23 +101,13 @@ void FVoxiGineRoot::GameLoop()
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
-	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
-	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
-	GameObjectManager.RegisterComponentType<EComponent::Collider>();
-	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
+	MainCamera.Transform.SetPosition(Vector3f{ 10, 50, 30 });
 
-	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	//DLight.Color = Vector3f(.7, .7, .7);
-	//DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
-
-	
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
 	PLight.Color = Vector3f(1, 1, 1);
 	PLight.MinDistance = 10;
 	PLight.MaxDistance = 350;
-	PointLight.Transform.SetPosition(Vector3f{0,300,0});
 
 	// Game Loop
 	float lag = 0.0f;
@@ -125,8 +136,8 @@ void FVoxiGineRoot::GameLoop()
 		//}
 
 		mChunkManager.Update();
-		SystemManager.GetSystem(Systems::Physics)->Update();
 		UpdateCamera(PointLight.Transform);
+		SystemManager.GetSystem(Systems::Physics)->Update();
 		GameObjectManager.Update();
 		
 		// Render the frame
@@ -251,5 +262,5 @@ void UpdateCamera(FTransform& Light)
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
 	MainCamera.Transform.Translate(Translation);
 
-	//Light.SetPosition(MainCamera.Transform.GetPosition());
+	Light.SetPosition(MainCamera.Transform.GetPosition());
 }

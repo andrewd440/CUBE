@@ -17,9 +17,9 @@ inline uint32_t BMesh::GetIndexCountB() const
 	return mIndices.size();
 }
 
-inline uint32_t BMesh::TriangleCountB() const
+inline uint32_t BMesh::VertexCountB() const
 {
-	return mVertexData.size() / 3;
+	return mVertexData.size();
 }
 
 inline void BMesh::AddIndicesB(const uint32_t* Indices, const uint32_t Count)
@@ -141,9 +141,9 @@ inline uint32_t TMesh<T>::GetIndexCount() const
 }
 
 template <typename T>
-inline uint32_t TMesh<T>::TriangleCount() const
+inline uint32_t TMesh<T>::GetVertexCount() const
 {
-	return TriangleCountB() / VertexSize;
+	return VertexCountB() / VertexSize;
 }
 
 template <typename T>

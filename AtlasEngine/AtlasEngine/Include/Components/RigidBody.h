@@ -14,7 +14,7 @@ WIN_ALIGN(16)
 struct FRigidBody : public Atlas::IComponent
 {
 	FRigidBody(btMotionState* MotionState = nullptr)
-		: BoxCollider(btVector3{1, 1, 1})
+		: BoxCollider(btVector3{0.5f, 0.5f, 0.5f})
 		, Body(1.0f, MotionState, &BoxCollider)
 	{
 		btVector3 Inertia;

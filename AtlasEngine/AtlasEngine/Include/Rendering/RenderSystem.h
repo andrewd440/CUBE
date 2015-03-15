@@ -15,7 +15,7 @@ public:
 	* Constructs a rendering system.
  	* @param World - The world this system is part of.
 	* @param GameWindow - The window to render to.
-	* @param ChunkManager - The manager of chunks?
+	* @param ChunkManager - The manager of chunks
 	*/
 	FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChunkManager& ChunkManager);
 	~FRenderSystem();
@@ -44,12 +44,30 @@ public:
 	FBox GetViewBounds() const;
 
 private:
+	/**
+	* Load all rendering based shaders to the
+	* shader manager.
+	*/
 	void LoadShaders();
+
+	/**
+	* Loads all subsystems used for rendering.
+	*/
 	void LoadSubSystems();
 
+	/**
+	* Construct a GBuffer from the main camera.
+	*/
 	void ConstructGBuffer();
+
+	/**
+	* Process all of the scene lighting.
+	*/
 	void LightingPass();
 
+	/**
+	* Updates the AABB for the current view volume.
+	*/
 	void UpdateViewBounds();
 
 private:

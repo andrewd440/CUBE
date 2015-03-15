@@ -130,7 +130,7 @@ public:
 	/**
 	* Get the triangle count of the mesh.
 	*/
-	uint32_t TriangleCountB() const;
+	uint32_t VertexCountB() const;
 
 	/**
 	* Change the usage mode of GL buffers used
@@ -153,6 +153,16 @@ public:
 	* @param Size - The size, in bytes, of the data.
 	*/
 	//void MapVertexBufferB(void* Data, uint32_t Size);
+
+	/**
+	* Get the vertex data for this mesh.
+	**/
+	const uint8_t* GetVertices() const { return mVertexData.data(); }
+
+	/**
+	* Get the index data for this mesh.
+	*/
+	const uint32_t* GetIndices() const { return mIndices.data(); }
 
 	/**
 	* Enables all OpenGL attributes for this mesh.
@@ -310,7 +320,7 @@ public:
 	/**
 	* Get the triangle count of the mesh.
 	*/
-	uint32_t TriangleCount() const;
+	uint32_t GetVertexCount() const;
 
 	/**
 	* Copies and activates vertex and index data directly into their respective
@@ -343,6 +353,16 @@ public:
 	* @param Size - Number of vertices to copy.
 	*/
 	//void MapVertexBuffer(VertexType* Data, uint32_t Size);
+
+	/**
+	* Get the vertex data for this mesh.
+	*/
+	const uint8_t* GetVertices() const { return BMesh::GetVertices(); }
+
+	/**
+	* Get the index data for this mesh.
+	*/
+	const uint32_t* GetIndices() const { return BMesh::GetIndices(); }
 
 private:
 	/**

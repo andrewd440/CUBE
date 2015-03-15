@@ -8,6 +8,11 @@ public:
 	FPhysicsSystem(Atlas::FWorld& World);
 	~FPhysicsSystem();
 
+	/**
+	* Updates the physics system. This should be called each render loop.
+	* The physics update will internally update the with a fixed time value
+	* until the simulation is in its correct state.
+	*/
 	void Update() override;
 
 	/**
@@ -16,8 +21,39 @@ public:
 	*/
 	void CheckInterest(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
+	/**
+	* Renders collision object in the world.
+	*/
+	void RenderCollisionObjects();
+
 private:
-	void RemoveObject(Atlas::FGameObject& GameObject) override;
+	friend class FChunk;
+
+	/**
+	* Adds a collision object to the simulation.
+	*/
+	void AddCollider(btCollisionObject& CollisionObject);
+
+	/**
+	* Removes a collision object from the simulation.
+	*/
+	void RemoveCollider(btCollisionObject& CollisionObject);
+
+	/**
+	* Adds a rigidbody to the simulation.
+	*/
+	void AddRigidBody(btRigidBody& RigidBody);
+
+	/**
+	* Removes a rigidbody from the simulation.
+	*/
+	void RemoveRigidBody(btRigidBody& RigidBody);
+
+	/**
+	* Override for removing object from this system. Since this system
+	* does not need to hold object IDs, this evaluates to nothing.
+	*/
+	void RemoveObject(Atlas::FGameObject& GameObject) override {}
 
 private:
 	btDefaultCollisionConfiguration      mCollisionConfig; 
@@ -27,6 +63,10 @@ private:
 	btDiscreteDynamicsWorld              mDynamicsWorld;
 };
 
+/**
+* System for managing the addition and removal of 
+* rigidbodies from the physics simulation.
+*/
 class FRigidBodySystem : public Atlas::ISystem
 {
 public:
@@ -36,14 +76,25 @@ public:
 	void Update() override {};
 
 private:
+	/**
+	* Adds a rigidbody to the physics simulation.
+	*/
 	void OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
+	/**
+	* Removes a rigidbody from the physics simulation.
+	*/
 	void OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
 private:
 	btDynamicsWorld& mDynamicsWorld;
 };
 
+
+/**
+* System for managing the addition and removal of
+* collision objects from the physics simulation.
+*/
 class FColliderSystem : public Atlas::ISystem
 {
 public:
@@ -53,8 +104,14 @@ public:
 	void Update() override {};
 
 private:
+	/**
+	* Adds a collision object to the physics simulation.
+	*/
 	void OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
+	/**
+	* Adds a collision object to the physics simulation.
+	*/
 	void OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
 private:

@@ -11,6 +11,7 @@
 #include "Singleton.h"
 #include "FileIO\RegionFile.h"
 
+class FPhysicsSystem;
 class FRenderSystem;
 
 /**
@@ -73,6 +74,11 @@ public:
 	* program to save current world data properly.
 	*/
 	void Shutdown();
+
+	/**
+	* Sets the physics system used by the chunk manager.
+	*/
+	void SetPhysicsSystem(FPhysicsSystem& Physics);
 
 private:
 	// Updates the current unload list
@@ -179,6 +185,9 @@ private:
 	Vector3f mLastCameraDirection;
 	int32_t mWorldSize;
 	std::wstring mWorldName;
+
+	// Physics Data
+	FPhysicsSystem* mPhysicsSystem;
 };
 
 

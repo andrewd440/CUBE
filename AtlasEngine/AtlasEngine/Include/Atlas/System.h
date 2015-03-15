@@ -95,7 +95,8 @@ namespace Atlas
 		T& AddSubSystem(Param1& P1);
 
 	private:
-		friend class FSystemManager;  // Give full access to SystemManager
+		friend class FSystemManager;  // Give full access to SystemManager and object manager
+		friend class FGameObjectManager;
 
 		/**
 		* Removes a GameObject from the System.
