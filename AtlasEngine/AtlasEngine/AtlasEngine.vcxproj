@@ -184,6 +184,8 @@
     <ClInclude Include="Atlas\include\Utilities.h" />
     <ClInclude Include="Include\Components\Collider.h" />
     <ClInclude Include="Include\Components\RigidBody.h" />
+    <ClInclude Include="Include\Debugging\GameConsole.h" />
+    <ClInclude Include="Include\Input\TextEntered.h" />
     <ClInclude Include="Include\Math\Sphere.h" />
     <ClInclude Include="Include\Physics\PhysicsSystem.h" />
     <ClInclude Include="Include\Rendering\DepthRenderTarget.h" />
@@ -263,8 +265,10 @@
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Components\Collider.cpp" />
     <ClCompile Include="Src\Components\RigidBody.cpp" />
+    <ClCompile Include="Src\Debugging\GameConsole.cpp" />
     <ClCompile Include="Src\FileIO\GenericFile.cpp" />
     <ClCompile Include="Src\FileIO\RegionFile.cpp" />
+    <ClCompile Include="Src\Input\TextEntered.cpp" />
     <ClCompile Include="Src\Math\Box.cpp" />
     <ClCompile Include="Src\Math\Sphere.cpp" />
     <ClCompile Include="Src\Physics\PhysicsSystem.cpp" />

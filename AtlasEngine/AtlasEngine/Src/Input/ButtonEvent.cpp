@@ -48,9 +48,19 @@ bool SButtonEvent::GetKeyUp(const sf::Keyboard::Key Key)
 	return mKeyUps[Key];
 }
 
+std::bitset<sf::Keyboard::KeyCount> SButtonEvent::GetAllKeyUps()
+{
+	return mKeyUps;
+}
+
 bool SButtonEvent::GetKeyDown(const sf::Keyboard::Key Key)
 {
 	return mKeyDowns[Key];
+}
+
+std::bitset<sf::Keyboard::KeyCount> SButtonEvent::GetAllKeyDowns()
+{
+	return mKeyDowns;
 }
 
 bool SButtonEvent::GetMouseUp(const sf::Mouse::Button Button)

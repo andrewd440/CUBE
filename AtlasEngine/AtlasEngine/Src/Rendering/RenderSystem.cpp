@@ -7,6 +7,7 @@
 #include "STime.h"
 #include "Debugging\DebugDraw.h"
 #include "Debugging\DebugText.h"
+#include "Debugging\GameConsole.h"
 #include "Rendering\LightSystems.h"
 #include <GL\glew.h>
 
@@ -116,6 +117,7 @@ void FRenderSystem::Update()
 	swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
 	DebugText.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 150));
 
+	FDebug::GameConsole::GetInstance().Render();
 	DebugText.Render();
 
 	// Display renderings

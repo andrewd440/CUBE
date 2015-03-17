@@ -24,6 +24,7 @@
 #include "Physics\PhysicsSystem.h"
 #include "Debugging\DebugDraw.h"
 #include "Debugging\DebugText.h"
+#include "Input\TextEntered.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
@@ -33,7 +34,7 @@ static FCamera MainCamera;
 using namespace Atlas;
 
 FVoxiGineRoot::FVoxiGineRoot()
-	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24,8,2,4,3))
+	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24, 8, 2, 4, 3))
 	, mWorld()
 	, mChunkManager()
 {
@@ -52,6 +53,7 @@ FVoxiGineRoot::FVoxiGineRoot()
 	// Initialize debug text
 	FDebug::Draw* DebugDraw = new FDebug::Draw;
 	FDebug::Text* DebugText = new FDebug::Text;
+	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
 	DebugText->SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
 }
 
@@ -60,6 +62,7 @@ FVoxiGineRoot::~FVoxiGineRoot()
 	delete IFileSystem::GetInstancePtr();
 	delete FDebug::Draw::GetInstancePtr();
 	delete FDebug::Text::GetInstancePtr();
+	delete FDebug::GameConsole::GetInstancePtr();
 }
 
 void CameraSetup();
@@ -71,8 +74,13 @@ void FVoxiGineRoot::Start()
 	
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
+	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
 	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
+
+	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
+	Console.SetChunkManager(&mChunkManager);
+	Console.SetPhysicsSystem(&Physics);
+	Console.SetRenderSystem(&Renderer);
 
 	mChunkManager.SetPhysicsSystem(Physics);
 
@@ -158,6 +166,7 @@ void FVoxiGineRoot::ServiceEvents()
 	// Reset button and axes from previous frame
 	SButtonEvent::ResetButtonEvents();
 	SMouseAxis::ResetAxes();
+	STextEntered::Reset();
 
 	SMouseAxis::UpdateDelta(mGameWindow);
 	static sf::Vector2i DefaultMouse(SMouseAxis::GetDefaultMousePosition().x, SMouseAxis::GetDefaultMousePosition().y); 
@@ -176,6 +185,10 @@ void FVoxiGineRoot::ServiceEvents()
 		else if (SMouseAxis::IsMouseAxisEvent(Event))
 		{
 			SMouseAxis::UpdateEvent(Event);
+		}
+		else if (Event.type == sf::Event::TextEntered)
+		{
+			STextEntered::AddTextEvent(Event);
 		}
 		else if (Event.type == sf::Event::Resized)
 		{

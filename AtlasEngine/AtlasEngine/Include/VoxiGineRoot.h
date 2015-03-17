@@ -3,6 +3,7 @@
 #include "Atlas\World.h"
 #include "SFML\Window\Window.hpp"
 #include "Rendering\ChunkManager.h"
+#include "Debugging\GameConsole.h"
 
 /**
 * Root/Central class for the game engine

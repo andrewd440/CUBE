@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common.h"
+#include "btBulletCollisionCommon.h"
 
 template <typename T>
 /**

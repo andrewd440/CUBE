@@ -29,9 +29,6 @@ FPhysicsSystem::~FPhysicsSystem()
 void FPhysicsSystem::Update()
 {
 	mDynamicsWorld.stepSimulation(STime::GetDeltaTime());
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::U))
-		RenderCollisionObjects();
 }
 
 void FPhysicsSystem::RenderCollisionObjects()

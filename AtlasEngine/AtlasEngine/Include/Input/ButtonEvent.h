@@ -35,10 +35,22 @@ public:
 	static bool GetKeyUp(const sf::Keyboard::Key Key);
 
 	/**
+	* Get the status of all keys that were released in the last frame.
+	* sf::Keyboard::Key can be used to index into the bitset returned.
+	*/
+	static std::bitset<sf::Keyboard::KeyCount> GetAllKeyUps();
+
+	/**
 	* Checks if a keyboard key was pressed in the last frame.
 	* @param Key to be checked.
 	*/
 	static bool GetKeyDown(const sf::Keyboard::Key Key);
+
+	/**
+	* Get the status of all keys that were pressed in the last frame.
+	* sf::Keyboard::Key can be used to index into the bitset returned.
+	*/
+	static std::bitset<sf::Keyboard::KeyCount> GetAllKeyDowns();
 
 	/**
 	* Checks if a mouse button was released in the last frame.
