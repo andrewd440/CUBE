@@ -7,8 +7,7 @@
 #include "Math\Frustum.h"
 #include "Rendering\RenderSystem.h"
 
-const int32_t FChunkManager::VISIBILITY_DISTANCE = 10;
-const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 1;
+const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 2;
 
 FChunkManager::FChunkManager()
 	: mChunks()
@@ -22,7 +21,8 @@ FChunkManager::FChunkManager()
 	, mLastCameraChunk()
 	, mLastCameraPosition()
 	, mLastCameraDirection()
-	, mWorldSize(2)
+	, mWorldSize(0)
+	, mViewDistance(10)
 	, mWorldName()
 	, mPhysicsSystem(nullptr)
 {
@@ -39,6 +39,8 @@ void FChunkManager::Shutdown()
 
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
+	UnloadAllChunks();
+
 	// Set world name and extract world size from file
 	mWorldName = WorldName;
 
@@ -54,9 +56,13 @@ void FChunkManager::LoadWorld(const wchar_t* WorldName)
 	ResizeWorld();
 }
 
+void FChunkManager::SetViewDistance(const int32_t Distance)
+{
+	mViewDistance = Distance;
+}
+
 void FChunkManager::ResizeWorld()
 {
-	UnloadAllChunks();
 	mLoadList.clear();
 	mRegionFiles.clear();
 	mVisibleList.clear();
@@ -264,10 +270,10 @@ void FChunkManager::UpdateRebuildList()
 void FChunkManager::UpdateVisibleList()
 {
 	// Offset the camera chunk position so the loop centers the camera
-	Vector3i CameraChunkOffset = mLastCameraChunk - Vector3i{ VISIBILITY_DISTANCE, 0, VISIBILITY_DISTANCE };
+	Vector3i CameraChunkOffset = mLastCameraChunk - Vector3i{ mViewDistance, 0, mViewDistance };
 
 	// Get the total range of visible area.
-	const int32_t DoubleVisibility = VISIBILITY_DISTANCE * 2;
+	const int32_t DoubleVisibility = mViewDistance * 2;
 
 	// Clear previous load and visibile list when moving across chunks.
 	mLoadList.clear();
@@ -304,7 +310,7 @@ void FChunkManager::UpdateVisibleList()
 	}
 
 	// Now add the world by alternating the xz planes from below to above the camera's chunk
-	for (int32_t v = 1; v <= (int32_t)VISIBILITY_DISTANCE; v++)
+	for (int32_t v = 1; v <= (int32_t)mViewDistance; v++)
 	{
 		for (int32_t y = -v; y < v + 1; y += 2 * v)
 		{
@@ -342,7 +348,7 @@ void FChunkManager::UpdateVisibleList()
 	}
 
 	// Add all loaded chunks that are no longer visible to the unload list.
-	CameraChunkOffset.y -= VISIBILITY_DISTANCE;
+	CameraChunkOffset.y -= mViewDistance;
 	for (auto Itr = mIsLoadedList.begin(); Itr != mIsLoadedList.end(); Itr++)
 	{
 		// Get the chunk coordinates of this loaded chunk.
@@ -376,7 +382,7 @@ void FChunkManager::AddRegionFileReference(int32_t X, int32_t Y, int32_t Z)
 		// Add the file if not loaded
 		RegionFileRecord& Record = mRegionFiles[RegionName];
 		Record.ReferenceCount = 1;
-		Record.File.Load(L"GenWorld", RegionName);
+		Record.File.Load(mWorldName.c_str(), RegionName);
 	}
 }
 

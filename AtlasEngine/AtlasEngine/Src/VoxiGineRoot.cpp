@@ -54,7 +54,6 @@ FVoxiGineRoot::FVoxiGineRoot()
 	FDebug::Draw* DebugDraw = new FDebug::Draw;
 	FDebug::Text* DebugText = new FDebug::Text;
 	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
-	DebugText->SetStyle("Vera.ttf", 20, FDebug::Text::AtlasInfo{ 512, 512, 1 });
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
@@ -90,10 +89,10 @@ void FVoxiGineRoot::Start()
 	GameObjectManager.RegisterComponentType<EComponent::Collider>();
 	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
 	
-	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	//DLight.Color = Vector3f(.7, .7, .7);
-	//DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
+	auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	DLight.Color = Vector3f(.7, .7, .7);
+	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
 
 	GameLoop();
 }
@@ -114,8 +113,8 @@ void FVoxiGineRoot::GameLoop()
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
 	PLight.Color = Vector3f(1, 1, 1);
-	PLight.MinDistance = 10;
-	PLight.MaxDistance = 350;
+	PLight.MinDistance = 0;
+	PLight.MaxDistance = 0;
 
 	// Game Loop
 	float lag = 0.0f;
@@ -234,7 +233,7 @@ void CameraSetup()
 	const Vector3f CameraPosition = Vector3f{ 36.0f, 36.0f, 36.0f };
 	CameraTransform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, (float)FChunkManager::VISIBILITY_DISTANCE * FChunk::CHUNK_SIZE * .75f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 1000.0f });
 }
 
 void UpdateCamera(FTransform& Light)

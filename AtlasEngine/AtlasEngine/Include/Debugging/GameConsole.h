@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Singleton.h"
+#include "markup.h"
 
 class FPhysicsSystem;
 class FRenderSystem;
@@ -33,6 +34,7 @@ namespace FDebug
 
 	private:
 		std::wstring        mCommandBuffer;
+		markup_t            mTextMarkup;
 		FPhysicsSystem*     mPhysicsSystem;
 		FRenderSystem*      mRenderSystem;
 		FChunkManager*      mChunkManager;

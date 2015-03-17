@@ -10,6 +10,7 @@
 #include "Debugging\GameConsole.h"
 #include "Rendering\LightSystems.h"
 #include <GL\glew.h>
+#include "markup.h"
 
 namespace
 {
@@ -83,9 +84,6 @@ void FRenderSystem::Update()
 	ConstructGBuffer();
 	LightingPass();
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_ALWAYS);
-
 	// Render debug draws
 	static bool ShowBox = false;
 	if (SButtonEvent::GetKeyDown(sf::Keyboard::B))
@@ -103,19 +101,23 @@ void FRenderSystem::Update()
 	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
 	FDebug::Draw::GetInstance().Render();
 
+	static const vec4 White{ { 1, 1, 1, 1 } };
+	static const vec4 None{{ 1, 1, 1, 0 }};
+	static markup_t TextMarkup{ "Vera.ttf", 16, 0, 0, 0.0f, 0.0f, 2.0f, White, None, 0, White, 0, White, 0, White, 0 };
+
 	// Debug Print
 	auto& DebugText = FDebug::Text::GetInstance();
 	wchar_t String[250];
 	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
 	swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
-	DebugText.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 50));
+	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 50), TextMarkup);
 
 	swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
-	DebugText.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 100));
+	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 100), TextMarkup);
 
 	Vector3i ChunkPosition = Vector3i(CameraPosition.x / FChunk::CHUNK_SIZE, CameraPosition.y / FChunk::CHUNK_SIZE, CameraPosition.z / FChunk::CHUNK_SIZE);
 	swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
-	DebugText.AddText(String, FColor(1.0f, .8f, 1.0f, .6f), Vector2i(50, SScreen::GetResolution().y - 150));
+	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 150), TextMarkup);
 
 	FDebug::GameConsole::GetInstance().Render();
 	DebugText.Render();
@@ -142,6 +144,7 @@ void FRenderSystem::ConstructGBuffer()
 	mDeferredRender.Use();
 
 	// Make sure depth testing is enabled
+	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	

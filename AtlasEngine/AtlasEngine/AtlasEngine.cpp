@@ -26,16 +26,16 @@ int main()
 
 	//FWorldGenerator Generator;
 	//Generator.SetBounds(Vector2f{ 1.0f, 1.0f }, Vector2f{ 10.0f, 10.0f });
-	//Generator.SetWorldSizeInChunks(2);
-	//Generator.SetMaxHeight(38);
-	//Generator.SetMinHeight(30);
+	//Generator.SetWorldSizeInChunks(64);
+	//Generator.SetMaxHeight(200);
+	//Generator.SetMinHeight(188);
 
 	//Generator.AddTerrainLevel(0, FBlock::Brick);
-	//Generator.AddTerrainLevel(20, FBlock::Dirt);
-	//Generator.AddTerrainLevel(30, FBlock::Grass);
-	//Generator.AddTerrainLevel(40, FBlock::Snow);
+	//Generator.AddTerrainLevel(150, FBlock::Dirt);
+	//Generator.AddTerrainLevel(192, FBlock::Grass);
+	//Generator.AddTerrainLevel(201, FBlock::Snow);
 
-	//Generator.Build(Module, L"GenWorld");
+	//Generator.Build(Module, L"LargeWorld");
 
 	//delete FileSys;
 

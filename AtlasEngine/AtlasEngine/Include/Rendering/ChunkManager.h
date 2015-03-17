@@ -20,7 +20,6 @@ class FRenderSystem;
 class FChunkManager
 {
 public:
-	static const int32_t VISIBILITY_DISTANCE;
 	static const int32_t CHUNKS_TO_LOAD_PER_FRAME;
 
 public:
@@ -67,6 +66,8 @@ public:
 	*        the World folder in the program's root directory.
 	*/
 	void LoadWorld(const wchar_t* WorldName);
+
+	void SetViewDistance(const int32_t Distance);
 
 	/**
 	* Saves all current world data and closes
@@ -184,6 +185,7 @@ private:
 	Vector3f mLastCameraPosition;
 	Vector3f mLastCameraDirection;
 	int32_t mWorldSize;
+	int32_t mViewDistance;
 	std::wstring mWorldName;
 
 	// Physics Data
