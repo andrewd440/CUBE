@@ -36,7 +36,7 @@ using namespace Atlas;
 FVoxiGineRoot::FVoxiGineRoot()
 	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24, 8, 2, 4, 3))
 	, mWorld()
-	, mChunkManager()
+	, mChunkManager(nullptr)
 {
 	IFileSystem* FileSystem = new FFileSystem;
 
@@ -54,10 +54,13 @@ FVoxiGineRoot::FVoxiGineRoot()
 	FDebug::Draw* DebugDraw = new FDebug::Draw;
 	FDebug::Text* DebugText = new FDebug::Text;
 	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
+
+	mChunkManager = new FChunkManager;
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
 {
+	delete mChunkManager;
 	delete IFileSystem::GetInstancePtr();
 	delete FDebug::Draw::GetInstancePtr();
 	delete FDebug::Text::GetInstancePtr();
@@ -69,19 +72,20 @@ void CameraSetup();
 void FVoxiGineRoot::Start()
 {
 	CameraSetup();
-	mChunkManager.LoadWorld(L"GenWorld");
 	
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, mChunkManager);
+	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
 	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
 
 	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
-	Console.SetChunkManager(&mChunkManager);
+	Console.SetChunkManager(mChunkManager);
 	Console.SetPhysicsSystem(&Physics);
 	Console.SetRenderSystem(&Renderer);
 
-	mChunkManager.SetPhysicsSystem(Physics);
+
+	mChunkManager->LoadWorld(L"LargeWorld");
+	mChunkManager->SetPhysicsSystem(Physics);
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
@@ -113,8 +117,8 @@ void FVoxiGineRoot::GameLoop()
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
 	PLight.Color = Vector3f(1, 1, 1);
-	PLight.MinDistance = 0;
-	PLight.MaxDistance = 0;
+	PLight.MinDistance = 10;
+	PLight.MaxDistance = 100;
 
 	// Game Loop
 	float lag = 0.0f;
@@ -125,14 +129,14 @@ void FVoxiGineRoot::GameLoop()
 			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
 			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
 			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
-			mChunkManager.DestroyBlock(IntPosition);
+			mChunkManager->DestroyBlock(IntPosition);
 		}
 		if (SButtonEvent::GetMouseDown(sf::Mouse::Left))
 		{
 			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
 			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
 			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
-			mChunkManager.SetBlock(IntPosition, FBlock::Brick);
+			mChunkManager->SetBlock(IntPosition, FBlock::Brick);
 		}
 
 		//lag += STime::GetDeltaTime();
@@ -142,7 +146,7 @@ void FVoxiGineRoot::GameLoop()
 		//	lag -= STime::GetFixedUpdate();
 		//}
 
-		mChunkManager.Update();
+		mChunkManager->Update();
 		UpdateCamera(PointLight.Transform);
 		SystemManager.GetSystem(Systems::Physics)->Update();
 		GameObjectManager.Update();
@@ -154,7 +158,7 @@ void FVoxiGineRoot::GameLoop()
 		ServiceEvents();
 	}
 
-	mChunkManager.Shutdown();
+	mChunkManager->Shutdown();
 }
 
 void FVoxiGineRoot::ServiceEvents()

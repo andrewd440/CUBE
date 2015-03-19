@@ -41,6 +41,6 @@ private:
 private:
 	sf::Window mGameWindow;
 	Atlas::FWorld mWorld;
-	FChunkManager mChunkManager;
+	FChunkManager* mChunkManager;
 };
 

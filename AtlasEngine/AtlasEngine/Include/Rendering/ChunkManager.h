@@ -4,6 +4,8 @@
 #include <queue>
 #include <unordered_map>
 #include <string>
+#include <thread>
+#include <mutex>
 
 #include "Chunk.h"
 #include "noise\noise.h"
@@ -67,6 +69,10 @@ public:
 	*/
 	void LoadWorld(const wchar_t* WorldName);
 
+	/**
+	* Sets the world view distance. This is in terms
+	* of chunk space.
+	*/
 	void SetViewDistance(const int32_t Distance);
 
 	/**
@@ -82,6 +88,8 @@ public:
 	void SetPhysicsSystem(FPhysicsSystem& Physics);
 
 private:
+	void ChunkLoaderThreadLoop();
+
 	// Updates the current unload list
 	void UpdateUnloadList();
 
@@ -145,7 +153,7 @@ private:
 	* region file is not present, one is created.
 	* @param X, Y, Z Coordinates of the chunk.
 	*/
-	void AddRegionFileReference(int32_t X, int32_t Y, int32_t Z);
+	void AddRegionFileReference(const Vector3i& ChunkPosition);
 	
 	/**
 	* Removes a reference the a region file in the region map.
@@ -154,13 +162,14 @@ private:
 	void RemoveRegionFileReference(const Vector3i& ChunkPosition);
 
 private:
-	std::vector<FChunk> mChunks;        // All world chunks
-	std::vector<uint32_t> mVisibleList; // Index list of potentially visible chunks
-	std::vector<uint32_t> mRenderList;  // Index list of chunks to render
-	std::vector<uint32_t> mIsLoadedList;  // Index list of all chunks that are currently loaded.
-	std::vector<uint32_t> mLoadList;     // Index list of chunks to be loaded
-	std::vector<uint32_t> mUnloadList;   // Index list of chunks to be unloaded
-	std::vector<uint32_t> mRebuildList;  // Index list of chunks to be rebuilt
+	std::vector<FChunk>   mChunks;        // All world chunks
+	std::vector<Vector3i> mChunkPositions;
+	std::vector<uint32_t> mRenderList;    // Index list of chunks to render
+	std::queue<Vector3i>  mLoadList;      // Index list of chunks to be loaded
+	std::queue<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
+	std::thread           mLoaderThread;
+	std::mutex            mRebuildListMutex;
+
 
 	struct RegionFileRecord
 	{
@@ -178,6 +187,7 @@ private:
 		}
 	};
 
+	std::queue<Vector3i> mRegionReferenceQueue;
 	std::unordered_map<Vector3i, RegionFileRecord, Vector3iHash> mRegionFiles;
 
 	// Rendering data
@@ -190,6 +200,7 @@ private:
 
 	// Physics Data
 	FPhysicsSystem* mPhysicsSystem;
+	bool mMustShutdown;
 };
 
 
@@ -199,7 +210,11 @@ inline int32_t FChunkManager::ChunkIndex(Vector3i Position) const
 		Position.y >= 0 && Position.y < mWorldSize &&
 		Position.z >= 0 && Position.z < mWorldSize)
 
-	const Vector3i PositionToIndex{ mWorldSize, mWorldSize * mWorldSize, 1 };
+	// Normalize the position
+	const int32_t ChunkBounds = 2 * mViewDistance;
+	Position = Vector3i{ Position.x % ChunkBounds, Position.y % ChunkBounds, Position.z % ChunkBounds };
+
+	const Vector3i PositionToIndex{ ChunkBounds, ChunkBounds * ChunkBounds, 1 };
 	return Vector3i::Dot(Position, PositionToIndex);
 }
 
@@ -210,14 +225,16 @@ inline int32_t FChunkManager::ChunkIndex(int32_t X, int32_t Y, int32_t Z) const
 
 inline Vector3i FChunkManager::IndexToChunkPosition(int32_t Index) const
 {
-	const int32_t X = (Index / mWorldSize % mWorldSize);
-	const int32_t Y = (Index / (mWorldSize * mWorldSize));
-	const int32_t Z = (Index % mWorldSize);
+	const int32_t ChunkBounds = 2 * mViewDistance;
+	const int32_t X = (Index / ChunkBounds % ChunkBounds);
+	const int32_t Y = (Index / (ChunkBounds * ChunkBounds));
+	const int32_t Z = (Index % ChunkBounds);
 
-	return Vector3i(X, Y, Z);
+	// Offset with current position of the camera
+	return (mLastCameraChunk - mViewDistance) + Vector3i(X, Y, Z);
 }
 
 inline Vector3i FChunkManager::IndexToWorldPosition(int32_t Index) const
 {
-	return IndexToChunkPosition(Index) * FChunk::CHUNK_SIZE;
+	return  IndexToChunkPosition(Index) * FChunk::CHUNK_SIZE;
 }

@@ -2,6 +2,7 @@
 #include "Rendering\GLUtils.h"
 #include "Common.h"
 #include "Rendering\VertexTraits.h"
+#include "SFML\Window\Context.hpp"
 
 BMesh::BMesh(const GLuint DrawMode, const uint32_t DefaultBufferSize )
 	: mVertexData(DefaultBufferSize)

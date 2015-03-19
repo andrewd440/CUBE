@@ -18,7 +18,7 @@ namespace FDebug
 		, mDrawPhysics(false)
 	{
 		const vec4 White{ { 1, 1, 1, 1 } };
-		const vec4 Background{ { 0.9f, 0.3f, 0.3f, 1.0f } };
+		const vec4 Background{ { 0.3f, 0.3f, 0.3f, 0.8f } };
 		mTextMarkup.family = "VeraMono.ttf";
 		mTextMarkup.size = 16.0f;
 		mTextMarkup.bold = 0;
@@ -31,8 +31,7 @@ namespace FDebug
 		mTextMarkup.underline = 0;
 		mTextMarkup.underline_color = White;
 		mTextMarkup.overline = 0;
-		mTextMarkup.strikethrough = 1;
-		mTextMarkup.strikethrough_color = White;
+		mTextMarkup.strikethrough = 0;
 		mTextMarkup.font = 0;
 	}
 

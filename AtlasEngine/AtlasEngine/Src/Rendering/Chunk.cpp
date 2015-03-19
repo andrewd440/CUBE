@@ -33,6 +33,23 @@ FChunk::FChunk()
 	, mIsLoaded(false)
 	, mIsEmpty(true)
 {
+	// Allocate mesh, block, and collision data
+	mMesh = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
+	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
+
+	// Construct Collision fields with new memory
+	mCollisionData = new (CollisionAllocator.Allocate()) CollisionData{};
+
+	// Set collision data
+	CollisionData& CollisionInfo = *mCollisionData;
+
+	// Set the aabb to the bounds of the chunk
+	const btVector3 Min{ 0, 0, 0 };
+	const btVector3 Max{ (float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE };
+	CollisionInfo.Mesh.setPremadeAabb(Min, Max);
+
+	// Set collision shape and transform
+	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
 }
 
 FChunk::FChunk(const FChunk& Other)
@@ -43,16 +60,6 @@ FChunk::FChunk(const FChunk& Other)
 	, mIsLoaded(Other.mIsLoaded)
 	, mIsEmpty(Other.mIsEmpty)
 {
-}
-
-FChunk::~FChunk()
-{
-	if (mIsLoaded)
-	{
-		ChunkAllocator.Free(mBlocks);
-		MeshAllocator.Free(mMesh);
-		CollisionAllocator.Free(mCollisionData);
-	}
 }
 
 FChunk& FChunk::operator=(const FChunk& Other)
@@ -73,6 +80,13 @@ FChunk& FChunk::operator=(const FChunk& Other)
 	return *this;
 }
 
+FChunk::~FChunk()
+{
+	ChunkAllocator.Free(mBlocks);
+	MeshAllocator.Free(mMesh);
+	CollisionAllocator.Free(mCollisionData);
+}
+
 void FChunk::SetChunkManager(FChunkManager* NewManager)
 {
 	mChunkManager = NewManager;
@@ -81,25 +95,11 @@ void FChunk::SetChunkManager(FChunkManager* NewManager)
 void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& PhysicsSystem, const Vector3f& WorldPosition)
 {
 	ASSERT(!mIsLoaded);
-	mIsLoaded = true;
-
-	// Allocate mesh, block, and collision data
-	mMesh = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
-	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
-
-	// Construct Collision fields with new memory
-	mCollisionData = new (CollisionAllocator.Allocate()) CollisionData{};
 
 	// Set collision data
 	CollisionData& CollisionInfo = *mCollisionData;
 
-	// Set the aabb to the bounds of the chunk
-	const btVector3 Min{ 0, 0, 0 };
-	const btVector3 Max{(float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE };
-	CollisionInfo.Mesh.setPremadeAabb(Min, Max);
-
-	// Set collision shape and transform
-	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
+	// Set collision transform
 	CollisionInfo.Object.setWorldTransform(btTransform{ btQuaternion{0,0,0},
 				btVector3{ WorldPosition.x, WorldPosition.y, WorldPosition.z } });
 
@@ -131,6 +131,8 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& Physics
 		}
 	}
 
+
+	mIsLoaded = true;
 }
 
 void FChunk::Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsSystem)
@@ -166,10 +168,6 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsS
 
 	// Remove collision data from physics system
 	PhysicsSystem.RemoveCollider(mCollisionData->Object);
-
-	CollisionAllocator.Free(mCollisionData);
-	MeshAllocator.Free(mMesh);
-	ChunkAllocator.Free(mBlocks);
 }
 
 bool FChunk::IsLoaded() const
@@ -187,6 +185,7 @@ void FChunk::RebuildMesh()
 {
 	// Make sure mesh data is cleared
 	mIsEmpty = true;
+	mIsLoaded = false;
 	mMesh->ClearData();
 
 	// Mesh the chunk
@@ -219,6 +218,7 @@ void FChunk::RebuildMesh()
 		new (&mCollisionData->Mesh) btTriangleIndexVertexArray{};
 		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, true, false };
 	}
+	mIsLoaded = true;
 }
 
 void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
@@ -228,10 +228,10 @@ void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
 
 FBlock::BlockType FChunk::GetBlock(const Vector3i& Position) const
 {
-	if (mBlocks)
-		return mBlocks[BlockIndex(Position)].Type;
+	//if (mBlocks)
+	return mBlocks[BlockIndex(Position)].Type;
 
-	return FBlock::None;
+	//return FBlock::None;
 }
 
 void FChunk::DestroyBlock(const Vector3i& Position)

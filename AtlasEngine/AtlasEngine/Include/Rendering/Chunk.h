@@ -2,9 +2,10 @@
 
 #include <GL\glew.h>
 #include <cstdint>
+#include <atomic>
 
-#include "..\Memory\PoolAllocator.h"
-#include "..\Common.h"
+#include "Memory\PoolAllocator.h"
+#include "Common.h"
 #include "Block.h"
 #include "Mesh.h"
 #include "btBulletCollisionCommon.h"
@@ -88,18 +89,18 @@ public:
 	FChunk(const FChunk& Other);
 
 	/**
-	* Frees data back to respective pools.
-	*/
-	~FChunk();
-
-	/**
 	* Copy assignment.
-	* Frees mesh and block data from this object and copies pointer 
+	* Frees mesh and block data from this object and copies pointer
 	* data from Other into this object.
 	* After the copy, both objects will refer to the same mesh and
 	* block data.
 	*/
 	FChunk& operator=(const FChunk& Other);
+
+	/**
+	* Frees data back to respective pools.
+	*/
+	~FChunk();
 
 	void SetChunkManager(FChunkManager* NewManager);
 
@@ -251,5 +252,6 @@ private:
 	bool mIsLoaded;
 	bool mIsEmpty;
 
-
+	std::atomic_bool mIsProcessing; // If the chunk is being loaded/unloaded/rebuilt, should not render if set
+	std::atomic_bool mIsRendering;  // If the chunk is being rendered, should not process if set
 };
