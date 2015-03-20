@@ -101,6 +101,7 @@ void BMesh::RenderB(const GLenum RenderMode)
 {
 	ASSERT(mIsActive);
 	GLUtils::ArrayBinder VAOBinding(mVertexArray);
+
 	glDrawElements(RenderMode, mIndexCount, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 }
 

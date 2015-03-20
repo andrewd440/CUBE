@@ -169,7 +169,9 @@ private:
 	std::queue<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
 	std::thread           mLoaderThread;
 	std::mutex            mRebuildListMutex;
-
+	std::mutex            mLoadListMutex;
+	std::atomic_bool      mIsLoadListRefreshing;
+	std::atomic_bool      mMustShutdown;
 
 	struct RegionFileRecord
 	{
@@ -200,7 +202,6 @@ private:
 
 	// Physics Data
 	FPhysicsSystem* mPhysicsSystem;
-	bool mMustShutdown;
 };
 
 

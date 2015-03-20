@@ -144,5 +144,6 @@ namespace FDebug
 		mLines.Activate();
 		mLines.Render(GL_LINES);
 		mLines.ClearData();
+		glUseProgram(0);
 	}
 }

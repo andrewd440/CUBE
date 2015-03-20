@@ -32,7 +32,14 @@ FChunk::FChunk()
 	, mChunkManager(nullptr)
 	, mIsLoaded(false)
 	, mIsEmpty(true)
+	, mIsProcessing()
+	, mIsRendering()
+	, mHasFreshMesh()
 {
+	mIsProcessing.store(false);
+	mIsRendering.store(false);
+	mHasFreshMesh.store(false);
+
 	// Allocate mesh, block, and collision data
 	mMesh = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
@@ -60,10 +67,15 @@ FChunk::FChunk(const FChunk& Other)
 	, mIsLoaded(Other.mIsLoaded)
 	, mIsEmpty(Other.mIsEmpty)
 {
+	mIsProcessing.store(false);
+	mIsRendering.store(false);
 }
 
 FChunk& FChunk::operator=(const FChunk& Other)
 {
+	mIsProcessing.store(true);
+	mIsRendering.store(false);
+
 	// Free current data
 	ChunkAllocator.Free(mBlocks);
 	MeshAllocator.Free(mMesh);
@@ -77,6 +89,7 @@ FChunk& FChunk::operator=(const FChunk& Other)
 	mChunkManager = Other.mChunkManager;
 	mIsEmpty = Other.mIsEmpty;
 
+	mIsProcessing.store(false);
 	return *this;
 }
 
@@ -104,7 +117,7 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& Physics
 				btVector3{ WorldPosition.x, WorldPosition.y, WorldPosition.z } });
 
 	// Add collision data to physics system
-	PhysicsSystem.AddCollider(CollisionInfo.Object);
+	//PhysicsSystem.AddCollider(CollisionInfo.Object);
 
 	// Current index to access block type
 	int32_t TypeIndex = 0;
@@ -167,7 +180,7 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsS
 	}
 
 	// Remove collision data from physics system
-	PhysicsSystem.RemoveCollider(mCollisionData->Object);
+	//PhysicsSystem.RemoveCollider(mCollisionData->Object);
 }
 
 bool FChunk::IsLoaded() const
@@ -178,7 +191,21 @@ bool FChunk::IsLoaded() const
 void FChunk::Render(const GLenum RenderMode)
 {
 	ASSERT(mIsLoaded);
-	mMesh->Render(RenderMode);
+
+	mIsRendering.store(true);
+
+	if (!mIsProcessing)
+	{
+		if (mHasFreshMesh)
+		{
+			mHasFreshMesh.store(false);
+			mMesh->Activate();
+		}
+
+		mMesh->Render(RenderMode);
+	}
+
+	mIsRendering.store(false);
 }
 
 void FChunk::RebuildMesh()
@@ -190,6 +217,7 @@ void FChunk::RebuildMesh()
 
 	// Mesh the chunk
 	GreedyMesh();
+	mHasFreshMesh.store(true);
 
 	// Update collision info
 	if (!mIsEmpty)
@@ -435,7 +463,6 @@ void FChunk::GreedyMesh()
 	// Send all data directly to the gpu
 	mMesh->AddVertex(Vertices.data(), Vertices.size());
 	mMesh->AddIndices(Indices.data(), Indices.size());
-	mMesh->Activate();
 }
 
 void FChunk::CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const

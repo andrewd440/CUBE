@@ -23,6 +23,7 @@ namespace FDebug
 		mProjectionUniform.Bind(mTextBuffer->shader, "projection");
 		mViewUniform.Bind(mTextBuffer->shader, "view");
 		mModelUniform.Bind(mTextBuffer->shader, "model");
+		glUseProgram(0);
 	}
 
 	Text::~Text()
@@ -32,7 +33,6 @@ namespace FDebug
 
 	void Text::AddText(std::wstring& String, Vector2i Position, markup_t& Markup)
 	{
-		IFileSystem::GetInstance().SetToProgramDirectory();
 		vec2 P{ {Position.x, Position.y } };
 		text_buffer_add_text(mTextBuffer, &P, &Markup, &String[0], String.length());
 	}

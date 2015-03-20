@@ -29,7 +29,6 @@ namespace FDebug
 		mTextMarkup.foreground_color = White;
 		mTextMarkup.background_color = Background;
 		mTextMarkup.underline = 0;
-		mTextMarkup.underline_color = White;
 		mTextMarkup.overline = 0;
 		mTextMarkup.strikethrough = 0;
 		mTextMarkup.font = 0;

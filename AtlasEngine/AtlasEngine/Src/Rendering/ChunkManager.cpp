@@ -20,6 +20,9 @@ FChunkManager::FChunkManager()
 	, mRebuildList()
 	, mLoaderThread()
 	, mRebuildListMutex()
+	, mLoadListMutex()
+	, mIsLoadListRefreshing()
+	, mMustShutdown()
 	, mRegionReferenceQueue()
 	, mRegionFiles()
 	, mLastCameraChunk()
@@ -29,32 +32,36 @@ FChunkManager::FChunkManager()
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
 	, mWorldName()
 	, mPhysicsSystem(nullptr)
-	, mMustShutdown(false)
 {
-	//mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
-
+	mMustShutdown.store(false);
+	mIsLoadListRefreshing.store(false);
 	for (auto& Chunk : mChunks)
 	{
 		Chunk.SetChunkManager(this);
 	}
+
+	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
 FChunkManager::~FChunkManager()
 {
-	mMustShutdown = true;
-	//mLoaderThread.join();
+	Shutdown();
 }
 
 void FChunkManager::Shutdown()
 {
-	UnloadAllChunks();
+	mMustShutdown.store(true);
+
+	if(mLoaderThread.joinable())
+		mLoaderThread.join();
 }
 
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
 	mLoadList = std::queue<Vector3i>();
 	mRebuildList = std::queue<uint32_t>();
-	UnloadAllChunks();
+	Shutdown();
+	mMustShutdown.store(false);
 	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
 	mRenderList.clear();
 
@@ -62,13 +69,15 @@ void FChunkManager::LoadWorld(const wchar_t* WorldName)
 	mWorldName = WorldName;
 
 	IFileSystem& FileSystem = IFileSystem::GetInstance();
-	FileSystem.SetToProgramDirectory();
-	FileSystem.SetDirectory(L"Worlds");
-	FileSystem.SetDirectory(WorldName);
+	std::wstring Filepath{ L"./Worlds/" };
+	Filepath += WorldName;
+	Filepath += L"/WorldInfo.vgw";
 
-	auto WorldInfoFile = FileSystem.OpenReadable(L"WorldInfo.vgw");
+	auto WorldInfoFile = FileSystem.OpenReadable(Filepath.c_str());
 	WorldInfoFile->Read((uint8_t*)&mWorldSize, 4);
 	ASSERT((mWorldSize & (mWorldSize - 1)) == 0x0 && "World size must be a power of two.");
+
+	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
 void FChunkManager::SetViewDistance(const int32_t Distance)
@@ -76,6 +85,8 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 	// Must be a power of 2
 	if ((Distance & (Distance - 1)) == 0x0)
 	{
+		Shutdown();
+
 		mViewDistance = Distance - 1;
 
 		const int32_t NewBounds = 2 * Distance * 2 * Distance * 2 * Distance;
@@ -89,6 +100,7 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 		}
 
 		UpdateVisibleList();
+		mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 	}
 }
 
@@ -142,15 +154,14 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 	}
 
 	// Render everything in the renderlist
-	//for (const auto& Index : mRenderList)
-	for (int i = 0; i < mChunks.size(); i++)
-{
-		if (mChunks[i].IsLoaded())
+	for (const auto& Index : mRenderList)
+	{
+		if (mChunks[Index].IsLoaded())
 		{
-			const Vector3i IntPosition = mChunkPositions[i] * FChunk::CHUNK_SIZE;
+			const Vector3i IntPosition = mChunkPositions[Index] * FChunk::CHUNK_SIZE;
 			const Vector3f Position((float)IntPosition.x, (float)IntPosition.y, (float)IntPosition.z);
 			Renderer.SetModelTransform(FTransform{ Position });
-			mChunks[i].Render(RenderMode);
+			mChunks[Index].Render(RenderMode);
 		}
 	}
 }
@@ -162,9 +173,6 @@ void FChunkManager::Update()
 	const Vector3i CameraChunk =  Vector3i( (int32_t)CameraPosition.x,
 											(int32_t)CameraPosition.y,
 											(int32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
-
-	UpdateRebuildList();
-	UpdateLoadList();
 
 	// Only update visibility list when that camera crosses a chunk boundary
 	if (mLastCameraChunk != CameraChunk)
@@ -214,38 +222,39 @@ void FChunkManager::SetPhysicsSystem(FPhysicsSystem& Physics)
 
 void FChunkManager::ChunkLoaderThreadLoop()
 {
-	//sf::Context glContext;
-	//while (!mMustShutdown)
-	//{
-	//	std::unique_lock<std::mutex> ReferenceLock(mRegionReferenceMutex);
-	//	while (!mRegionReferenceQueue.empty())
-	//	{
-	//		Vector3i Position = mRegionReferenceQueue.front();
-	//		mRegionReferenceQueue.pop();
-	//		ReferenceLock.unlock();
+	while (!mMustShutdown)
+	{
+		UpdateRebuildList();
+		UpdateLoadList();
+	}
 
-	//		AddRegionFileReference(Position.x, Position.y, Position.z);
-	//		ReferenceLock.lock();
-	//	}
-
-	//	UpdateRebuildList();
-	//	UpdateLoadList();
-	//	UpdateUnloadList();
-	//}
+	UnloadAllChunks();
 }
 
 void FChunkManager::UpdateLoadList()
 {
 	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_FRAME;
 
+	std::unique_lock<std::mutex> LoadLock(mLoadListMutex);
 	while (!mLoadList.empty() && LoadsLeft > 0)
 	{
 		// Buffer for all chunk data
 		std::vector<uint8_t> ChunkData;
 
+		if (mIsLoadListRefreshing)
+			return;
+
 		Vector3i ChunkPosition = mLoadList.front();
 		mLoadList.pop();
 		const uint32_t Index = ChunkIndex(ChunkPosition);
+
+		if (!mChunks[Index].StartProcessing())
+		{
+			mLoadList.push(ChunkPosition);
+			LoadLock.lock();
+			continue;
+		}
+		LoadLock.unlock();
 
 		///// Unload Chunk ////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////
@@ -290,7 +299,10 @@ void FChunkManager::UpdateLoadList()
 		mChunks[Index].Load(ChunkData, *mPhysicsSystem, FPosition);
 		mChunks[Index].RebuildMesh();
 
+
+		mChunks[Index].EndProcessing();
 		LoadsLeft--;
+		LoadLock.lock();
 	}
 }
 
@@ -301,8 +313,16 @@ void FChunkManager::UpdateRebuildList()
 	{
 		int32_t ChunkIndex = mRebuildList.front();
 		mRebuildList.pop();
+
+		if (!mChunks[ChunkIndex].StartProcessing())
+		{
+			mRebuildList.push(ChunkIndex);
+			continue;
+		}
+
 		RebuildLock.unlock();
 		mChunks[ChunkIndex].RebuildMesh();
+		mChunks[ChunkIndex].EndProcessing();
 		RebuildLock.lock();
 	}
 }
@@ -316,7 +336,10 @@ void FChunkManager::UpdateVisibleList()
 	const int32_t ChunkBounds = mViewDistance * 2;
 
 	// Clear previous load and visibile list when moving across chunks.
+	mIsLoadListRefreshing.store(true);
 	mLoadList = std::queue<Vector3i>();
+
+	std::lock_guard<std::mutex> LoadLock(mLoadListMutex);
 
 	// Add all chunks in the visible range to the visible list.
 	// First add the xz plane that the camera is currently on.
@@ -382,6 +405,8 @@ void FChunkManager::UpdateVisibleList()
 			}
 		}
 	}
+
+	mIsLoadListRefreshing.store(false);
 }
 
 void FChunkManager::AddRegionFileReference(const Vector3i& ChunkPosition)
@@ -427,10 +452,10 @@ void FChunkManager::UpdateRenderList()
 	const float ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
 
 	// Check each visible chunk against the frustum
-	const uint32_t ListSize = mViewDistance * mViewDistance * mViewDistance;
+	const uint32_t ListSize = mChunks.size();
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		const Vector3i ChunkPosition = mChunkPositions[i];
+		const Vector3i ChunkPosition = mChunkPositions[i] * FChunk::CHUNK_SIZE;
 		const Vector3f Center = Vector3f{ (float)ChunkPosition.x + ChunkHalfWidth,
 											(float)ChunkPosition.y + ChunkHalfWidth,
 											(float)ChunkPosition.z + ChunkHalfWidth };

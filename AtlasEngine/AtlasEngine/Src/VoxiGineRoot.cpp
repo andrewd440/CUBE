@@ -39,6 +39,7 @@ FVoxiGineRoot::FVoxiGineRoot()
 	, mChunkManager(nullptr)
 {
 	IFileSystem* FileSystem = new FFileSystem;
+	FileSystem->SetToProgramDirectory();
 
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
@@ -51,9 +52,9 @@ FVoxiGineRoot::FVoxiGineRoot()
 	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 
 	// Initialize debug text
-	FDebug::Draw* DebugDraw = new FDebug::Draw;
 	FDebug::Text* DebugText = new FDebug::Text;
 	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
+	FDebug::Draw* DebugDraw = new FDebug::Draw;
 
 	mChunkManager = new FChunkManager;
 }
@@ -112,13 +113,13 @@ void FVoxiGineRoot::GameLoop()
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
-	MainCamera.Transform.SetPosition(Vector3f{ 10, 50, 30 });
+	MainCamera.Transform.SetPosition(Vector3f{ 10, 210, 30 });
 
 	auto& PointLight = GameObjectManager.CreateGameObject();
 	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
-	PLight.Color = Vector3f(1, 1, 1);
-	PLight.MinDistance = 10;
-	PLight.MaxDistance = 100;
+	PLight.Color = Vector3f(0.2f, .1f, .8f);
+	PLight.MinDistance = 0;
+	PLight.MaxDistance = 0;
 
 	// Game Loop
 	float lag = 0.0f;
@@ -157,8 +158,6 @@ void FVoxiGineRoot::GameLoop()
 		UpdateTimers();
 		ServiceEvents();
 	}
-
-	mChunkManager->Shutdown();
 }
 
 void FVoxiGineRoot::ServiceEvents()
@@ -243,7 +242,7 @@ void CameraSetup()
 void UpdateCamera(FTransform& Light)
 {
 	float ZMovement = 0, XMovement = 0, YMovement = 0;
-	float MoveSpeed = (75.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
+	float MoveSpeed = (40.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;

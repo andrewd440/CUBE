@@ -46,7 +46,6 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 void FRenderSystem::LoadShaders()
 {
 	// Load all main rendering shaders
-	IFileSystem::GetInstance().SetToProgramDirectory();
 	SShaderHolder::Load("DeferredRender.vert", L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER);
 	SShaderHolder::Load("DeferredRender.frag", L"Shaders/DeferredRender.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);

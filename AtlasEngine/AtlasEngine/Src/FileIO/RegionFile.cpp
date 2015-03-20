@@ -31,26 +31,26 @@ bool FRegionFile::Load(const wchar_t* WorldName, const Vector3i& RegionPosition)
 
 	static const uint32_t DirectoryBufferSize = 300;
 
-	// Get the program directory
-	FileSystem.SetToProgramDirectory();
-	FileSystem.SetDirectory(L"Worlds");
-
 	// Enter the file directory for this region
-	FileSystem.CreateFileDirectory(WorldName);
-	FileSystem.SetDirectory(WorldName);
+	std::wstring Filepath{ L"./Worlds/" };
+	Filepath += WorldName;
+
+	FileSystem.CreateFileDirectory(Filepath.c_str());
 
 	wchar_t ProgramDirectory[DirectoryBufferSize];
-	int32_t CharCount = swprintf(ProgramDirectory, DirectoryBufferSize, L"x%dy%dz%d.vgr", RegionPosition.x, RegionPosition.y, RegionPosition.z);
+	int32_t CharCount = swprintf(ProgramDirectory, DirectoryBufferSize, L"/x%dy%dz%d.vgr", RegionPosition.x, RegionPosition.y, RegionPosition.z);
 	ProgramDirectory[CharCount] = L'\0';
 
-	if (FileSystem.FileExists(ProgramDirectory))
+	Filepath += ProgramDirectory;
+
+	if (FileSystem.FileExists(Filepath.c_str()))
 	{
-		mRegionFile = FileSystem.OpenReadWritable(ProgramDirectory, true);
+		mRegionFile = FileSystem.OpenReadWritable(Filepath.c_str(), true);
 	}
 	else
 	{
 		// If it doesn't exist, create it
-		mRegionFile = FileSystem.OpenReadWritable(ProgramDirectory, true, true);
+		mRegionFile = FileSystem.OpenReadWritable(Filepath.c_str(), true, true);
 
 		// Add empty lookup table
 		mRegionFile->Write(FilePadding, sizeof(RegionData));

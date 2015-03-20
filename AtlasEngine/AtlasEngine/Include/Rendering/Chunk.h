@@ -62,7 +62,7 @@ public:
 	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
 	// Memory pools
-	static const uint32_t POOL_SIZE = 10000;
+	static const uint32_t POOL_SIZE = 20000;
 	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, POOL_SIZE> ChunkAllocator;
 	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE> MeshAllocator;
 	static FPoolAllocatorType<CollisionData, POOL_SIZE> CollisionAllocator;
@@ -105,6 +105,14 @@ public:
 	void SetChunkManager(FChunkManager* NewManager);
 
 	/**
+	* Signals that a thread is about to process information
+	* held within this chunk. This must be called before Load/Unload/Rebuild
+	* operations.
+	* @return True if this chunk is currently avaible for processing.
+	*/
+	bool StartProcessing();
+
+	/**
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
 	* @param BlockData - RLE block layout for this chunk.
@@ -120,6 +128,16 @@ public:
 	void Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsSystem);
 
 	/**
+	* Builds/Rebuilds this chunks' mesh.
+	*/
+	void RebuildMesh();
+
+	/**
+	* Signals that this chunk is done processing data.
+	*/
+	void EndProcessing();
+
+	/**
 	* Checks if the chunk has been loaded.
 	*/
 	bool IsLoaded() const;
@@ -128,11 +146,6 @@ public:
 	* Renders active blocks in the chunk.
 	*/
 	void Render(const GLenum RenderMode = GL_TRIANGLES);
-
-	/**
-	* Builds/Rebuilds this chunks' mesh.
-	*/
-	void RebuildMesh();
 
 	/**
 	* Set a block in the chunk at a specific position.
@@ -254,4 +267,19 @@ private:
 
 	std::atomic_bool mIsProcessing; // If the chunk is being loaded/unloaded/rebuilt, should not render if set
 	std::atomic_bool mIsRendering;  // If the chunk is being rendered, should not process if set
+	std::atomic_bool mHasFreshMesh; // If the chunk has a new mesh that needs activation
 };
+
+
+inline bool FChunk::StartProcessing()
+{
+	mIsProcessing.store(true);
+	bool Success = !mIsRendering;
+	mIsProcessing.store(Success);
+	return Success;
+}
+
+inline void FChunk::EndProcessing()
+{
+	mIsProcessing.store(false);
+}

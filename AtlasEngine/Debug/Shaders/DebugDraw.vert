@@ -1,8 +1,5 @@
 #version 430 core
 
-//#pragma optimize(off)
-//#pragma debug(off)
-
 layout ( location = 0 ) in vec4 vPosition;
 layout( location = 2 ) in vec4 vColor;
 

@@ -165,13 +165,14 @@ void FWorldGenerator::BuildWorldInfoFile(const wchar_t* WorldName) const
 {
 	// Create the world directory
 	IFileSystem& FileSystem = IFileSystem::GetInstance();
-	FileSystem.SetToProgramDirectory();
-	FileSystem.SetDirectory(L"Worlds");
+
+	std::wstring Filepath{ L"./Worlds/" };
+	Filepath += WorldName;
 
 	FileSystem.CreateFileDirectory(WorldName);
-	FileSystem.SetDirectory(WorldName);
+	Filepath += L"/WorldInfo.vgw";
 
 	// Create the world info file
-	auto InfoFile = FileSystem.OpenWritable(L"WorldInfo.vgw", false, true);
+	auto InfoFile = FileSystem.OpenWritable(Filepath.c_str(), false, true);
 	InfoFile->Write((uint8_t*)&mWorldSizeInChunks, 4);
 }
