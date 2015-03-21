@@ -102,8 +102,6 @@ public:
 	*/
 	~FChunk();
 
-	void SetChunkManager(FChunkManager* NewManager);
-
 	/**
 	* Signals that a thread is about to process information
 	* held within this chunk. This must be called before Load/Unload/Rebuild
@@ -116,21 +114,24 @@ public:
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
 	* @param BlockData - RLE block layout for this chunk.
-	* @param PhysicsSystem - The current physics system.
 	*/
-	void Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& PhysicsSystem, const Vector3f& WorldPosition);
+	void Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition);
 
 	/**
 	* Frees block and mesh data.
 	* @param BlockDataOut - Memory to place RLE block layout for this chunk.
-	* @param PhysicsSystem - The current physics system.
 	*/
-	void Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsSystem);
+	void Unload(std::vector<uint8_t>& BlockDataOut);
+
+	/**
+	* Removes data held by this chunk from external services.
+	*/
+	void ShutDown(FPhysicsSystem& PhysicsSystem);
 
 	/**
 	* Builds/Rebuilds this chunks' mesh.
 	*/
-	void RebuildMesh();
+	void RebuildMesh(FPhysicsSystem& PhysicsSystem);
 
 	/**
 	* Signals that this chunk is done processing data.
@@ -260,7 +261,6 @@ private:
 private:
 	FBlock* mBlocks;
 	TMesh<FVoxelVertex>* mMesh;
-	FChunkManager* mChunkManager;
 	CollisionData* mCollisionData;
 	bool mIsLoaded;
 	bool mIsEmpty;

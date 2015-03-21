@@ -8,7 +8,7 @@
 #include "Rendering\RenderSystem.h"
 #include "SFML\Window\Context.hpp"
 
-const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 2;
+const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
 static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
 static const uint32_t DEFAULT_CHUNK_BOUNDS = (2 * DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE);
 
@@ -35,10 +35,6 @@ FChunkManager::FChunkManager()
 {
 	mMustShutdown.store(false);
 	mIsLoadListRefreshing.store(false);
-	for (auto& Chunk : mChunks)
-	{
-		Chunk.SetChunkManager(this);
-	}
 
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
@@ -54,6 +50,8 @@ void FChunkManager::Shutdown()
 
 	if(mLoaderThread.joinable())
 		mLoaderThread.join();
+
+	mMustShutdown.store(false);
 }
 
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
@@ -85,6 +83,11 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 	// Must be a power of 2
 	if ((Distance & (Distance - 1)) == 0x0)
 	{
+		for (auto& Chunk : mChunks)
+		{
+			Chunk.ShutDown(*mPhysicsSystem);
+		}
+
 		Shutdown();
 
 		mViewDistance = Distance - 1;
@@ -93,11 +96,6 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 		mChunks.resize(NewBounds);
 		mChunkPositions.resize(NewBounds);
 		std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
-
-		for (auto& Chunk : mChunks)
-		{
-			Chunk.SetChunkManager(this);
-		}
 
 		UpdateVisibleList();
 		mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
@@ -115,7 +113,7 @@ void FChunkManager::UnloadAllChunks()
 			std::vector<uint8_t> ChunkData;
 
 			// Unload the chunk currently in this index
-			mChunks[i].Unload(ChunkData, *mPhysicsSystem);
+			mChunks[i].Unload(ChunkData);
 
 			// Get region position info for unloaded chunk
 			const Vector3i UnloadChunkPosition = mChunkPositions[i];
@@ -261,7 +259,7 @@ void FChunkManager::UpdateLoadList()
 		if (mChunks[Index].IsLoaded())
 		{
 			// Unload the chunk currently in this index
-			mChunks[Index].Unload(ChunkData, *mPhysicsSystem);
+			mChunks[Index].Unload(ChunkData);
 
 			// Get region position info for unloaded chunk
 			const Vector3i UnloadChunkPosition = mChunkPositions[Index];
@@ -296,8 +294,8 @@ void FChunkManager::UpdateLoadList()
 		// Load and build the chunk
 		ChunkPosition *= FChunk::CHUNK_SIZE;
 		const Vector3f FPosition{ (float)ChunkPosition.x, (float)ChunkPosition.y, (float)ChunkPosition.z };
-		mChunks[Index].Load(ChunkData, *mPhysicsSystem, FPosition);
-		mChunks[Index].RebuildMesh();
+		mChunks[Index].Load(ChunkData, FPosition);
+		mChunks[Index].RebuildMesh(*mPhysicsSystem);
 
 
 		mChunks[Index].EndProcessing();
@@ -321,7 +319,7 @@ void FChunkManager::UpdateRebuildList()
 		}
 
 		RebuildLock.unlock();
-		mChunks[ChunkIndex].RebuildMesh();
+		mChunks[ChunkIndex].RebuildMesh(*mPhysicsSystem);
 		mChunks[ChunkIndex].EndProcessing();
 		RebuildLock.lock();
 	}

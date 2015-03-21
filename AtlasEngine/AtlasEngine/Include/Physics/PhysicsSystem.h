@@ -2,6 +2,9 @@
 #include "Atlas\System.h"
 #include "btBulletDynamicsCommon.h"
 
+#include <queue>
+#include <mutex>
+
 class FPhysicsSystem : public Atlas::ISystem
 {
 public:
@@ -54,6 +57,25 @@ private:
 	* does not need to hold object IDs, this evaluates to nothing.
 	*/
 	void RemoveObject(Atlas::FGameObject& GameObject) override {}
+
+private:
+	struct RigidBodyRecord
+	{
+		btRigidBody& RigidBody;
+		bool         ToBeAdded;
+	};
+
+	struct ColliderRecord
+	{
+		btCollisionObject& Collider;
+		bool               ToBeAdded;
+	};
+
+	std::mutex                  mRigidBodyMutex;
+	std::queue<RigidBodyRecord> mRigidBodyQueue;
+
+	std::mutex                  mColliderMutex;
+	std::queue<ColliderRecord>  mColliderQueue;
 
 private:
 	btDefaultCollisionConfiguration      mCollisionConfig; 

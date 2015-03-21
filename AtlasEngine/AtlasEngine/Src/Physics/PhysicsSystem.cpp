@@ -7,6 +7,10 @@
 
 FPhysicsSystem::FPhysicsSystem(Atlas::FWorld& World)
 	: ISystem(World)
+	, mRigidBodyMutex()
+	, mRigidBodyQueue()
+	, mColliderMutex()
+	, mColliderQueue()
 	, mCollisionConfig()
 	, mCollisionDispatcher(&mCollisionConfig)
 	, mBroadPhase()
@@ -28,6 +32,48 @@ FPhysicsSystem::~FPhysicsSystem()
 
 void FPhysicsSystem::Update()
 {
+	std::unique_lock<std::mutex> RigidLock(mRigidBodyMutex);
+	while (!mRigidBodyQueue.empty())
+	{
+		RigidBodyRecord Record = mRigidBodyQueue.front();
+		mRigidBodyQueue.pop();
+		RigidLock.unlock();
+
+		if (Record.ToBeAdded)
+		{
+			mDynamicsWorld.addRigidBody(&Record.RigidBody);
+		}
+		else
+		{
+			mDynamicsWorld.removeRigidBody(&Record.RigidBody);
+		}
+
+		RigidLock.lock();
+	}
+
+	RigidLock.unlock();
+
+	std::unique_lock<std::mutex> ColliderLock(mColliderMutex);
+	while (!mColliderQueue.empty())
+	{
+		ColliderRecord Record = mColliderQueue.front();
+		mColliderQueue.pop();
+		ColliderLock.unlock();
+
+		if (Record.ToBeAdded)
+		{
+			mDynamicsWorld.addCollisionObject(&Record.Collider);
+		}
+		else
+		{
+			mDynamicsWorld.removeCollisionObject(&Record.Collider);
+		}
+
+		ColliderLock.lock();
+	}
+
+	ColliderLock.unlock();
+
 	mDynamicsWorld.stepSimulation(STime::GetDeltaTime());
 }
 
@@ -38,22 +84,26 @@ void FPhysicsSystem::RenderCollisionObjects()
 
 void FPhysicsSystem::AddCollider(btCollisionObject& CollisionObject)
 {
-	mDynamicsWorld.addCollisionObject(&CollisionObject);
+	std::unique_lock<std::mutex> ColliderLock(mColliderMutex);
+	mColliderQueue.push(ColliderRecord{ CollisionObject, true });
 }
 
 void FPhysicsSystem::RemoveCollider(btCollisionObject& CollisionObject)
 {
-	mDynamicsWorld.removeCollisionObject(&CollisionObject);
+	std::unique_lock<std::mutex> ColliderLock(mColliderMutex);
+	mColliderQueue.push(ColliderRecord{ CollisionObject, false });
 }
 
 void FPhysicsSystem::AddRigidBody(btRigidBody& RigidBody)
 {
-	mDynamicsWorld.addRigidBody(&RigidBody);
+	std::unique_lock<std::mutex> RigidLock(mRigidBodyMutex);
+	mRigidBodyQueue.push(RigidBodyRecord{ RigidBody, true });
 }
 
 void FPhysicsSystem::RemoveRigidBody(btRigidBody& RigidBody)
 {
-	mDynamicsWorld.removeRigidBody(&RigidBody);
+	std::unique_lock<std::mutex> RigidLock(mRigidBodyMutex);
+	mRigidBodyQueue.push(RigidBodyRecord{ RigidBody, false });
 }
 
 void FPhysicsSystem::CheckInterest(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdatedComponent)

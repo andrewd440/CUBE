@@ -29,7 +29,6 @@ FChunk::FChunk()
 	: mBlocks(nullptr)
 	, mMesh(nullptr)
 	, mCollisionData(nullptr)
-	, mChunkManager(nullptr)
 	, mIsLoaded(false)
 	, mIsEmpty(true)
 	, mIsProcessing()
@@ -63,18 +62,19 @@ FChunk::FChunk(const FChunk& Other)
 	: mBlocks(Other.mBlocks)
 	, mMesh(Other.mMesh)
 	, mCollisionData(Other.mCollisionData)
-	, mChunkManager(Other.mChunkManager)
 	, mIsLoaded(Other.mIsLoaded)
 	, mIsEmpty(Other.mIsEmpty)
+	, mIsProcessing(Other.mIsProcessing)
+	, mIsRendering(Other.mIsRendering)
+	, mHasFreshMesh(Other.mHasFreshMesh)
 {
-	mIsProcessing.store(false);
-	mIsRendering.store(false);
 }
 
 FChunk& FChunk::operator=(const FChunk& Other)
 {
 	mIsProcessing.store(true);
-	mIsRendering.store(false);
+	mIsRendering = Other.mIsRendering;
+	mHasFreshMesh = Other.mHasFreshMesh;
 
 	// Free current data
 	ChunkAllocator.Free(mBlocks);
@@ -86,7 +86,6 @@ FChunk& FChunk::operator=(const FChunk& Other)
 	mMesh = Other.mMesh;
 	mCollisionData = Other.mCollisionData;
 	mIsLoaded = Other.mIsLoaded;
-	mChunkManager = Other.mChunkManager;
 	mIsEmpty = Other.mIsEmpty;
 
 	mIsProcessing.store(false);
@@ -100,12 +99,8 @@ FChunk::~FChunk()
 	CollisionAllocator.Free(mCollisionData);
 }
 
-void FChunk::SetChunkManager(FChunkManager* NewManager)
-{
-	mChunkManager = NewManager;
-}
 
-void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& PhysicsSystem, const Vector3f& WorldPosition)
+void FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition)
 {
 	ASSERT(!mIsLoaded);
 
@@ -115,9 +110,6 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& Physics
 	// Set collision transform
 	CollisionInfo.Object.setWorldTransform(btTransform{ btQuaternion{0,0,0},
 				btVector3{ WorldPosition.x, WorldPosition.y, WorldPosition.z } });
-
-	// Add collision data to physics system
-	//PhysicsSystem.AddCollider(CollisionInfo.Object);
 
 	// Current index to access block type
 	int32_t TypeIndex = 0;
@@ -148,7 +140,7 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, FPhysicsSystem& Physics
 	mIsLoaded = true;
 }
 
-void FChunk::Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsSystem)
+void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 {
 	ASSERT(mIsLoaded);
 
@@ -178,9 +170,13 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut, FPhysicsSystem& PhysicsS
 			}
 		}
 	}
+}
 
+void FChunk::ShutDown(FPhysicsSystem& PhysicsSystem)
+{
 	// Remove collision data from physics system
-	//PhysicsSystem.RemoveCollider(mCollisionData->Object);
+	if (!mIsEmpty)
+		PhysicsSystem.RemoveCollider(mCollisionData->Object);
 }
 
 bool FChunk::IsLoaded() const
@@ -208,8 +204,11 @@ void FChunk::Render(const GLenum RenderMode)
 	mIsRendering.store(false);
 }
 
-void FChunk::RebuildMesh()
+void FChunk::RebuildMesh(FPhysicsSystem& PhysicsSystem)
 {
+	// Save status
+	bool WasEmpty = mIsEmpty;
+
 	// Make sure mesh data is cleared
 	mIsEmpty = true;
 	mIsLoaded = false;
@@ -236,16 +235,18 @@ void FChunk::RebuildMesh()
 		VertexData.m_vertexStride = VertexStride;
 
 		// Reconstruct the collision shape with updated data
-		new (&mCollisionData->Mesh) btTriangleIndexVertexArray{};
-		mCollisionData->Mesh.addIndexedMesh(VertexData);
-		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, true };
+		mCollisionData->Mesh.getIndexedMeshArray().clear();
+		mCollisionData->Mesh.getIndexedMeshArray().push_back(VertexData);
+		mCollisionData->Shape.buildOptimizedBvh();
+
+		if (WasEmpty)
+			PhysicsSystem.AddCollider(mCollisionData->Object);
 	}
-	else
+	else if (!WasEmpty)
 	{
-		// Set collision to invalide values
-		new (&mCollisionData->Mesh) btTriangleIndexVertexArray{};
-		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, true, false };
+		PhysicsSystem.RemoveCollider(mCollisionData->Object);
 	}
+
 	mIsLoaded = true;
 }
 
