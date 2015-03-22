@@ -182,7 +182,10 @@
   <ItemGroup>
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
+    <ClInclude Include="Include\Atlas\Behavior.h" />
     <ClInclude Include="Include\Components\Collider.h" />
+    <ClInclude Include="Include\Components\FlyingCamera.h" />
+    <ClInclude Include="Include\Components\MeshComponent.h" />
     <ClInclude Include="Include\Components\RigidBody.h" />
     <ClInclude Include="Include\Debugging\GameConsole.h" />
     <ClInclude Include="Include\Input\TextEntered.h" />
@@ -263,7 +266,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="Src\Atlas\Behavior.cpp" />
     <ClCompile Include="Src\Components\Collider.cpp" />
+    <ClCompile Include="Src\Components\FlyingCamera.cpp" />
+    <ClCompile Include="Src\Components\MeshComponent.cpp" />
     <ClCompile Include="Src\Components\RigidBody.cpp" />
     <ClCompile Include="Src\Debugging\GameConsole.cpp" />
     <ClCompile Include="Src\FileIO\GenericFile.cpp" />

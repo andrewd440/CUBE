@@ -1,1 +1,37 @@
-﻿  BulletDynamics.vcxproj -> D:\Users\Andrew\Documents\GitHub\AtlasEngine\AtlasEngine\AtlasEngine\ThirdParty\BulletPhysics\build3\vs2010\..\..\bin\BulletDynamics_debug.lib
+﻿cl : Command line warning D9030: '/Gm' is incompatible with multiprocessing; ignoring /MP switch
+  btKinematicCharacterController.cpp
+  btWheelInfo.cpp
+  btRaycastVehicle.cpp
+  btMLCPSolver.cpp
+  btLemkeAlgorithm.cpp
+  btDantzigLCP.cpp
+  btMultiBodyPoint2Point.cpp
+  btMultiBodyJointMotor.cpp
+  btMultiBodyJointLimitConstraint.cpp
+  btMultiBodyDynamicsWorld.cpp
+  btMultiBodyConstraintSolver.cpp
+  btMultiBodyConstraint.cpp
+  btMultiBody.cpp
+  btUniversalConstraint.cpp
+  btTypedConstraint.cpp
+  btSolve2LinearConstraint.cpp
+  btSliderConstraint.cpp
+  btSequentialImpulseConstraintSolver.cpp
+  btPoint2PointConstraint.cpp
+  btNNCGConstraintSolver.cpp
+  Generating Code...
+  Compiling...
+  btHingeConstraint.cpp
+  btHinge2Constraint.cpp
+  btGeneric6DofSpringConstraint.cpp
+  btGeneric6DofSpring2Constraint.cpp
+  btGeneric6DofConstraint.cpp
+  btGearConstraint.cpp
+  btFixedConstraint.cpp
+  btContactConstraint.cpp
+  btConeTwistConstraint.cpp
+  btSimpleDynamicsWorld.cpp
+  btRigidBody.cpp
+  btDiscreteDynamicsWorld.cpp
+  Generating Code...
+  BulletDynamics.vcxproj -> D:\Users\Andrew\Documents\GitHub\AtlasEngine\AtlasEngine\AtlasEngine\ThirdParty\BulletPhysics\build3\vs2010\..\..\bin\BulletDynamics_debug.lib

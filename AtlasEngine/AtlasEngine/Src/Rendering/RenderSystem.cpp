@@ -11,6 +11,8 @@
 #include "Rendering\LightSystems.h"
 #include <GL\glew.h>
 #include "markup.h"
+#include "Atlas\World.h"
+#include "Components\MeshComponent.h"
 
 namespace
 {
@@ -41,6 +43,8 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	// Setup transform buffer with default values
 	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
+
+	AddComponentType<Atlas::EComponent::Mesh>();
 }
 
 void FRenderSystem::LoadShaders()
@@ -133,6 +137,15 @@ void FRenderSystem::RenderGeometry()
 
 	// Render geometry
 	mChunkManager.Render(*this, GL_TRIANGLES);
+
+	for (auto& GameObject : GetGameObjects())
+	{
+		auto& Transform = GameObject->Transform;
+		auto& Mesh = GameObject->GetComponent<Atlas::EComponent::Mesh>();
+
+		SetModelTransform(Transform);
+		Mesh.Render();
+	}
 }
 
 void FRenderSystem::ConstructGBuffer()

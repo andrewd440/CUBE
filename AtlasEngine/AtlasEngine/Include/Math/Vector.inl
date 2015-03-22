@@ -19,6 +19,32 @@ inline TVector4<T>::TVector4(const TVector3<T>& Vec3, const T W)
 
 template <typename T>
 template <typename U>
+inline TVector4<T>::TVector4(const U X, const U Y, const U Z, const U W)
+	: x((T)X), y((T)Y), z((T)Z), w((T)W){}
+
+template <typename T>
+template <typename U>
+inline TVector4<T>::TVector4(const TVector4<U>& Other)
+	: x((T)Other.x)
+	, y((T)Other.y)
+	, z((T)Other.z)
+	, w((T)Other.w)
+{
+}
+
+template <typename T>
+template <typename U>
+inline TVector4<T>& TVector4<T>::operator=(const TVector4<U>& Other)
+{
+	x = (T)Other.x;
+	y = (T)Other.y;
+	z = (T)Other.z;
+	w = (T)Other.w;
+	return *this;
+}
+
+template <typename T>
+template <typename U>
 inline TVector4<T>& TVector4<T>::operator+=(const U Scalar)
 {
 	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
@@ -429,6 +455,30 @@ const TVector3<T> TVector3<T>::Up = TVector3<T>{0, 1, 0};
 
 template <typename T>
 const TVector3<T> TVector3<T>::Down = TVector3<T>{0, -1, 0};
+
+template <typename T>
+template <typename U>
+inline TVector3<T>::TVector3(const TVector3<U>& Other)
+	: x((T)Other.x)
+	, y((T)Other.y)
+	, z((T)Other.z)
+{
+}
+
+template <typename T>
+template <typename U>
+inline TVector3<T>::TVector3(const U X, const U Y, const U Z)
+	: x((T)X), y((T)Y), z((T)Z){}
+
+template <typename T>
+template <typename U>
+inline TVector3<T>& TVector3<T>::operator=(const TVector3<U>& Other)
+{
+	x = (T)Other.x;
+	y = (T)Other.y;
+	z = (T)Other.z;
+	return *this;
+}
 
 template <typename T>
 inline T TVector3<T>::Dot(const TVector3<T>& lhs, const TVector3<T>& rhs)

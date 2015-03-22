@@ -1,1 +1,11 @@
-﻿  LinearMath.vcxproj -> D:\Users\Andrew\Documents\GitHub\AtlasEngine\AtlasEngine\AtlasEngine\ThirdParty\BulletPhysics\build3\vs2010\..\..\bin\LinearMath_debug.lib
+﻿cl : Command line warning D9030: '/Gm' is incompatible with multiprocessing; ignoring /MP switch
+  btVector3.cpp
+  btSerializer.cpp
+  btQuickprof.cpp
+  btPolarDecomposition.cpp
+  btGeometryUtil.cpp
+  btConvexHullComputer.cpp
+  btConvexHull.cpp
+  btAlignedAllocator.cpp
+  Generating Code...
+  LinearMath.vcxproj -> D:\Users\Andrew\Documents\GitHub\AtlasEngine\AtlasEngine\AtlasEngine\ThirdParty\BulletPhysics\build3\vs2010\..\..\bin\LinearMath_debug.lib

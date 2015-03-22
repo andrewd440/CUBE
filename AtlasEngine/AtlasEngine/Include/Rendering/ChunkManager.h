@@ -76,18 +76,18 @@ public:
 	void SetViewDistance(const int32_t Distance);
 
 	/**
+	* Sets the physics system used by the chunk manager.
+	*/
+	void SetPhysicsSystem(FPhysicsSystem& Physics);
+
+private:
+	/**
 	* Saves all current world data and closes
 	* needed services. This should be called before closing the
 	* program to save current world data properly.
 	*/
 	void Shutdown();
 
-	/**
-	* Sets the physics system used by the chunk manager.
-	*/
-	void SetPhysicsSystem(FPhysicsSystem& Physics);
-
-private:
 	void ChunkLoaderThreadLoop();
 
 	// Updates the current unload list

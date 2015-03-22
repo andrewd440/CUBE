@@ -5,10 +5,15 @@
 #include "ComponentTypes.h"
 #include "Math\Transform.h"
 #include "btBulletCollisionCommon.h"
+#include <map>
+#include <typeindex>
+
+class FChunkManager;
 
 namespace Atlas
 {
 	class IComponent;
+	class FBehavior;
 
 	/**
 	* Used to represent any game object. 
@@ -45,6 +50,26 @@ namespace Atlas
 		* Removes a specified IComponent from the FGameObject.
 		*/
 		void RemoveComponent(const EComponent::Type Type);
+
+		template <typename Type>
+		/**
+		* Retrieve a behavior component.
+		*/
+		Type* GetBehavior();
+		
+		template <typename Type>
+		/**
+		* Add a behavior component.
+		*/
+		Type* AddBehavior();
+
+		template <typename Type>
+		/**
+		* Remove a behavior component.
+		*/
+		void RemoveBehavior();
+
+		FChunkManager& GetChunkManager();
 
 		/**
 		* Retrieves all Components that are attached to the GameObject.
@@ -83,24 +108,6 @@ namespace Atlas
 		void Destroy();
 
 		/**
-		* Removes a system bit from the GameObject
-		* @param Bit - bit to be removed
-		*/
-		void RemoveSystemBit(const std::bitset<BITSIZE>& Bit);
-
-		/**
-		* Retrieves the system bits assigned to this GameObject
-		* @return Set of system bits
-		*/
-		std::bitset<BITSIZE> GetSystemBitMask() const;
-
-
-		/**
-		* Retrieves the component bits in use by this GameObject.
-		*/
-		std::bitset<BITSIZE> GetComponentBitMask() const;
-
-		/**
 		* Bullet Physics callback for retrieving the current motion
 		* state.
 		*/
@@ -117,7 +124,19 @@ namespace Atlas
 		friend class FSystemManager;
 		friend class ISystem;
 
-		FGameObject(FGameObjectManager& GOManager);	// Only the GameObject Manager creates Entities
+		FGameObject(FGameObjectManager& GOManager, FChunkManager& ChunkManager);	// Only the GameObject Manager creates Entities
+
+		/**
+		* Calls OnStart on all behavior components.
+		* Should be called at the start of the game.
+		*/
+		void OnStart();
+
+		/**
+		* Updates all behavior components for
+		* this object.
+		*/
+		void Update();
 
 		/**
 		* Sets the ID for the GameObject.
@@ -125,6 +144,24 @@ namespace Atlas
 		* @param ID - ID to be assigned
 		*/
 		void SetID(const ID ID);
+
+		/**
+		* Removes a system bit from the GameObject
+		* @param Bit - bit to be removed
+		*/
+		void RemoveSystemBit(const std::bitset<BITSIZE>& Bit);
+
+		/**
+		* Retrieves the system bits assigned to this GameObject
+		* @return Set of system bits
+		*/
+		std::bitset<BITSIZE> GetSystemBitMask() const;
+
+
+		/**
+		* Retrieves the component bits in use by this GameObject.
+		*/
+		std::bitset<BITSIZE> GetComponentBitMask() const;
 
 		/**
 		* Adds a component bit to the GameObject.
@@ -147,12 +184,16 @@ namespace Atlas
 		void SetSystemBit(const std::bitset<BITSIZE>& Bit);
 
 	private:
-		std::bitset<BITSIZE>            mComponentBits; // Property component types currently attached.
-		std::bitset<BITSIZE>            mSystemBits;    // Systems currently registered in.
-		FGameObjectManager&             mGOManager;
-		uint32_t						mComponents[EComponent::Count]; // Handles for common property components.
-		ID		                        mID;            // Non-unique id for this GO.
-		bool                            mIsActive;      // If not active, this GO's components will not be processed.
+		std::bitset<BITSIZE>              mComponentBits; // Property component types currently attached.
+		std::bitset<BITSIZE>              mSystemBits;    // Systems currently registered in.
+		FGameObjectManager&               mGOManager;
+		FChunkManager&                    mChunkManager;
+
+		uint32_t						  mComponents[EComponent::Count]; // Handles for common property components.
+		std::map<std::type_index, 
+			std::unique_ptr<FBehavior>>   mBehaviors;
+		ID		                          mID;            // Non-unique id for this GO.
+		bool                              mIsActive;      // If not active, this GO's components will not be processed.
 	};
 }
 

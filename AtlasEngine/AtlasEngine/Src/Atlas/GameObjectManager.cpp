@@ -15,6 +15,14 @@ namespace Atlas
 		mGameObjects.Init<FGameObject>(DEFAULT_CONTAINER_SIZE);
 	}
 
+	void FGameObjectManager::Start()
+	{
+		for (auto Itr = mGameObjects.Begin<FGameObject>(); Itr != mGameObjects.End<FGameObject>(); Itr++)
+		{
+			Itr->OnStart();
+		}
+	}
+
 	void FGameObjectManager::Update()
 	{
 		// remove destroyed GOs
@@ -22,6 +30,11 @@ namespace Atlas
 		{
 			DestroyGameObjectHelp(*mDestroyQueue.front());
 			mDestroyQueue.pop();
+		}
+
+		for (auto Itr = mGameObjects.Begin<FGameObject>(); Itr != mGameObjects.End<FGameObject>(); Itr++)
+		{
+			Itr->Update();
 		}
 	}
 
@@ -31,7 +44,7 @@ namespace Atlas
 		uint32_t Index = mGameObjects.Allocate();
 
 		// In-place allocate it with this memory
-		new (&(mGameObjects.At<FGameObject>(Index))) FGameObject(*this);
+		new (&(mGameObjects.At<FGameObject>(Index))) FGameObject(*this, *mChunkManager);
 
 		// Set the ID with the index
 		FGameObject& NewObject = mGameObjects.At<FGameObject>(Index);

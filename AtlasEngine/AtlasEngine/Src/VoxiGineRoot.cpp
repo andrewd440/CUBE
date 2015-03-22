@@ -25,6 +25,8 @@
 #include "Debugging\DebugDraw.h"
 #include "Debugging\DebugText.h"
 #include "Input\TextEntered.h"
+#include "Components\MeshComponent.h"
+#include "Components\FlyingCamera.h"
 
 const uint32_t WindowWidth = 1800;
 const uint32_t WindowHeight = 1100;
@@ -44,7 +46,8 @@ FVoxiGineRoot::FVoxiGineRoot()
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
 
-	if (glewInit()) {
+	if (glewInit()) 
+	{
 		std::cerr << "Unable to initialize GLEW ... exiting" << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -68,12 +71,15 @@ FVoxiGineRoot::~FVoxiGineRoot()
 	delete FDebug::GameConsole::GetInstancePtr();
 }
 
-void CameraSetup();
-
 void FVoxiGineRoot::Start()
 {
-	CameraSetup();
-	
+	FCamera::Main = &MainCamera;
+	FTransform& CameraTransform = MainCamera.Transform;
+	const Vector3f CameraPosition = Vector3f{ 36.0f, 36.0f, 36.0f };
+	CameraTransform.SetPosition(CameraPosition);
+
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 1000.0f });
+
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
@@ -84,26 +90,43 @@ void FVoxiGineRoot::Start()
 	Console.SetPhysicsSystem(&Physics);
 	Console.SetRenderSystem(&Renderer);
 
-
-	mChunkManager->LoadWorld(L"LargeWorld");
+	mChunkManager->LoadWorld(L"GenWorld");
 	mChunkManager->SetPhysicsSystem(Physics);
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+	GameObjectManager.SetChunkManager(mChunkManager);
+
 	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
 	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
 	GameObjectManager.RegisterComponentType<EComponent::Collider>();
 	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
-	
+	GameObjectManager.RegisterComponentType<EComponent::Mesh>();
+
+	ConstructScene();
+
+	GameObjectManager.Start();
+	GameLoop();
+}
+
+void FVoxiGineRoot::ConstructScene()
+{
+	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+
+	////////////////////////////////////////////////////////////////////////
+	//////// Directional Light /////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////
 	auto& DirectionalLight = GameObjectManager.CreateGameObject();
 	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
 	DLight.Color = Vector3f(.7, .7, .7);
 	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
+	DirectionalLight.AddBehavior<CFlyingCamera>();
 
-	GameLoop();
+	auto& PointLight = GameObjectManager.CreateGameObject();
+	//FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
+	//PLight.Color = Vector3f(0.2f, .1f, .8f);
+	//PLight.MinDistance = 1;
+	//PLight.MaxDistance = 3;
 }
-
-void UpdateCamera(FTransform& Light);
-
 
 void FVoxiGineRoot::GameLoop()
 {
@@ -112,14 +135,6 @@ void FVoxiGineRoot::GameLoop()
 
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
-
-	MainCamera.Transform.SetPosition(Vector3f{ 10, 210, 30 });
-
-	auto& PointLight = GameObjectManager.CreateGameObject();
-	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
-	PLight.Color = Vector3f(0.2f, .1f, .8f);
-	PLight.MinDistance = 0;
-	PLight.MaxDistance = 0;
 
 	// Game Loop
 	float lag = 0.0f;
@@ -148,9 +163,10 @@ void FVoxiGineRoot::GameLoop()
 		//}
 
 		mChunkManager->Update();
-		UpdateCamera(PointLight.Transform);
-		SystemManager.GetSystem(Systems::Physics)->Update();
+		//UpdateCamera(PointLight.Transform);
 		GameObjectManager.Update();
+
+		SystemManager.GetSystem(Systems::Physics)->Update();
 		
 		// Render the frame
 		SystemManager.GetSystem(Systems::Render)->Update();
@@ -227,55 +243,4 @@ void FVoxiGineRoot::UpdateTimers()
 	// Set delta time for this frame
 	STime::SetDeltaTime(DeltaTime);
 	FrameStart = FrameEnd;
-}
-
-void CameraSetup()
-{
-	FCamera::Main = &MainCamera;
-	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ 36.0f, 36.0f, 36.0f };
-	CameraTransform.SetPosition(CameraPosition);
-
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 1000.0f });
-}
-
-void UpdateCamera(FTransform& Light)
-{
-	float ZMovement = 0, XMovement = 0, YMovement = 0;
-	float MoveSpeed = (40.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-		ZMovement = MoveSpeed;
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-		ZMovement = -MoveSpeed;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		XMovement = MoveSpeed;
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-		XMovement = -MoveSpeed;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-		YMovement = MoveSpeed;
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-		YMovement = -MoveSpeed;
-
-	const float LookSpeed = 15.0f * STime::GetDeltaTime();
-	FQuaternion CameraRotation = MainCamera.Transform.GetRotation();
-
-	Vector3f CameraForward = CameraRotation * Vector3f::Forward;
-	CameraForward.y = 0.0f;
-	CameraForward.Normalize();
-
-	Vector3f CameraRight = Vector3f::Cross(CameraForward, Vector3f::Up);
-
-	CameraRotation = FQuaternion{ CameraRight, (float)SMouseAxis::GetDelta().y * LookSpeed } * CameraRotation;
-	CameraRotation = FQuaternion{ Vector3f::Up, -(float)SMouseAxis::GetDelta().x * LookSpeed } * CameraRotation;
-
-	Vector3f NewForward = CameraRotation * Vector3f::Forward;
-	
-	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.999f)
-		MainCamera.Transform.SetRotation(CameraRotation);
-
-	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
-	MainCamera.Transform.Translate(Translation);
-
-	Light.SetPosition(MainCamera.Transform.GetPosition());
 }

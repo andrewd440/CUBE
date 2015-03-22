@@ -426,10 +426,10 @@ void FChunk::GreedyMesh()
 							dv[v] = Height;
 
 							mIsEmpty = false;
-							AddQuad(Vector3f((float)x[0], (float)x[1], (float)x[2]),
-								Vector3f((float)x[0] + (float)du[0], (float)x[1] + (float)du[1], (float)x[2] + (float)du[2]),
-								Vector3f((float)x[0] + (float)du[0] + (float)dv[0], (float)x[1] + (float)du[1] + (float)dv[1], (float)x[2] + (float)du[2] + (float)dv[2]),
-								Vector3f((float)x[0] + (float)dv[0], (float)x[1] + (float)dv[1], (float)x[2] + (float)dv[2]),
+							AddQuad(Vector3f(x[0], x[1], x[2]),
+								Vector3f(x[0] + du[0], x[1] + du[1], x[2] + du[2]),
+								Vector3f(x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]),
+								Vector3f(x[0] + dv[0], x[1] + dv[1], x[2] + dv[2]),
 								BackFace,
 								Side,
 								Mask[n],

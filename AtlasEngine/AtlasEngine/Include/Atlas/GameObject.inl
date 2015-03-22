@@ -20,11 +20,12 @@ namespace Atlas
 	inline typename ComponentTraits::Object<Type>::Type& FGameObjectManager::AddComponent(FGameObject& GameObject)
 	{
 		using ComponentType = ComponentTraits::Object<Type>::Type;
-		ComponentType& Component = *reinterpret_cast<ComponentType*>(AllocateComponentForObject(Type, GameObject));
+		ComponentType* Component = reinterpret_cast<ComponentType*>(AllocateComponentForObject(Type, GameObject));
+		new (Component) ComponentType();
 
-		UpdateComponentSystems(GameObject, *reinterpret_cast<IComponent*>(&Component));
+		UpdateComponentSystems(GameObject, *reinterpret_cast<IComponent*>(Component));
 
-		return Component;
+		return *Component;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +97,42 @@ namespace Atlas
 	inline void FGameObject::RemoveComponent(const EComponent::Type Type)
 	{
 		mGOManager.RemoveComponent(*this, Type);
+	}
+
+	template <typename Type>
+	inline Type* FGameObject::GetBehavior()
+	{
+		Type* Component = nullptr;
+
+		try
+		{
+			Component = mBehaviors.at(typeid(Type)).get();
+		}
+		catch (const std::out_of_range& e)
+		{
+			std::wcerr << L"Trying to reference a null component: " << typeid(Type).name() << std::endl;
+		}
+
+		return Component;
+	}
+
+	template <typename Type>
+	inline Type* FGameObject::AddBehavior()
+	{
+		Type* ComponentPtr = new Type;
+		std::unique_ptr<FBehavior> Component{ ComponentPtr };
+
+		Component->SetGameObject(this);
+		Component->SetChunkManager(&mChunkManager);
+
+		mBehaviors[typeid(Type)] = std::move(Component);
+		return ComponentPtr;
+	}
+
+	template <typename Type>
+	inline void FGameObject::RemoveBehavior()
+	{
+		mBehaviors.erase(typeid(Type));
 	}
 
 	inline std::vector<IComponent*> FGameObject::GetAllComponents()

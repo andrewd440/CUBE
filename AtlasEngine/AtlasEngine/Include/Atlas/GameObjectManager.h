@@ -4,6 +4,8 @@
 #include "ComponentTypes.h"
 #include "Containers\RawGappedArray.h"
 
+class FChunkManager;
+
 namespace Atlas
 {
 	class FGameObject;
@@ -26,6 +28,12 @@ namespace Atlas
 
 		FGameObjectManager(const FGameObjectManager& Other) = delete;
 		FGameObjectManager& operator=(const FGameObjectManager& Other) = delete;
+
+		/**
+		* Initializes data for the start of the 
+		* simulation.
+		*/
+		void Start();
 
 		/**
 		* Updates the GameObject manager.
@@ -117,6 +125,8 @@ namespace Atlas
 		*/
 		void DestroyGameObject(FGameObject& GameObject);
 
+		void SetChunkManager(FChunkManager* ChunkManager) { mChunkManager = ChunkManager; }
+
 	private:
 		/**
 		* Resets a GameObject and moves it from the active GameObject container to the dead GameObject pool
@@ -134,6 +144,8 @@ namespace Atlas
 	private:
 		// The world this manager represents
 		FSystemManager& mSystemManager;
+
+		FChunkManager* mChunkManager;
 
 		// Holds all gameobjects
 		FRawGappedArray mGameObjects;

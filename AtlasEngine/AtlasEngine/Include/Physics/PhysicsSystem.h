@@ -61,13 +61,13 @@ private:
 private:
 	struct RigidBodyRecord
 	{
-		btRigidBody& RigidBody;
+		btRigidBody* RigidBody;
 		bool         ToBeAdded;
 	};
 
 	struct ColliderRecord
 	{
-		btCollisionObject& Collider;
+		btCollisionObject* Collider;
 		bool               ToBeAdded;
 	};
 

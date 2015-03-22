@@ -52,6 +52,17 @@ __forceinline void MultVectorMatrix(const FMatrix4& Matrix, const Vector4f& Vect
 }
 
 /**
+* Converts 4 32-bit floating-point values to 4 32-bit 
+* integers.
+* @param Floats - The value to convert.
+* @param Results - Memory location to place the converted values.
+*/
+__forceinline void Vector4FloatToInt(const float* Floats, int32_t* Results)
+{
+	*(__m128i*)Results = _mm_cvttps_epi32(_mm_load_ps(Floats));
+}
+
+/**
 * 4x4 Matrix multiplication.
 * @param Mat1 - First matrix
 * @param Mat2 - Second matrix

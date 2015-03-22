@@ -2,6 +2,7 @@
 #include <GL\glew.h>
 #include <vector>
 #include "..\Math\Vector3.h"
+#include "Atlas\Component.h"
 
 /**
 * Base class for OpenGL indexed triangle mesh. 
@@ -10,7 +11,7 @@
 * this object. This is used in conjunction with FMesh to minimize template code
 * bloat when using different vertex types in mesh creation.
 */
-class BMesh
+class BMesh : public Atlas::IComponent
 {
 public:
 	/**
@@ -197,6 +198,8 @@ private:
 //////////////////////// FMesh ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
+struct MeshVertex;
+
 template <typename T>
 /**
 * Class for creating an OpenGL indexed triangle mesh.
@@ -363,6 +366,8 @@ public:
 	* Get the index data for this mesh.
 	*/
 	const uint32_t* GetIndices() const { return BMesh::GetIndices(); }
+
+	bool LoadModel(const wchar_t* ModelFilepath);
 
 private:
 	/**

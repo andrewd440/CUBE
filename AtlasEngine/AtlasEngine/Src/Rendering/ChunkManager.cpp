@@ -105,7 +105,7 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 void FChunkManager::UnloadAllChunks()
 {
 	const uint32_t ChunksSize = mChunks.size();
-	for (int32_t i = 0; i < ChunksSize; i++)
+	for (uint32_t i = 0; i < ChunksSize; i++)
 	{
 		if (mChunks[i].IsLoaded())
 		{
@@ -133,7 +133,7 @@ void FChunkManager::PostWorldSetup()
 	// Store needed camera data.
 	mLastCameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
 	mLastCameraPosition = FCamera::Main->Transform.GetPosition();
-	mLastCameraChunk = Vector3i((int32_t)mLastCameraPosition.x, (int32_t)mLastCameraPosition.y, (int32_t)mLastCameraPosition.z) / FChunk::CHUNK_SIZE;
+	mLastCameraChunk = mLastCameraPosition / FChunk::CHUNK_SIZE;
 	UpdateVisibleList();
 }
 
@@ -156,8 +156,7 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 	{
 		if (mChunks[Index].IsLoaded())
 		{
-			const Vector3i IntPosition = mChunkPositions[Index] * FChunk::CHUNK_SIZE;
-			const Vector3f Position((float)IntPosition.x, (float)IntPosition.y, (float)IntPosition.z);
+			const Vector3i Position = mChunkPositions[Index] * FChunk::CHUNK_SIZE;
 			Renderer.SetModelTransform(FTransform{ Position });
 			mChunks[Index].Render(RenderMode);
 		}
@@ -168,9 +167,7 @@ void FChunkManager::Update()
 {
 	// Get the chunk that the camera is currently in.
 	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
-	const Vector3i CameraChunk =  Vector3i( (int32_t)CameraPosition.x,
-											(int32_t)CameraPosition.y,
-											(int32_t)CameraPosition.z) / FChunk::CHUNK_SIZE;
+	const Vector3i CameraChunk = CameraPosition / FChunk::CHUNK_SIZE;
 
 	// Only update visibility list when that camera crosses a chunk boundary
 	if (mLastCameraChunk != CameraChunk)
@@ -293,8 +290,7 @@ void FChunkManager::UpdateLoadList()
 	
 		// Load and build the chunk
 		ChunkPosition *= FChunk::CHUNK_SIZE;
-		const Vector3f FPosition{ (float)ChunkPosition.x, (float)ChunkPosition.y, (float)ChunkPosition.z };
-		mChunks[Index].Load(ChunkData, FPosition);
+		mChunks[Index].Load(ChunkData, ChunkPosition);
 		mChunks[Index].RebuildMesh(*mPhysicsSystem);
 
 
@@ -355,8 +351,8 @@ void FChunkManager::UpdateVisibleList()
 				if (zPosition >= mWorldSize || zPosition < 0)
 					continue;
 
-				const int32_t VisibleChunkIndex = ChunkIndex(xPosition, CameraChunkOffset.y, zPosition);
 				const Vector3i ChunkPosition{ xPosition, CameraChunkOffset.y, zPosition };
+				const int32_t VisibleChunkIndex = ChunkIndex(ChunkPosition);
 
 				// If this visible chunk is not loaded, load it.
 				if (mChunkPositions[VisibleChunkIndex] != ChunkPosition)
@@ -391,8 +387,8 @@ void FChunkManager::UpdateVisibleList()
 					if (zPosition >= mWorldSize || zPosition < 0)
 						continue;
 
-					const int32_t VisibleChunkIndex = ChunkIndex(xPosition, yPosition, zPosition);
 					const Vector3i ChunkPosition{ xPosition, yPosition, zPosition };
+					const int32_t VisibleChunkIndex = ChunkIndex(ChunkPosition);
 
 					// If this visible chunk is not loaded, load it.
 					if (mChunkPositions[VisibleChunkIndex] != ChunkPosition)
@@ -453,12 +449,10 @@ void FChunkManager::UpdateRenderList()
 	const uint32_t ListSize = mChunks.size();
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		const Vector3i ChunkPosition = mChunkPositions[i] * FChunk::CHUNK_SIZE;
-		const Vector3f Center = Vector3f{ (float)ChunkPosition.x + ChunkHalfWidth,
-											(float)ChunkPosition.y + ChunkHalfWidth,
-											(float)ChunkPosition.z + ChunkHalfWidth };
+		Vector3f ChunkCenter = mChunkPositions[i];
+		ChunkCenter = ChunkCenter * FChunk::CHUNK_SIZE + ChunkHalfWidth;
 
-		if (ViewFrustum.IsUniformAABBVisible(Center, FChunk::CHUNK_SIZE) && !mChunks[i].IsEmpty())
+		if (ViewFrustum.IsUniformAABBVisible(ChunkCenter, FChunk::CHUNK_SIZE) && !mChunks[i].IsEmpty())
 		{
 			mRenderList.push_back(i);
 		}

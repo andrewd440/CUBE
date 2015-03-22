@@ -30,6 +30,12 @@ public:
 	TVector2<T>& operator=(const TVector2<T>& Other) = default;
 
 	template <typename U>
+	TVector2<T>(const TVector2<U>& Other);
+
+	template <typename U>
+	TVector2<T>& operator=(const TVector2<U>& Other);
+
+	template <typename U>
 	/**
 	* Performs vector-scalar multiplication.
 	* @param Scalar - Scalar to multiply by.
@@ -191,8 +197,25 @@ using Vector2f = TVector2<float>;		/* Vector type for floats */
 /////////////////////////////////////////////////////
 
 template <typename T>
-TVector2<T>::TVector2(T X = 0, T Y = 0)
+inline TVector2<T>::TVector2(T X = 0, T Y = 0)
 	: x(X), y(Y) {}
+
+template <typename T>
+template <typename U>
+inline TVector2<T>::TVector2(const TVector2<U>& Other)
+	: x((T)Other.x)
+	, y((T)Other.y)
+{
+}
+
+template <typename T>
+template <typename U>
+inline TVector2<T>& TVector2<T>::operator=(const TVector2<U>& Other)
+{
+	x = (T)Other.x;
+	y = (T)Other.y;
+	return *this;
+}
 
 template <typename T>
 template <typename U>

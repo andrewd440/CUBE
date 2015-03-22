@@ -27,6 +27,16 @@ public:
 	*/
 	explicit TVector4(const T X = 0, const T Y = 0, const T Z = 0, const T W = 1);
 
+	template <typename U>
+	/**
+	* Constructs vector with x, y, z, w components.
+	* @param X - value of X component
+	* @param Y - value of Y component
+	* @param Z - value of Z component
+	* @param W - value of W component
+	*/
+	TVector4(const U X, const U Y, const U Z, const U W);
+
 	/**
 	* Constructs vector with first 3 components of
 	* TVector3.
@@ -39,6 +49,12 @@ public:
 	* Default copy constructor.
 	*/
 	TVector4(const TVector4<T>& Other) = default;
+
+	template <typename U>
+	TVector4(const TVector4<U>& Other);
+
+	template <typename U>
+	TVector4<T>& operator=(const TVector4<U>& Other);
 
 	/**
 	* Default copy assignment.

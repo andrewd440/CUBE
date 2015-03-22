@@ -26,6 +26,7 @@ public:
 private:
 	void ServiceEvents();
 	void UpdateTimers();
+	void ConstructScene();
 
 private:
 	struct Systems
