@@ -10,7 +10,10 @@
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
 static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
-static const uint32_t DEFAULT_CHUNK_BOUNDS = (2 * DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE);
+static const uint32_t DEFAULT_INDEX_SHIFT = 3;
+
+// Height is half width
+static const uint32_t DEFAULT_CHUNK_BOUNDS = (2 * DEFAULT_VIEW_DISTANCE) * (DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE);
 
 FChunkManager::FChunkManager()
 	: mChunks(DEFAULT_CHUNK_BOUNDS)
@@ -30,7 +33,7 @@ FChunkManager::FChunkManager()
 	, mLastCameraDirection()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
-	, mIndexShift(4)
+	, mIndexShift(DEFAULT_INDEX_SHIFT)
 	, mWorldName()
 	, mPhysicsSystem(nullptr)
 {
@@ -93,7 +96,7 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 
 		mViewDistance = Distance;
 
-		const int32_t NewBounds = 2 * Distance * 2 * Distance * 2 * Distance;
+		const int32_t NewBounds = 2 * Distance * Distance * 2 * Distance;
 		mChunks.resize(NewBounds);
 		mChunkPositions.resize(NewBounds);
 		std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
@@ -375,7 +378,7 @@ void FChunkManager::UpdateVisibleList()
 	}
 
 	// Now add the world by alternating the xz planes from below to above the camera's chunk
-	for (int32_t v = 1; v <= (int32_t)mViewDistance; v++)
+	for (int32_t v = 1; v <= (int32_t)mViewDistance >> 1; v++)
 	{
 		for (int32_t y = -v; y < v + 1; y += 2 * v)
 		{

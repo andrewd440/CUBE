@@ -216,7 +216,7 @@ inline int32_t FChunkManager::ChunkIndex(Vector3i Position) const
 	const int32_t ChunkBounds = 2 * mViewDistance;
 
 	// Bit shift for mod operation
-	Position = Vector3i{ Position.x & (ChunkBounds - 1), Position.y & (ChunkBounds - 1), Position.z & (ChunkBounds - 1) };
+	Position = Vector3i{ Position.x & (ChunkBounds - 1), Position.y & (mViewDistance - 1), Position.z & (ChunkBounds - 1) };
 
 	const Vector3i PositionToIndex{ ChunkBounds, ChunkBounds * ChunkBounds, 1 };
 	return Vector3i::Dot(Position, PositionToIndex);
@@ -231,12 +231,12 @@ inline Vector3i FChunkManager::IndexToChunkPosition(int32_t Index) const
 {
 	const int32_t ChunkBounds = 2 * mViewDistance;
 
-	const int32_t X = (Index >> mIndexShift & (ChunkBounds - 1));
+	const int32_t X = ((Index >> mIndexShift) & (ChunkBounds - 1));
 	const int32_t Y = (Index >> (mIndexShift * 2));
 	const int32_t Z = (Index & (ChunkBounds - 1));
 
 	// Offset with current position of the camera
-	return (mLastCameraChunk - mViewDistance) + Vector3i(X, Y, Z);
+	return (mLastCameraChunk - Vector3i{ mViewDistance, mViewDistance / 2, mViewDistance }) + Vector3i(X, Y, Z);
 }
 
 inline Vector3i FChunkManager::IndexToWorldPosition(int32_t Index) const
