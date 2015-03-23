@@ -29,6 +29,12 @@ namespace Atlas
 		mChunkManager->LoadWorld(WorldName);
 	}
 
+
+	FGameObject& FBehavior::CreateGameObject()
+	{
+		return mGameObject->CreateGameObject();
+	}
+
 	void FBehavior::DestroyGameObject()
 	{
 		mGameObject->Destroy();

@@ -24,7 +24,6 @@ namespace Atlas
 
 		FGameObject* GetGameObject() { return mGameObject; }
 
-
 		//void Destroy();
 		void DestroyGameObject();
 		FGameObject& CreateGameObject();

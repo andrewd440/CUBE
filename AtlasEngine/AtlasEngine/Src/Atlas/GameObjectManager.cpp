@@ -50,6 +50,8 @@ namespace Atlas
 		FGameObject& NewObject = mGameObjects.At<FGameObject>(Index);
 		NewObject.SetID(Index);
 
+		std::cout << mGameObjects.Size() << std::endl;
+
 		return NewObject;
 	}
 

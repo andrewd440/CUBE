@@ -12,6 +12,8 @@ public:
 	void OnStart() override;
 	void Update() override;
 
+	void SpawnBox();
+
 private:
 	FCamera* mCamera;
 };

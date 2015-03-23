@@ -2,6 +2,7 @@
 
 layout (binding = 0) uniform usampler2D GBuffer0;
 layout (binding = 1) uniform sampler2D GBuffer1;
+layout (binding = 2) uniform sampler2D DepthTexture;
 
 struct FragmentData_t
 {

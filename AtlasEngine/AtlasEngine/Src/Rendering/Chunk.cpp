@@ -237,10 +237,13 @@ void FChunk::RebuildMesh(FPhysicsSystem& PhysicsSystem)
 		// Reconstruct the collision shape with updated data
 		mCollisionData->Mesh.getIndexedMeshArray().clear();
 		mCollisionData->Mesh.getIndexedMeshArray().push_back(VertexData);
-		mCollisionData->Shape.buildOptimizedBvh();
+		mCollisionData->Shape.~btBvhTriangleMeshShape();
+		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, false };
 
 		if (WasEmpty)
+		{
 			PhysicsSystem.AddCollider(mCollisionData->Object);
+		}
 	}
 	else if (!WasEmpty)
 	{

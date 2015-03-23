@@ -1,4 +1,3 @@
-#version 330 core
 
 /* =========================================================================
  * Freetype GL - A C OpenGL Freetype engine

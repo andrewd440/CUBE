@@ -21,7 +21,8 @@ namespace
 		Model = 0,
 		View = 64,
 		Projection = 128,
-		Size = 192
+		InvProjection = 192,
+		Size = 256
 	};
 }
 
@@ -31,7 +32,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mChunkManager(ChunkManager)
 	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
 	, mDeferredRender()
-	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_RGBA32F)
+	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_R32F)
 {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -169,6 +170,9 @@ void FRenderSystem::ConstructGBuffer()
 void FRenderSystem::LightingPass()
 {
 	auto& SubSystems = GetSubSystems();
+
+	// Send inverse project to reconstruct world coord. from depth texture
+	mTransformBuffer.SetData(TransformBuffer::InvProjection, FCamera::Main->GetProjection().GetInverse());
 
 	// No depth testing for lights and set light blending settings.
 	glDisable(GL_DEPTH_TEST);

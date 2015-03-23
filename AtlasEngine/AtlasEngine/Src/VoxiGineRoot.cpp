@@ -28,8 +28,8 @@
 #include "Components\MeshComponent.h"
 #include "Components\FlyingCamera.h"
 
-const uint32_t WindowWidth = 1800;
-const uint32_t WindowHeight = 1100;
+const uint32_t WindowWidth = 1500;
+const uint32_t WindowHeight = 850;
 
 static FCamera MainCamera;
 
@@ -40,24 +40,24 @@ FVoxiGineRoot::FVoxiGineRoot()
 	, mWorld()
 	, mChunkManager(nullptr)
 {
+	if (glewInit())
+	{
+		std::cerr << "Unable to initialize GLEW ... exiting" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
 	IFileSystem* FileSystem = new FFileSystem;
 	FileSystem->SetToProgramDirectory();
 
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
-
-	if (glewInit()) 
-	{
-		std::cerr << "Unable to initialize GLEW ... exiting" << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	
 	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 
 	// Initialize debug text
 	FDebug::Text* DebugText = new FDebug::Text;
-	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
 	FDebug::Draw* DebugDraw = new FDebug::Draw;
+	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
 
 	mChunkManager = new FChunkManager;
 }
@@ -75,10 +75,10 @@ void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
 	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ 36.0f, 36.0f, 36.0f };
+	const Vector3f CameraPosition = Vector3f{ 100.0f, 210.0f, 100.0f };
 	CameraTransform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 1000.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 400.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -90,7 +90,7 @@ void FVoxiGineRoot::Start()
 	Console.SetPhysicsSystem(&Physics);
 	Console.SetRenderSystem(&Renderer);
 
-	mChunkManager->LoadWorld(L"GenWorld");
+	mChunkManager->LoadWorld(L"LargeWorld");
 	mChunkManager->SetPhysicsSystem(Physics);
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
@@ -126,6 +126,10 @@ void FVoxiGineRoot::ConstructScene()
 	//PLight.Color = Vector3f(0.2f, .1f, .8f);
 	//PLight.MinDistance = 1;
 	//PLight.MaxDistance = 3;
+	FMeshComponent& Mesh = PointLight.AddComponent<Atlas::EComponent::Mesh>();
+	Mesh.LoadModel("Sword.obj");
+	PointLight.Transform.SetPosition(Vector3f{ 250.0f, 220.0f, 250.0f });
+	PointLight.Transform.Rotate(FQuaternion{ 90, 0, -45 });
 }
 
 void FVoxiGineRoot::GameLoop()
@@ -155,15 +159,7 @@ void FVoxiGineRoot::GameLoop()
 			mChunkManager->SetBlock(IntPosition, FBlock::Brick);
 		}
 
-		//lag += STime::GetDeltaTime();
-		//while (lag >= STime::GetFixedUpdate())
-		//{
-		//	mChunkManager.Update();
-		//	lag -= STime::GetFixedUpdate();
-		//}
-
 		mChunkManager->Update();
-		//UpdateCamera(PointLight.Transform);
 		GameObjectManager.Update();
 
 		SystemManager.GetSystem(Systems::Physics)->Update();
@@ -181,15 +177,24 @@ void FVoxiGineRoot::ServiceEvents()
 	// Windows events
 	sf::Event Event;
 
+	static bool ResetMouse = true;
+
+	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
+		ResetMouse = !ResetMouse;
+
 	// Reset button and axes from previous frame
 	SButtonEvent::ResetButtonEvents();
 	SMouseAxis::ResetAxes();
 	STextEntered::Reset();
 
-	SMouseAxis::UpdateDelta(mGameWindow);
 	static sf::Vector2i DefaultMouse(SMouseAxis::GetDefaultMousePosition().x, SMouseAxis::GetDefaultMousePosition().y); 
-	sf::Mouse::setPosition(DefaultMouse, mGameWindow);
 
+	if (ResetMouse)
+	{
+		SMouseAxis::UpdateDelta(mGameWindow);
+		sf::Mouse::setPosition(DefaultMouse, mGameWindow);
+	}
+		
 	// Service window events
 	while (mGameWindow.pollEvent(Event))
 	{

@@ -62,7 +62,7 @@ public:
 	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
 	// Memory pools
-	static const uint32_t POOL_SIZE = 20000;
+	static const uint32_t POOL_SIZE = 33000;
 	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, POOL_SIZE> ChunkAllocator;
 	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE> MeshAllocator;
 	static FPoolAllocatorType<CollisionData, POOL_SIZE> CollisionAllocator;

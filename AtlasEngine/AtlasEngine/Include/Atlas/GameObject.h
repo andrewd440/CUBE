@@ -119,6 +119,8 @@ namespace Atlas
 		*/
 		void setWorldTransform(const btTransform& WorldTransform) override;
 
+		FGameObject& CreateGameObject();
+
 	private:
 		friend class FGameObjectManager;
 		friend class FSystemManager;

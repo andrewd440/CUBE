@@ -199,4 +199,6 @@ namespace Atlas
 	{
 		return mSystemBits;
 	}
+
+	inline FGameObject& FGameObject::CreateGameObject() { return mGOManager.CreateGameObject(); }
 }

@@ -30,6 +30,7 @@ FChunkManager::FChunkManager()
 	, mLastCameraDirection()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
+	, mIndexShift(4)
 	, mWorldName()
 	, mPhysicsSystem(nullptr)
 {
@@ -90,12 +91,22 @@ void FChunkManager::SetViewDistance(const int32_t Distance)
 
 		Shutdown();
 
-		mViewDistance = Distance - 1;
+		mViewDistance = Distance;
 
 		const int32_t NewBounds = 2 * Distance * 2 * Distance * 2 * Distance;
 		mChunks.resize(NewBounds);
 		mChunkPositions.resize(NewBounds);
 		std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
+
+		// Determine shift count for indexing into chunks array with new deminsions
+		uint32_t Counter = (uint32_t)Distance * 2;
+		uint32_t Shift = 0;
+		while (Counter > 0)
+		{
+			Counter >>= 1;
+			Shift++;
+		}
+		mIndexShift = Shift - 1;
 
 		UpdateVisibleList();
 		mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);

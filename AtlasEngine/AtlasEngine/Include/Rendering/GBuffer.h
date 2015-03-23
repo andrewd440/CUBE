@@ -36,6 +36,7 @@ public:
 	/**
 	* Binds the MRT textures for reading by the shader.
 	* The textures will be bound to GL_TEXTURE0 and GL_TEXTURE1
+	* The depth texture will be bound to GL_TEXTURE2
 	*/
 	void StartRead();
 

@@ -71,6 +71,9 @@ void GBuffer::StartRead()
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mTextureIDs[1]);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mTextureIDs[2]);
 }
 
 void GBuffer::EndRead()

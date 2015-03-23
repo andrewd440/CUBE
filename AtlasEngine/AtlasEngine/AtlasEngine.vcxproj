@@ -91,9 +91,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -134,9 +134,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -263,6 +263,7 @@
     <ClInclude Include="Include\Rendering\LightSystems.h" />
     <ClInclude Include="Include\FileIO\RegionFile.h" />
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
+    <ClInclude Include="ThirdParty\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
@@ -304,6 +305,7 @@
     <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
+    <ClCompile Include="ThirdParty\tinyobjloader\tiny_obj_loader.cc" />
     <None Include="Include\Atlas\GameObject.inl" />
     <None Include="Include\Math\Transform.inl" />
     <None Include="Include\Math\Vector.inl" />

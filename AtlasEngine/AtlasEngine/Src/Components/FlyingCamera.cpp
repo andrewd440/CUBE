@@ -5,6 +5,7 @@
 #include "Input\MouseAxis.h"
 #include "Rendering\ChunkManager.h"
 #include "Atlas\GameObject.h"
+#include "Components\MeshComponent.h"
 
 CFlyingCamera::CFlyingCamera()
 	: FBehavior()
@@ -24,6 +25,11 @@ void CFlyingCamera::OnStart()
 
 void CFlyingCamera::Update()
 {
+	if (SButtonEvent::GetKeyDown(sf::Keyboard::M))
+	{
+		SpawnBox();
+	}
+
 	float ZMovement = 0, XMovement = 0, YMovement = 0;
 	float MoveSpeed = (40.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
 
@@ -59,6 +65,19 @@ void CFlyingCamera::Update()
 
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
 	mCamera->Transform.Translate(Translation);
+}
 
-	Vector3f Position = mCamera->Transform.GetPosition();
+void CFlyingCamera::SpawnBox()
+{
+	auto& Box = CreateGameObject();
+	Box.Transform.SetPosition(mCamera->Transform.GetPosition());
+	Box.Transform.SetScale(Vector3f{ .25f, .25f, .25f });
+
+	auto& Body = Box.AddComponent<Atlas::EComponent::RigidBody>();
+	Vector3f Forward = mCamera->Transform.GetRotation() * -Vector3f::Forward;
+	Body.Body.setLinearVelocity(btVector3{ Forward.x, Forward.y, Forward.z } * 40.0f);
+	Body.BoxCollider.setImplicitShapeDimensions(btVector3{ .25f, .25f, .25f });
+
+	auto& Mesh = Box.AddComponent<Atlas::EComponent::Mesh>();
+	Mesh.LoadModel("Box.obj");
 }

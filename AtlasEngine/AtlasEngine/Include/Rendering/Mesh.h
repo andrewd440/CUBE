@@ -367,7 +367,10 @@ public:
 	*/
 	const uint32_t* GetIndices() const { return BMesh::GetIndices(); }
 
-	bool LoadModel(const wchar_t* ModelFilepath);
+	/**
+	* Loads a .obj model.
+	*/
+	bool LoadModel(const char* ModelFilepath);
 
 private:
 	/**
