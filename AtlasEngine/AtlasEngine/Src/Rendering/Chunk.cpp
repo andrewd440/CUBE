@@ -72,21 +72,21 @@ FChunk::FChunk(const FChunk& Other)
 
 FChunk& FChunk::operator=(const FChunk& Other)
 {
-	mIsProcessing.store(true);
+	mIsProcessing.store(true);/*
 	mIsRendering = Other.mIsRendering;
-	mHasFreshMesh = Other.mHasFreshMesh;
+	mHasFreshMesh = Other.mHasFreshMesh;*/
 
-	// Free current data
-	ChunkAllocator.Free(mBlocks);
-	MeshAllocator.Free(mMesh);
-	CollisionAllocator.Free(mCollisionData);
+	//// Free current data
+	//ChunkAllocator.Free(mBlocks);
+	//MeshAllocator.Free(mMesh);
+	//CollisionAllocator.Free(mCollisionData);
 
-	// Copy Other data
-	mBlocks = Other.mBlocks;
-	mMesh = Other.mMesh;
-	mCollisionData = Other.mCollisionData;
-	mIsLoaded = Other.mIsLoaded;
-	mIsEmpty = Other.mIsEmpty;
+	//// Copy Other data
+	//mBlocks = Other.mBlocks;
+	//mMesh = Other.mMesh;
+	//mCollisionData = Other.mCollisionData;
+	//mIsLoaded = Other.mIsLoaded;
+	//mIsEmpty = Other.mIsEmpty;
 
 	mIsProcessing.store(false);
 	return *this;

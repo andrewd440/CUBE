@@ -73,7 +73,7 @@ public:
 	* Sets the world view distance. This is in terms
 	* of chunk space.
 	*/
-	void SetViewDistance(const int32_t Distance);
+	void SetViewDistance(const uint32_t Distance);
 
 	/**
 	* Sets the physics system used by the chunk manager.
@@ -198,7 +198,6 @@ private:
 	Vector3f mLastCameraDirection;
 	int32_t mWorldSize;
 	int32_t mViewDistance;
-	uint32_t mIndexShift;
 	std::wstring mWorldName;
 
 	// Physics Data
@@ -213,10 +212,10 @@ inline int32_t FChunkManager::ChunkIndex(Vector3i Position) const
 		Position.z >= 0 && Position.z < mWorldSize)
 
 	// Normalize the position
-	const int32_t ChunkBounds = 2 * mViewDistance;
+	const int32_t ChunkBounds = 2 * mViewDistance + 1;
 
 	// Bit shift for mod operation
-	Position = Vector3i{ Position.x & (ChunkBounds - 1), Position.y & (mViewDistance - 1), Position.z & (ChunkBounds - 1) };
+	Position = Vector3i{ Position.x % ChunkBounds, Position.y % (mViewDistance + 1), Position.z % ChunkBounds };
 
 	const Vector3i PositionToIndex{ ChunkBounds, ChunkBounds * ChunkBounds, 1 };
 	return Vector3i::Dot(Position, PositionToIndex);
@@ -229,11 +228,11 @@ inline int32_t FChunkManager::ChunkIndex(int32_t X, int32_t Y, int32_t Z) const
 
 inline Vector3i FChunkManager::IndexToChunkPosition(int32_t Index) const
 {
-	const int32_t ChunkBounds = 2 * mViewDistance;
+	const int32_t ChunkBounds = 2 * mViewDistance + 1;
 
-	const int32_t X = ((Index >> mIndexShift) & (ChunkBounds - 1));
-	const int32_t Y = (Index >> (mIndexShift * 2));
-	const int32_t Z = (Index & (ChunkBounds - 1));
+	const int32_t X = ((Index / ChunkBounds) % ChunkBounds);
+	const int32_t Y = (Index / (ChunkBounds * ChunkBounds));
+	const int32_t Z = (Index % ChunkBounds);
 
 	// Offset with current position of the camera
 	return (mLastCameraChunk - Vector3i{ mViewDistance, mViewDistance / 2, mViewDistance }) + Vector3i(X, Y, Z);

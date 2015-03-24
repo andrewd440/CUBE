@@ -10,10 +10,9 @@
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
 static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
-static const uint32_t DEFAULT_INDEX_SHIFT = 3;
 
 // Height is half width
-static const uint32_t DEFAULT_CHUNK_BOUNDS = (2 * DEFAULT_VIEW_DISTANCE) * (DEFAULT_VIEW_DISTANCE) * (2 * DEFAULT_VIEW_DISTANCE);
+static const uint32_t DEFAULT_CHUNK_BOUNDS = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
 
 FChunkManager::FChunkManager()
 	: mChunks(DEFAULT_CHUNK_BOUNDS)
@@ -33,14 +32,11 @@ FChunkManager::FChunkManager()
 	, mLastCameraDirection()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
-	, mIndexShift(DEFAULT_INDEX_SHIFT)
 	, mWorldName()
 	, mPhysicsSystem(nullptr)
 {
 	mMustShutdown.store(false);
 	mIsLoadListRefreshing.store(false);
-
-	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
 FChunkManager::~FChunkManager()
@@ -55,20 +51,25 @@ void FChunkManager::Shutdown()
 	if(mLoaderThread.joinable())
 		mLoaderThread.join();
 
+	mLoadList = std::queue<Vector3i>();
+	mRebuildList = std::queue<uint32_t>();
+	mRenderList.clear();
+
+	for (auto& Chunk : mChunks)
+	{
+		Chunk.ShutDown(*mPhysicsSystem);
+	}
+
 	mMustShutdown.store(false);
 }
 
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
-	mLoadList = std::queue<Vector3i>();
-	mRebuildList = std::queue<uint32_t>();
 	Shutdown();
-	mMustShutdown.store(false);
-	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
-	mRenderList.clear();
 
 	// Set world name and extract world size from file
 	mWorldName = WorldName;
+	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
 
 	IFileSystem& FileSystem = IFileSystem::GetInstance();
 	std::wstring Filepath{ L"./Worlds/" };
@@ -82,38 +83,23 @@ void FChunkManager::LoadWorld(const wchar_t* WorldName)
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
-void FChunkManager::SetViewDistance(const int32_t Distance)
+void FChunkManager::SetViewDistance(const uint32_t Distance)
 {
-	// Must be a power of 2
-	if ((Distance & (Distance - 1)) == 0x0)
-	{
-		for (auto& Chunk : mChunks)
-		{
-			Chunk.ShutDown(*mPhysicsSystem);
-		}
+	Shutdown();
 
-		Shutdown();
+	mViewDistance = Distance;
 
-		mViewDistance = Distance;
+	const uint32_t HorizontalBounds = 2 * Distance + 1;
+	const uint32_t VerticalBounds = Distance + 1;
+	const int32_t NewBounds = HorizontalBounds * VerticalBounds * HorizontalBounds;
 
-		const int32_t NewBounds = 2 * Distance * Distance * 2 * Distance;
-		mChunks.resize(NewBounds);
-		mChunkPositions.resize(NewBounds);
-		std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
+	// Resize data
+	mChunks = std::vector<FChunk>(NewBounds);
+	mChunkPositions.resize(NewBounds);
+	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
 
-		// Determine shift count for indexing into chunks array with new deminsions
-		uint32_t Counter = (uint32_t)Distance * 2;
-		uint32_t Shift = 0;
-		while (Counter > 0)
-		{
-			Counter >>= 1;
-			Shift++;
-		}
-		mIndexShift = Shift - 1;
-
-		UpdateVisibleList();
-		mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
-	}
+	UpdateVisibleList();
+	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
 void FChunkManager::UnloadAllChunks()
@@ -140,15 +126,6 @@ void FChunkManager::UnloadAllChunks()
 	}
 
 	mRegionFiles.clear();
-}
-
-void FChunkManager::PostWorldSetup()
-{
-	// Store needed camera data.
-	mLastCameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
-	mLastCameraPosition = FCamera::Main->Transform.GetPosition();
-	mLastCameraChunk = mLastCameraPosition / FChunk::CHUNK_SIZE;
-	UpdateVisibleList();
 }
 
 void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
@@ -341,7 +318,7 @@ void FChunkManager::UpdateVisibleList()
 	Vector3i CameraChunkOffset = mLastCameraChunk - Vector3i{ mViewDistance, 0, mViewDistance };
 
 	// Get the total range of visible area.
-	const int32_t ChunkBounds = mViewDistance * 2;
+	const int32_t ChunkBounds = 2 * mViewDistance + 1;
 
 	// Clear previous load and visibile list when moving across chunks.
 	mIsLoadListRefreshing.store(true);
@@ -378,9 +355,9 @@ void FChunkManager::UpdateVisibleList()
 	}
 
 	// Now add the world by alternating the xz planes from below to above the camera's chunk
-	for (int32_t v = 1; v <= (int32_t)mViewDistance >> 1; v++)
+	for (int32_t v = 1; v <= mViewDistance; v++)
 	{
-		for (int32_t y = -v; y < v + 1; y += 2 * v)
+		for (int32_t y = -v; y < v + 1; y+= 2 * v)
 		{
 			const int32_t yPosition = CameraChunkOffset.y + y;
 

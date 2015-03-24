@@ -28,8 +28,8 @@
 #include "Components\MeshComponent.h"
 #include "Components\FlyingCamera.h"
 
-const uint32_t WindowWidth = 1500;
-const uint32_t WindowHeight = 850;
+const uint32_t WindowWidth = 1920;
+const uint32_t WindowHeight = 1080;
 
 static FCamera MainCamera;
 
@@ -75,10 +75,10 @@ void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
 	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ 100.0f, 210.0f, 100.0f };
+	const Vector3f CameraPosition = Vector3f{ 50.0f, 210.0f, 50.0f };
 	CameraTransform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 400.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 512.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -90,8 +90,8 @@ void FVoxiGineRoot::Start()
 	Console.SetPhysicsSystem(&Physics);
 	Console.SetRenderSystem(&Renderer);
 
-	mChunkManager->LoadWorld(L"LargeWorld");
 	mChunkManager->SetPhysicsSystem(Physics);
+	mChunkManager->LoadWorld(L"LargeWorld");
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 	GameObjectManager.SetChunkManager(mChunkManager);
