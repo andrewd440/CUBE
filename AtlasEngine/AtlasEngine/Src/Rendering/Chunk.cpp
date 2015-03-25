@@ -7,7 +7,7 @@
 #include "Physics\PhysicsSystem.h"
 
 FPoolAllocator<sizeof(FBlock) * FChunk::BLOCKS_PER_CHUNK, FChunk::POOL_SIZE> FChunk::ChunkAllocator(__alignof(FChunk));
-FPoolAllocatorType<TMesh<FVoxelVertex>, FChunk::POOL_SIZE> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
+FPoolAllocatorType<TMesh<FVoxelVertex>, FChunk::POOL_SIZE * 2> FChunk::MeshAllocator(__alignof(TMesh<FVoxelVertex>));
 FPoolAllocatorType<FChunk::CollisionData, FChunk::POOL_SIZE> FChunk::CollisionAllocator(__alignof(FChunk::CollisionData));
 
 int32_t FChunk::BlockIndex(Vector3i Position)
@@ -27,20 +27,19 @@ int32_t FChunk::BlockIndex(int32_t X, int32_t Y, int32_t Z)
 
 FChunk::FChunk()
 	: mBlocks(nullptr)
-	, mMesh(nullptr)
+	, mMesh()
 	, mCollisionData(nullptr)
 	, mIsLoaded(false)
-	, mIsEmpty(true)
-	, mIsProcessing()
-	, mIsRendering()
-	, mHasFreshMesh()
+	, mIsEmpty()
+	, mActiveMesh()
 {
-	mIsProcessing.store(false);
-	mIsRendering.store(false);
-	mHasFreshMesh.store(false);
+	mActiveMesh.store(false);
+	mIsEmpty[0] = true;
+	mIsEmpty[1] = true;
 
 	// Allocate mesh, block, and collision data
-	mMesh = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
+	mMesh[0] = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
+	mMesh[1] = new (MeshAllocator.Allocate()) TMesh < FVoxelVertex > {GL_STATIC_DRAW};
 	mBlocks = static_cast<FBlock*>(ChunkAllocator.Allocate());
 
 	// Construct Collision fields with new memory
@@ -58,44 +57,11 @@ FChunk::FChunk()
 	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
 }
 
-FChunk::FChunk(const FChunk& Other)
-	: mBlocks(Other.mBlocks)
-	, mMesh(Other.mMesh)
-	, mCollisionData(Other.mCollisionData)
-	, mIsLoaded(Other.mIsLoaded)
-	, mIsEmpty(Other.mIsEmpty)
-	, mIsProcessing(Other.mIsProcessing)
-	, mIsRendering(Other.mIsRendering)
-	, mHasFreshMesh(Other.mHasFreshMesh)
-{
-}
-
-FChunk& FChunk::operator=(const FChunk& Other)
-{
-	mIsProcessing.store(true);/*
-	mIsRendering = Other.mIsRendering;
-	mHasFreshMesh = Other.mHasFreshMesh;*/
-
-	//// Free current data
-	//ChunkAllocator.Free(mBlocks);
-	//MeshAllocator.Free(mMesh);
-	//CollisionAllocator.Free(mCollisionData);
-
-	//// Copy Other data
-	//mBlocks = Other.mBlocks;
-	//mMesh = Other.mMesh;
-	//mCollisionData = Other.mCollisionData;
-	//mIsLoaded = Other.mIsLoaded;
-	//mIsEmpty = Other.mIsEmpty;
-
-	mIsProcessing.store(false);
-	return *this;
-}
-
 FChunk::~FChunk()
 {
 	ChunkAllocator.Free(mBlocks);
-	MeshAllocator.Free(mMesh);
+	MeshAllocator.Free(mMesh[0]);
+	MeshAllocator.Free(mMesh[1]);
 	CollisionAllocator.Free(mCollisionData);
 }
 
@@ -175,7 +141,7 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 void FChunk::ShutDown(FPhysicsSystem& PhysicsSystem)
 {
 	// Remove collision data from physics system
-	if (!mIsEmpty)
+	if (!mIsEmpty[mActiveMesh])
 		PhysicsSystem.RemoveCollider(mCollisionData->Object);
 }
 
@@ -188,38 +154,20 @@ void FChunk::Render(const GLenum RenderMode)
 {
 	ASSERT(mIsLoaded);
 
-	mIsRendering.store(true);
-
-	if (!mIsProcessing)
-	{
-		if (mHasFreshMesh)
-		{
-			mHasFreshMesh.store(false);
-			mMesh->Activate();
-		}
-
-		mMesh->Render(RenderMode);
-	}
-
-	mIsRendering.store(false);
+	mMesh[mActiveMesh]->Render(RenderMode);
 }
 
-void FChunk::RebuildMesh(FPhysicsSystem& PhysicsSystem)
+void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 {
-	// Save status
-	bool WasEmpty = mIsEmpty;
+	mMesh[mActiveMesh]->ClearData();
+	mMesh[mActiveMesh]->Deactivate();
+	mActiveMesh = !mActiveMesh;
+	mMesh[mActiveMesh]->Activate();
 
-	// Make sure mesh data is cleared
-	mIsEmpty = true;
-	mIsLoaded = false;
-	mMesh->ClearData();
-
-	// Mesh the chunk
-	GreedyMesh();
-	mHasFreshMesh.store(true);
+	auto& Mesh = mMesh[mActiveMesh];
 
 	// Update collision info
-	if (!mIsEmpty)
+	if (!mIsEmpty[mActiveMesh])
 	{
 		// Set vertex properties for collision mesh
 		const int32_t IndexStride = 3 * sizeof(uint32_t);
@@ -228,10 +176,10 @@ void FChunk::RebuildMesh(FPhysicsSystem& PhysicsSystem)
 		// Build final collision mesh
 		btIndexedMesh VertexData;
 		VertexData.m_triangleIndexStride = IndexStride;
-		VertexData.m_numTriangles = (int)mMesh->GetIndexCount() / 3;;
-		VertexData.m_numVertices = (int)mMesh->GetVertexCount();
-		VertexData.m_triangleIndexBase = (const unsigned char*)mMesh->GetIndices();
-		VertexData.m_vertexBase = (const unsigned char*)mMesh->GetVertices();
+		VertexData.m_numTriangles = (int)Mesh->GetIndexCount() / 3;;
+		VertexData.m_numVertices = (int)Mesh->GetVertexCount();
+		VertexData.m_triangleIndexBase = (const unsigned char*)Mesh->GetIndices();
+		VertexData.m_vertexBase = (const unsigned char*)Mesh->GetVertices();
 		VertexData.m_vertexStride = VertexStride;
 
 		// Reconstruct the collision shape with updated data
@@ -240,17 +188,24 @@ void FChunk::RebuildMesh(FPhysicsSystem& PhysicsSystem)
 		mCollisionData->Shape.~btBvhTriangleMeshShape();
 		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, false };
 
-		if (WasEmpty)
+		if (mIsEmpty[!mActiveMesh])
 		{
+			// Previous mesh was empty
 			PhysicsSystem.AddCollider(mCollisionData->Object);
 		}
 	}
-	else if (!WasEmpty)
+	else if (!mIsEmpty[!mActiveMesh])
 	{
+		// Previous mesh was not empty but this one is
 		PhysicsSystem.RemoveCollider(mCollisionData->Object);
 	}
+}
 
-	mIsLoaded = true;
+void FChunk::RebuildMesh()
+{
+	// Mesh the chunk
+	mIsEmpty[!mActiveMesh] = true;
+	GreedyMesh();
 }
 
 void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
@@ -260,10 +215,7 @@ void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
 
 FBlock::BlockType FChunk::GetBlock(const Vector3i& Position) const
 {
-	//if (mBlocks)
 	return mBlocks[BlockIndex(Position)].Type;
-
-	//return FBlock::None;
 }
 
 void FChunk::DestroyBlock(const Vector3i& Position)
@@ -428,7 +380,7 @@ void FChunk::GreedyMesh()
 							dv[2] = 0;
 							dv[v] = Height;
 
-							mIsEmpty = false;
+							mIsEmpty[!mActiveMesh] = false;
 							AddQuad(Vector3f(x[0], x[1], x[2]),
 								Vector3f(x[0] + du[0], x[1] + du[1], x[2] + du[2]),
 								Vector3f(x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]),
@@ -465,8 +417,8 @@ void FChunk::GreedyMesh()
 	}
 
 	// Send all data directly to the gpu
-	mMesh->AddVertex(Vertices.data(), Vertices.size());
-	mMesh->AddIndices(Indices.data(), Indices.size());
+	mMesh[!mActiveMesh]->AddVertex(Vertices.data(), Vertices.size());
+	mMesh[!mActiveMesh]->AddIndices(Indices.data(), Indices.size());
 }
 
 void FChunk::CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const

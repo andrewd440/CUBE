@@ -75,10 +75,10 @@ void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
 	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ 50.0f, 210.0f, 50.0f };
+	const Vector3f CameraPosition = Vector3f{ 20.0f, 210.0f, 20.0f };
 	CameraTransform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 1.0f, 512.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 256.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();

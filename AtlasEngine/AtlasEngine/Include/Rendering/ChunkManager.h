@@ -88,7 +88,11 @@ private:
 	*/
 	void Shutdown();
 
+	uint32_t ChunkCount() const;
+
 	void ChunkLoaderThreadLoop();
+
+	void SwapChunkBuffers();
 
 	// Updates the current unload list
 	void UpdateUnloadList();
@@ -139,16 +143,6 @@ private:
 	int32_t ChunkIndex(int32_t X, int32_t Y, int32_t Z) const;
 
 	/**
-	* Convertes a chunk index into a chunk space 3D coordinate.
-	*/
-	Vector3i IndexToChunkPosition(int32_t Index) const;
-
-	/**
-	* Convertes a chunk index into a world space 3D position.
-	*/
-	Vector3i IndexToWorldPosition(int32_t Index) const;
-
-	/**
 	* Adds a reference the a region file in the region map. If the
 	* region file is not present, one is created.
 	* @param X, Y, Z Coordinates of the chunk.
@@ -162,14 +156,16 @@ private:
 	void RemoveRegionFileReference(const Vector3i& ChunkPosition);
 
 private:
-	std::vector<FChunk>   mChunks;        // All world chunks
+	FChunk*               mChunks;        // All world chunks
 	std::vector<Vector3i> mChunkPositions;
 	std::vector<uint32_t> mRenderList;    // Index list of chunks to render
 	std::queue<Vector3i>  mLoadList;      // Index list of chunks to be loaded
 	std::queue<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
+	std::queue<Vector3i>  mBufferSwapQueue;
 	std::thread           mLoaderThread;
 	std::mutex            mRebuildListMutex;
 	std::mutex            mLoadListMutex;
+	std::mutex            mBufferSwapMutex;
 	std::atomic_bool      mIsLoadListRefreshing;
 	std::atomic_bool      mMustShutdown;
 
@@ -212,12 +208,13 @@ inline int32_t FChunkManager::ChunkIndex(Vector3i Position) const
 		Position.z >= 0 && Position.z < mWorldSize)
 
 	// Normalize the position
-	const int32_t ChunkBounds = 2 * mViewDistance + 1;
+	const int32_t HorizontalBounds = 2 * mViewDistance + 1;
+	const int32_t VerticalBounds = mViewDistance + 1;
 
 	// Bit shift for mod operation
-	Position = Vector3i{ Position.x % ChunkBounds, Position.y % (mViewDistance + 1), Position.z % ChunkBounds };
+	Position = Vector3i{ Position.x % HorizontalBounds, Position.y % VerticalBounds, Position.z % HorizontalBounds };
 
-	const Vector3i PositionToIndex{ ChunkBounds, ChunkBounds * ChunkBounds, 1 };
+	const Vector3i PositionToIndex{ HorizontalBounds, HorizontalBounds * HorizontalBounds, 1 };
 	return Vector3i::Dot(Position, PositionToIndex);
 }
 
@@ -226,19 +223,7 @@ inline int32_t FChunkManager::ChunkIndex(int32_t X, int32_t Y, int32_t Z) const
 	return ChunkIndex(Vector3i{ X, Y, Z });
 }
 
-inline Vector3i FChunkManager::IndexToChunkPosition(int32_t Index) const
+inline uint32_t FChunkManager::ChunkCount() const
 {
-	const int32_t ChunkBounds = 2 * mViewDistance + 1;
-
-	const int32_t X = ((Index / ChunkBounds) % ChunkBounds);
-	const int32_t Y = (Index / (ChunkBounds * ChunkBounds));
-	const int32_t Z = (Index % ChunkBounds);
-
-	// Offset with current position of the camera
-	return (mLastCameraChunk - Vector3i{ mViewDistance, mViewDistance / 2, mViewDistance }) + Vector3i(X, Y, Z);
-}
-
-inline Vector3i FChunkManager::IndexToWorldPosition(int32_t Index) const
-{
-	return  IndexToChunkPosition(Index) * FChunk::CHUNK_SIZE;
+	return (2 * mViewDistance + 1) * (mViewDistance + 1) * (2 * mViewDistance + 1);
 }

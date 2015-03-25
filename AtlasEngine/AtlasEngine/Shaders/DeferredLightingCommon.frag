@@ -19,7 +19,7 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 Model;				//		16					0			64
 	mat4 View;				//		16					64			128
 	mat4 Projection;		//		16					128			192
-	mat4 InvProjection;     //      16                  192         256
+	mat4 InvViewProjection;     //      16                  192         256
 } Transforms;
 
 vec3 GetWorldPosition(ivec2 ScreenCoord)
@@ -28,7 +28,7 @@ vec3 GetWorldPosition(ivec2 ScreenCoord)
 	ClipPosition.xy = ScreenCoord * 2.0 - 1.0;
 	ClipPosition.z = texture(DepthTexture , ScreenCoord).r * 2.0 - 1.0;
 	ClipPosition.w = 1.0;
-	vec4 WorldPosition = Transforms.InvProjection * ClipPosition;
+	vec4 WorldPosition = Transforms.InvViewProjection * ClipPosition;
 	return WorldPosition.xyz / WorldPosition.w;
 }
 

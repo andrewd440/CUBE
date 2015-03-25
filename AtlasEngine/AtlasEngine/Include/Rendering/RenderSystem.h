@@ -65,6 +65,8 @@ private:
 	*/
 	void LightingPass();
 
+	void FogPostProcess();
+
 	/**
 	* Updates the AABB for the current view volume.
 	*/
@@ -87,6 +89,7 @@ private:
 	FChunkManager& mChunkManager;
 	EZGL::FUniformBlock mTransformBuffer;
 	FShaderProgram mDeferredRender;
+	FShaderProgram mFogPostProcess;
 	GBuffer mGBuffer;
 	FBox mViewAABB;
 };

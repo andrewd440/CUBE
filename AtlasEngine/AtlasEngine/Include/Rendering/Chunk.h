@@ -62,9 +62,9 @@ public:
 	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
 	// Memory pools
-	static const uint32_t POOL_SIZE = 33000;
+	static const uint32_t POOL_SIZE = 20000;
 	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, POOL_SIZE> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE> MeshAllocator;
+	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE * 2> MeshAllocator;
 	static FPoolAllocatorType<CollisionData, POOL_SIZE> CollisionAllocator;
 
 public:
@@ -80,35 +80,13 @@ public:
 	*/
 	FChunk();
 
-	/**
-	* Copy Ctor.
-	* Copies pointer data into this mesh.
-	* After the copy, both objects will refer to the same mesh and
-	* block data.
-	*/
-	FChunk(const FChunk& Other);
-
-	/**
-	* Copy assignment.
-	* Frees mesh and block data from this object and copies pointer
-	* data from Other into this object.
-	* After the copy, both objects will refer to the same mesh and
-	* block data.
-	*/
-	FChunk& operator=(const FChunk& Other);
+	FChunk(const FChunk& Other) = delete;
+	FChunk& operator=(const FChunk& Other) = delete;
 
 	/**
 	* Frees data back to respective pools.
 	*/
 	~FChunk();
-
-	/**
-	* Signals that a thread is about to process information
-	* held within this chunk. This must be called before Load/Unload/Rebuild
-	* operations.
-	* @return True if this chunk is currently avaible for processing.
-	*/
-	bool StartProcessing();
 
 	/**
 	* Allocates and builds chunk data. Chunk meshes will still need to 
@@ -131,12 +109,9 @@ public:
 	/**
 	* Builds/Rebuilds this chunks' mesh.
 	*/
-	void RebuildMesh(FPhysicsSystem& PhysicsSystem);
+	void RebuildMesh();
 
-	/**
-	* Signals that this chunk is done processing data.
-	*/
-	void EndProcessing();
+	void SwapMeshBuffer(FPhysicsSystem& PhysicsSystem);
 
 	/**
 	* Checks if the chunk has been loaded.
@@ -166,7 +141,7 @@ public:
 	/**
 	* Checks if this chunk contains any blocks.
 	*/
-	bool IsEmpty() const { return mIsEmpty; }
+	bool IsEmpty() const { return mIsEmpty[mActiveMesh]; }
 
 private:
 	// Constants used for constructing quads with correct normals in GreedyMesh()
@@ -260,26 +235,10 @@ private:
 
 private:
 	FBlock* mBlocks;
-	TMesh<FVoxelVertex>* mMesh;
+	TMesh<FVoxelVertex>* mMesh[2];
 	CollisionData* mCollisionData;
 	bool mIsLoaded;
-	bool mIsEmpty;
+	bool mIsEmpty[2];
 
-	std::atomic_bool mIsProcessing; // If the chunk is being loaded/unloaded/rebuilt, should not render if set
-	std::atomic_bool mIsRendering;  // If the chunk is being rendered, should not process if set
-	std::atomic_bool mHasFreshMesh; // If the chunk has a new mesh that needs activation
+	std::atomic_bool mActiveMesh;
 };
-
-
-inline bool FChunk::StartProcessing()
-{
-	mIsProcessing.store(true);
-	bool Success = !mIsRendering;
-	mIsProcessing.store(Success);
-	return Success;
-}
-
-inline void FChunk::EndProcessing()
-{
-	mIsProcessing.store(false);
-}

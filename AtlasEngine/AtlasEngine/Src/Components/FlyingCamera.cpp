@@ -71,12 +71,12 @@ void CFlyingCamera::SpawnBox()
 {
 	auto& Box = CreateGameObject();
 	Box.Transform.SetPosition(mCamera->Transform.GetPosition());
-	Box.Transform.SetScale(Vector3f{ .25f, .25f, .25f });
+	Box.Transform.SetScale(Vector3f{ .5f, .5f, .5f });
 
 	auto& Body = Box.AddComponent<Atlas::EComponent::RigidBody>();
 	Vector3f Forward = mCamera->Transform.GetRotation() * -Vector3f::Forward;
 	Body.Body.setLinearVelocity(btVector3{ Forward.x, Forward.y, Forward.z } * 40.0f);
-	Body.BoxCollider.setImplicitShapeDimensions(btVector3{ .25f, .25f, .25f });
+	Body.BoxCollider.setImplicitShapeDimensions(btVector3{ .5f, .5f, .5f });
 
 	auto& Mesh = Box.AddComponent<Atlas::EComponent::Mesh>();
 	Mesh.LoadModel("Box.obj");

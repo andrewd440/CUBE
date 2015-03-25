@@ -139,7 +139,7 @@ namespace Atlas
 		void UpdateComponentSystems(FGameObject& GameObject, IComponent& UpdatedComponent);
 
 	private:
-		static const uint32_t DEFAULT_CONTAINER_SIZE = 100;
+		static const uint32_t DEFAULT_CONTAINER_SIZE = 300;
 
 	private:
 		// The world this manager represents

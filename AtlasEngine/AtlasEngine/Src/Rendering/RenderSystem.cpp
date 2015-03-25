@@ -21,7 +21,7 @@ namespace
 		Model = 0,
 		View = 64,
 		Projection = 128,
-		InvProjection = 192,
+		InvViewProjection = 192,
 		Size = 256
 	};
 }
@@ -32,6 +32,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mChunkManager(ChunkManager)
 	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
 	, mDeferredRender()
+	, mFogPostProcess()
 	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_R32F)
 {
 	glEnable(GL_CULL_FACE);
@@ -51,17 +52,22 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 void FRenderSystem::LoadShaders()
 {
 	// Load all main rendering shaders
-	SShaderHolder::Load("DeferredRender.vert", L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER);
-	SShaderHolder::Load("DeferredRender.frag", L"Shaders/DeferredRender.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);
 	SShaderHolder::Load("DeferredPointLighting.frag", L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("DeferredLightingCommon.frag", L"Shaders/DeferredLightingCommon.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("DeferredDirectionalLighting.frag", L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER);	
 	
 	// Load render shaders
-	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.vert"));
-	mDeferredRender.AttachShader(SShaderHolder::Get("DeferredRender.frag"));
+	FShader DeferredVert{ L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER };
+	FShader DeferredFrag{ L"Shaders/DeferredRender.frag", GL_FRAGMENT_SHADER };
+	mDeferredRender.AttachShader(DeferredVert);
+	mDeferredRender.AttachShader(DeferredFrag);
 	mDeferredRender.LinkProgram();
+
+	FShader FogFrag{ L"Shaders/DeferredFog.frag", GL_FRAGMENT_SHADER };
+	mFogPostProcess.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
+	mFogPostProcess.AttachShader(FogFrag);
+	mFogPostProcess.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
@@ -86,7 +92,23 @@ void FRenderSystem::Update()
 	
 	UpdateViewBounds();
 	ConstructGBuffer();
+
+	mGBuffer.StartRead();
+
+	// No depth testing for lighting and post-processes
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
+
 	LightingPass();
+
+	glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+	FogPostProcess();
+
+	glDisable(GL_BLEND);
+
+	mGBuffer.EndRead();
 
 	// Render debug draws
 	static bool ShowBox = false;
@@ -172,22 +194,16 @@ void FRenderSystem::LightingPass()
 	auto& SubSystems = GetSubSystems();
 
 	// Send inverse project to reconstruct world coord. from depth texture
-	mTransformBuffer.SetData(TransformBuffer::InvProjection, FCamera::Main->GetProjection().GetInverse());
-
-	// No depth testing for lights and set light blending settings.
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendEquation(GL_FUNC_ADD);
-
-	 // Enable G-Buffer for reading
-	mGBuffer.StartRead();
+	mTransformBuffer.SetData(TransformBuffer::InvViewProjection, (FCamera::Main->GetProjection() * FCamera::Main->Transform.WorldToLocalMatrix()).GetInverse());
 
 	for (auto& SubSystem : SubSystems)
 		SubSystem->Update();
+}
 
-	mGBuffer.EndRead();
-	glDisable(GL_BLEND);
+void FRenderSystem::FogPostProcess()
+{
+	mFogPostProcess.Use();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 FBox FRenderSystem::GetViewBounds() const

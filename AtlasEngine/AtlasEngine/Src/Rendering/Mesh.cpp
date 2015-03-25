@@ -5,7 +5,6 @@
 #include "SFML\Window\Context.hpp"
 #include "Components\MeshComponent.h"
 #include "tinyobjloader\tiny_obj_loader.h"
-
 #include <fstream>
 
 BMesh::BMesh(const GLuint DrawMode, const uint32_t DefaultBufferSize )
@@ -111,8 +110,6 @@ void BMesh::RenderB(const GLenum RenderMode)
 
 void BMesh::DeactivateB()
 {
-	ASSERT(!mIsActive);
-
 	mIsActive = false;
 
 	GLUtils::ArrayBinder VAOBinding(mVertexArray);

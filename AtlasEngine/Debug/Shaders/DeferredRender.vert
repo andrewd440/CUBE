@@ -6,7 +6,6 @@ layout( location = 2 ) in vec4 vColor;
 
 out VS_OUT 
 {
-	vec3 WorldCoord;
 	vec3 Normal;
 	vec3 Color;
 	float AmbientOcclusion;
@@ -25,12 +24,10 @@ layout(std140, binding = 2) uniform TransformBlock
 
 void main()
 {
-	mat4 ModelView = Transforms.View * Transforms.Model;
-	vs_out.WorldCoord = (Transforms.Model * vec4(vPosition.xyz, 1.0)).xyz;
 	vs_out.Color = vec3(vColor);
 	vs_out.Normal = mat3(Transforms.Model) * vNormal;
 	vs_out.AmbientOcclusion = vPosition.w;
 	vs_out.MaterialID = uint(gl_VertexID);
 
-	gl_Position = Transforms.Projection * ModelView * vec4(vPosition.xyz, 1.0);
+	gl_Position = Transforms.Projection * Transforms.View * Transforms.Model * vec4(vPosition.xyz, 1.0);
 }
