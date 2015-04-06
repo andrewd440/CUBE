@@ -2,15 +2,6 @@
 #include "Misc\Assertions.h"
 #include <wchar.h>
 
-namespace 
-{
-	uint32_t GetTableIndex(Vector3i Position)
-	{
-		const Vector3i PositionToIndex{ (int32_t)FRegionFile::RegionData::REGION_SIZE, (int32_t)FRegionFile::RegionData::REGION_SIZE * FRegionFile::RegionData::REGION_SIZE, 1 };
-		return (uint32_t)Vector3i::Dot(Position, PositionToIndex);
-	}
-}
-
 static const uint8_t FilePadding[sizeof(FRegionFile::RegionData)];
 
 FRegionFile::FRegionFile()
@@ -21,8 +12,11 @@ FRegionFile::FRegionFile()
 FRegionFile::~FRegionFile()
 {
 	// Write lookup table data back to disk
-	mRegionFile->SeekFromStart(0);
-	mRegionFile->Write((uint8_t*)&mRegionData, sizeof(RegionData));
+	if (mRegionFile)
+	{
+		mRegionFile->SeekFromStart(0);
+		mRegionFile->Write((uint8_t*)&mRegionData, sizeof(RegionData));
+	}
 }
 
 bool FRegionFile::Load(const wchar_t* WorldName, const Vector3i& RegionPosition)
@@ -46,12 +40,14 @@ bool FRegionFile::Load(const wchar_t* WorldName, const Vector3i& RegionPosition)
 	if (FileSystem.FileExists(Filepath.c_str()))
 	{
 		mRegionFile = FileSystem.OpenReadWritable(Filepath.c_str(), true);
+		ASSERT(mRegionFile);
 	}
 	else
 	{
 		// If it doesn't exist, create it
 		mRegionFile = FileSystem.OpenReadWritable(Filepath.c_str(), true, true);
-
+		ASSERT(mRegionFile);
+		
 		// Add empty lookup table
 		mRegionFile->Write(FilePadding, sizeof(RegionData));
 	}

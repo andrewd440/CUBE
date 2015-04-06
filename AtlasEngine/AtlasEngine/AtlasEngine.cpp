@@ -13,11 +13,14 @@
 
 int main()
 {
-	FVoxiGineRoot root;
-	root.Start();
+	//FVoxiGineRoot root;
+	//root.Start();
 
-	//IFileSystem* FileSys = new FFileSystem;
-	//FileSys->SetToProgramDirectory();
+	IFileSystem* FileSys = new FFileSystem;
+
+	FileSys->CopyFileDirectory(L"./Worlds/PrettyWorld", L"./Worlds/Temp");
+	FileSys->DeleteDirectory(L"./Worlds/PrettyWorld");
+	FileSys->RenameDirectory(L"./Worlds/Temp", L"./Worlds/PrettyWorld");
 
 	//module::RidgedMulti mountainTerrain;
 
@@ -26,19 +29,19 @@ int main()
 
 	//module::ScaleBias flatTerrain;
 	//flatTerrain.SetSourceModule(0, baseFlatTerrain);
-	//flatTerrain.SetScale(0.125);
+	//flatTerrain.SetScale(0.04);
 	//flatTerrain.SetBias(-0.75);
 
 	//module::Perlin terrainType;
-	//terrainType.SetFrequency(0.5);
-	//terrainType.SetPersistence(0.25);
+	//terrainType.SetFrequency(0.4);
+	//terrainType.SetPersistence(0.125);
 
 	//module::Select terrainSelector;
 	//terrainSelector.SetSourceModule(0, flatTerrain);
 	//terrainSelector.SetSourceModule(1, mountainTerrain);
 	//terrainSelector.SetControlModule(terrainType);
 	//terrainSelector.SetBounds(0.0, 1000.0);
-	//terrainSelector.SetEdgeFalloff(0.125);
+	//terrainSelector.SetEdgeFalloff(0.275);
 
 	//module::Turbulence finalTerrain;
 	//finalTerrain.SetSourceModule(0, terrainSelector);
@@ -54,7 +57,7 @@ int main()
 	//Generator.AddTerrainLevel(0, FBlock::Brick);
 	//Generator.AddTerrainLevel(180, FBlock::Grass);
 	//Generator.AddTerrainLevel(250, FBlock::Dirt);
-	//Generator.AddTerrainLevel(270, FBlock::Snow);
+	//Generator.AddTerrainLevel(280, FBlock::Snow);
 
 	//Generator.Build(finalTerrain, L"PrettyWorld");
 

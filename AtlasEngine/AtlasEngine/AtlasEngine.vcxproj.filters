@@ -282,6 +282,9 @@
     <ClInclude Include="Include\Components\BoxShooter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\FileIO\WorldFileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -477,6 +480,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Components\BoxShooter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileIO\WorldFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

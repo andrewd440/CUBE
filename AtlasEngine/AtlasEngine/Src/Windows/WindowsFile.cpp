@@ -171,13 +171,48 @@ bool FWindowsFileSystem::CurrentDirectory(wchar_t* DataOut, const uint32_t Buffe
 
 bool FWindowsFileSystem::DeleteDirectory(const wchar_t* DirectoryName)
 {
-	if (RemoveDirectory(DirectoryName))
-		return true;
-	else
+	SHFILEOPSTRUCT FileOp;
+	FileOp.wFunc = FO_DELETE;
+
+	// From and To must be double-null terminated.
+	wchar_t NameBuffer[100];
+	wcscpy(NameBuffer, DirectoryName);
+	memcpy(NameBuffer + wcslen(NameBuffer), "\0\0", 2 * sizeof(wchar_t));
+	FileOp.pFrom = NameBuffer;
+
+	FileOp.fFlags = FOF_NO_UI;
+	if (SHFileOperation(&FileOp) == 0)
 	{
-		PrintError();
+		return true;
 	}
 
+	PrintError();
+	return false;
+}
+
+bool FWindowsFileSystem::RenameDirectory(const wchar_t* CurrentName, const wchar_t* NewName)
+{
+	SHFILEOPSTRUCT FileOp;
+	FileOp.wFunc = FO_RENAME;
+
+	// From and To must be double-null terminated.
+	wchar_t CurrentBuffer[100];
+	wcscpy(CurrentBuffer, CurrentName);
+	memcpy(CurrentBuffer + wcslen(CurrentBuffer), "\0\0", 2 * sizeof(wchar_t));
+	FileOp.pFrom = CurrentBuffer;
+
+	wchar_t ToBuffer[100];
+	wcscpy(ToBuffer, NewName);
+	memcpy(ToBuffer + wcslen(ToBuffer), "\0\0", 2 * sizeof(wchar_t));
+	FileOp.pTo = ToBuffer;
+
+	FileOp.fFlags = FOF_NO_UI;
+	if (SHFileOperation(&FileOp) == 0)
+	{
+		return true;
+	}
+
+	PrintError();
 	return false;
 }
 
@@ -239,4 +274,30 @@ void FWindowsFileSystem::SetProgramDirectory()
 	}
 
 	PrintError();
+}
+
+bool FWindowsFileSystem::CopyFileDirectory(const wchar_t* From, const wchar_t* To)
+{
+	SHFILEOPSTRUCT FileOp;
+	FileOp.wFunc = FO_COPY;
+
+	// From and To must be double-null terminated.
+	wchar_t FromBuffer[100];
+	wcscpy(FromBuffer, From);
+	memcpy(FromBuffer + wcslen(FromBuffer), "\0\0", 2 * sizeof(wchar_t));
+	FileOp.pFrom = FromBuffer;
+
+	wchar_t ToBuffer[100];
+	wcscpy(ToBuffer, To);
+	memcpy(ToBuffer + wcslen(ToBuffer), "\0\0", 2 * sizeof(wchar_t));
+	FileOp.pTo = ToBuffer;
+
+	FileOp.fFlags = FOF_NO_UI;
+	if (SHFileOperation(&FileOp) == 0)
+	{
+		return true;
+	}
+
+	PrintError();
+	return false;
 }

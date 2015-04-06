@@ -64,6 +64,8 @@ public:
 
 	bool DeleteDirectory(const wchar_t* DirectoryName) override;
 
+	bool RenameDirectory(const wchar_t* CurrentName, const wchar_t* NewName) override;
+
 	bool CreateFileDirectory(const wchar_t* DirectoryName) override;
 
 	bool GetProgramDirectory(wchar_t* DataOut, const uint32_t BufferLength) override;
@@ -73,6 +75,8 @@ public:
 	bool FileExists(const wchar_t* Filename) override;
 
 	bool SetToProgramDirectory() override;
+
+	bool CopyFileDirectory(const wchar_t* From, const wchar_t* To) override;
 
 private:
 	void SetProgramDirectory();

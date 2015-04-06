@@ -131,6 +131,14 @@ public:
 	virtual bool DeleteDirectory(const wchar_t* DirectoryName) = 0;
 
 	/**
+	* Renames a file directory.
+	* @param CurrentName - Directory to rename.
+	* @param NewName - New name for the directory.
+	* @return True if the rename succeeded.
+	*/
+	virtual bool RenameDirectory(const wchar_t* CurrentName, const wchar_t* NewName) = 0;
+
+	/**
 	* Creates a file directory.
 	* @param DirectoryName Directory to create.
 	* @return True if the creation succeeded.
@@ -166,4 +174,12 @@ public:
 	* @return True if the directory successfully changed.
 	*/
 	virtual bool SetToProgramDirectory() = 0;
+
+	/**
+	* Copy to entire contents of a file directory to another location.
+	* @param From - The directory to be copied.
+	* @param To - The directory to copy to.
+	* @return True if the copy was successful.
+	*/
+	virtual bool CopyFileDirectory(const wchar_t* From, const wchar_t* To) = 0;
 };

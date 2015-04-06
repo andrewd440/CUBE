@@ -185,7 +185,6 @@ private:
 		}
 	};
 
-	std::queue<Vector3i> mRegionReferenceQueue;
 	std::unordered_map<Vector3i, RegionFileRecord, Vector3iHash> mRegionFiles;
 
 	// Rendering data

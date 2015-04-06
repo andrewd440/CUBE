@@ -104,8 +104,15 @@ private:
 	*/
 	void RelocateAndAddChunkData(LookupEntry& RelocationEntry, const uint8_t* Data, const uint32_t DataSize);
 
+	uint32_t GetTableIndex(Vector3i Position);
+
 private:
 	RegionData mRegionData;
 	std::unique_ptr<IFileHandle> mRegionFile;
 };
 
+inline uint32_t FRegionFile::GetTableIndex(Vector3i Position)
+{
+	const Vector3i PositionToIndex{ (int32_t)FRegionFile::RegionData::REGION_SIZE, (int32_t)FRegionFile::RegionData::REGION_SIZE * FRegionFile::RegionData::REGION_SIZE, 1 };
+	return (uint32_t)Vector3i::Dot(Position, PositionToIndex);
+}
