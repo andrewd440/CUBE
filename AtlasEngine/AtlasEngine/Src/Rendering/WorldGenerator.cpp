@@ -169,7 +169,7 @@ void FWorldGenerator::BuildWorldInfoFile(const wchar_t* WorldName) const
 	std::wstring Filepath{ L"./Worlds/" };
 	Filepath += WorldName;
 
-	FileSystem.CreateFileDirectory(WorldName);
+	FileSystem.CreateFileDirectory(Filepath.c_str());
 	Filepath += L"/WorldInfo.vgw";
 
 	// Create the world info file

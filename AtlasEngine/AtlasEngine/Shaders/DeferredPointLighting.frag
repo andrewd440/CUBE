@@ -4,7 +4,7 @@ struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
-	vec3 WorldCoord;
+	vec3 ViewCoord;
 	float AmbientOcclusion;
 	uint MaterialID;
 };
@@ -18,6 +18,15 @@ struct PointLight_t
 	float MinDistance;     //     4               28             32            
 	float MaxDistance;     //     4               32             36
 };
+
+layout(std140, binding = 2) uniform TransformBlock
+{
+// Member					Base Align		Aligned Offset		End
+	mat4 Model;				//		16					0			64
+	mat4 View;				//		16					64			128
+	mat4 Projection;		//		16					128			192
+	mat4 InvProjection;     //      16                  192         256
+} Transforms;
 
 layout(std140, binding = 10) uniform PointLightBlock
 {
@@ -34,14 +43,12 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 	if (Fragment.MaterialID != 0)
 	{
 		// Get light direction and distance
-		vec3 LightDirection =  Light.Position - Fragment.WorldCoord;
-		float Distance = length(LightDirection);
-		LightDirection = normalize(LightDirection);
+		vec3 L =  (Transforms.View * vec4(Light.Position, 1)).xyz - Fragment.ViewCoord;
+		float Distance = length(L);
+		L = normalize(L);
 
-		float Attenuation;
-		if(Distance > Light.MaxDistance)
-			return Result;
-		else if (Distance < Light.MinDistance)
+		float Attenuation = 1;
+		if (Distance < Light.MinDistance)
 			Attenuation = 1.0;
 		else
 		{
@@ -50,16 +57,19 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 
 		// Normal and reflection vectors
 		vec3 N = normalize(Fragment.Normal);
-		vec3 R = reflect(LightDirection, N);
+		vec3 H = normalize(L - Fragment.ViewCoord);
 
 		// Calc lighting
-		float NdotR = max(0.0, dot(N, R));
-		float NdotL = max(0.0, dot(N, LightDirection));
+		float NdotH = max(0.0, dot(N, H));
+		float NdotL = max(0.0, dot(N, L));
 
 		vec3 Diffuse = Light.Color * Fragment.Color * NdotL * Attenuation;
-		vec3 Specular = Light.Color * pow(NdotR, 12) * Attenuation;
-		if(dot(N, LightDirection) < 0.0)
+
+		vec3 Specular;
+		if(NdotL < 0.0)
 			Specular = vec3(0,0,0);
+		else
+			Specular = Light.Color * pow(NdotH, 12) * Attenuation;
 		
 		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
 	}

@@ -8,7 +8,7 @@ struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
-	vec3 WorldCoord;
+	vec3 ViewCoord;
 	float AmbientOcclusion;
 	uint MaterialID;
 };
@@ -19,17 +19,15 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 Model;				//		16					0			64
 	mat4 View;				//		16					64			128
 	mat4 Projection;		//		16					128			192
-	mat4 InvViewProjection;     //      16                  192         256
+	mat4 InvProjection;		//      16                  192         256
 } Transforms;
 
-vec3 GetWorldPosition(ivec2 ScreenCoord)
+vec3 GetViewPosition(ivec2 ScreenCoord)
 {
-	vec4 ClipPosition;
-	ClipPosition.xy = ScreenCoord * 2.0 - 1.0;
-	ClipPosition.z = texture(DepthTexture , ScreenCoord).r * 2.0 - 1.0;
-	ClipPosition.w = 1.0;
-	vec4 WorldPosition = Transforms.InvViewProjection * ClipPosition;
-	return WorldPosition.xyz / WorldPosition.w;
+	vec2 NDC = ((ScreenCoord * 2.0) / vec2(1920, 1080)) - 1.0;
+	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r * 2.0 - 1.0;
+	vec4 View = Transforms.InvProjection * vec4(NDC, Depth, 1.0);
+	return View.xyz / View.w;
 }
 
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
@@ -42,6 +40,6 @@ void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 	Fragment.Normal = normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
 	Fragment.MaterialID = Data0.w;
 
-	Fragment.WorldCoord = GetWorldPosition(ScreenCoord);
+	Fragment.ViewCoord = GetViewPosition(ScreenCoord);
 	Fragment.AmbientOcclusion = float(Data1.x);
 }

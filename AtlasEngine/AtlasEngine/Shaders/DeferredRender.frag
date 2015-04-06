@@ -5,7 +5,6 @@ layout (location = 1) out vec4 color1;
 
 in VS_OUT 
 {
-	vec3 WorldCoord;
 	vec3 Normal;
 	vec3 Color;
 	float AmbientOcclusion;

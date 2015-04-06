@@ -143,6 +143,12 @@ void FChunk::ShutDown(FPhysicsSystem& PhysicsSystem)
 	// Remove collision data from physics system
 	if (!mIsEmpty[mActiveMesh])
 		PhysicsSystem.RemoveCollider(mCollisionData->Object);
+
+	mMesh[0]->ClearData();
+	mMesh[0]->Deactivate();
+	mMesh[1]->ClearData();
+	mMesh[1]->Deactivate();
+	mActiveMesh = false;
 }
 
 bool FChunk::IsLoaded() const
@@ -167,7 +173,7 @@ void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 	auto& Mesh = mMesh[mActiveMesh];
 
 	// Update collision info
-	if (!mIsEmpty[mActiveMesh])
+	if (!mIsEmpty[mActiveMesh] && Mesh->GetVertexCount() > 0)
 	{
 		// Set vertex properties for collision mesh
 		const int32_t IndexStride = 3 * sizeof(uint32_t);

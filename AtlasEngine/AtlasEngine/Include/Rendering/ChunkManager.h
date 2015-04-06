@@ -160,7 +160,7 @@ private:
 	std::vector<Vector3i> mChunkPositions;
 	std::vector<uint32_t> mRenderList;    // Index list of chunks to render
 	std::queue<Vector3i>  mLoadList;      // Index list of chunks to be loaded
-	std::queue<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
+	std::deque<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
 	std::queue<Vector3i>  mBufferSwapQueue;
 	std::thread           mLoaderThread;
 	std::mutex            mRebuildListMutex;

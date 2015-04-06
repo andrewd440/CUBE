@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Component.h"
 #include "Rendering\Block.h"
 

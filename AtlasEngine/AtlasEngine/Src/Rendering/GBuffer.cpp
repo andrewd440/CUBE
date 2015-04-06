@@ -26,6 +26,8 @@ GBuffer::GBuffer(const Vector2ui& TexResolution, const GLenum InternalFormat1, c
 	// Depth texture
 	glBindTexture(GL_TEXTURE_2D, mTextureIDs[2]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, TexResolution.x, TexResolution.y);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// Set attachments
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTextureIDs[0], 0);
@@ -80,8 +82,10 @@ void GBuffer::EndRead()
 {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

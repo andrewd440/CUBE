@@ -52,7 +52,7 @@ public:
 	* same coordinate space.
 	* @param Box - The AABB to check.
 	*/
-	bool IsUniformAABBVisible(const Vector3f& CenterPoint, const float BoxWidth) const;
+	bool IsUniformAABBVisible(const Vector4f& CenterPoint, const float BoxWidth) const;
 
 	/**
 	* Checks if a sphere is visible.

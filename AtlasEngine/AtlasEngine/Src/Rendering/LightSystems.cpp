@@ -96,7 +96,7 @@ void FPointLightSystem::Update()
 		const FPointLight& LightComponent = Object->GetComponent<EComponent::PointLight>();
 
 		// Check if light is in the view volume
-		const Vector3f LightViewSpace = ViewTransform.TransformPosition(Transform.GetPosition());
+		const Vector3f LightViewSpace = ViewTransform.TransformPosition(Transform.GetWorldPosition());
 		const FSphere LightVolume{ LightViewSpace, LightComponent.MaxDistance };
 
 		if (Frustum.IsSphereVisible(LightVolume))

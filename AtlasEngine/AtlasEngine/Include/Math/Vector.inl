@@ -111,7 +111,7 @@ template <typename T>
 inline bool TVector4<T>::operator==(const TVector4<T>& Rhs) const
 {
 	for (size_t i = 0; i < 4; i++)
-		if (*this[i] != Rhs[i])
+		if ((*this)[i] != Rhs[i])
 			return false;
 
 	return true;

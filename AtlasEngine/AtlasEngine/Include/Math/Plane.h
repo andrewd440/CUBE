@@ -10,8 +10,7 @@
 WIN_ALIGN(16)
 struct FPlane
 {
-	Vector3f Normal;
-	float DistanceFromOrigin;
+	Vector4f NormalwDistance;
 
 	/**
 	* Default Ctor
@@ -43,7 +42,7 @@ struct FPlane
 	* @param P3 - Third point.
 	*/
 	FPlane(const Vector3f& P1, const Vector3f& P2, const Vector3f& P3);
-	
+
 	/**
 	* Constructs a plane from a 4 component vector. x, y, z is the normal.
 	* w is the distance from origin.
@@ -82,34 +81,29 @@ struct FPlane
 };
 
 inline FPlane::FPlane()
-	: Normal(0, 1, 0)
-	, DistanceFromOrigin(0.0f)
+	: NormalwDistance(0, 1, 0, 0)
 {
 }
 
 inline FPlane::FPlane(const Vector3f& PlaneNormal, const Vector3f& PointOnPlane)
-	: Normal(PlaneNormal)
-	, DistanceFromOrigin(Vector3f::Dot(PlaneNormal, PointOnPlane))
+	: NormalwDistance(PlaneNormal, Vector3f::Dot(PlaneNormal, PointOnPlane))
 {
 
 }
 
 inline FPlane::FPlane(const Vector3f& PlaneNormal, const float DistanceFromOrigin)
-	: Normal(PlaneNormal)
-	, DistanceFromOrigin(DistanceFromOrigin)
+	: NormalwDistance(PlaneNormal, DistanceFromOrigin)
 {}
 
 inline FPlane::FPlane(const Vector3f& P1, const Vector3f& P2, const Vector3f& P3)
-	: Normal()
-	, DistanceFromOrigin(0.0f)
+	: NormalwDistance()
 {
-	Normal = Vector3f::Cross((P2 - P1), (P3 - P1)).Normalize();
-	DistanceFromOrigin = Vector3f::Dot(P1, Normal);
+	NormalwDistance = Vector4f{ Vector3f::Cross((P2 - P1), (P3 - P1)).Normalize(), 0 };
+	NormalwDistance.w = Vector4f::Dot3(Vector4f{ P1, 0 }, NormalwDistance);
 }
 
 inline FPlane::FPlane(const Vector4f& Plane)
-	: Normal(Plane.x, Plane.y, Plane.z)
-	, DistanceFromOrigin(Plane.w)
+	: NormalwDistance(Plane.x, Plane.y, Plane.z, Plane.w)
 {
 
 }
@@ -122,30 +116,28 @@ inline void FPlane::TransformBy(const FMatrix4& Transform)
 	// transforming normal vectors with the transpose of the inverse.
 
 	FMatrix4 CorrectTransform = Transform.GetInverse().Transpose();
-	const Vector4f NewPlane = CorrectTransform.TransformVector(Vector4f(Normal, DistanceFromOrigin));
-	Normal = Vector3f{ NewPlane.x, NewPlane.y, NewPlane.z };
-	DistanceFromOrigin = NewPlane.w;
+	NormalwDistance = CorrectTransform.TransformVector(NormalwDistance);
 }
 
 inline FPlane& FPlane::Normalize()
 {
-	const float InvNormalLength = 1.0f / Normal.Length();
-	Normal *= InvNormalLength;
-	DistanceFromOrigin *= InvNormalLength;
+	const float InvNormalLength = 1.0f / NormalwDistance.Length3();
+	NormalwDistance *= InvNormalLength;
 	return *this;
 }
 
 inline float FPlane::DistanceFromPoint(const Vector3f& Point) const
 {
-	return (Vector3f::Dot(Point, Normal) - DistanceFromOrigin) / Vector3f::Dot(Normal, Normal);
+	const Vector3f Normal{ NormalwDistance.x, NormalwDistance.y, NormalwDistance.z };
+	return (Vector3f::Dot(Point, Normal) - NormalwDistance.w) / Vector3f::Dot(Normal, Normal);
 }
 
 inline bool operator==(const FPlane& Lhs, const FPlane& Rhs)
 {
-	return Lhs.Normal == Rhs.Normal && Lhs.DistanceFromOrigin == Rhs.DistanceFromOrigin;
+	return Lhs.NormalwDistance == Rhs.NormalwDistance;
 }
 
 inline bool operator!=(const FPlane& Lhs, const FPlane& Rhs)
 {
-	return Lhs.Normal != Rhs.Normal || Lhs.DistanceFromOrigin != Rhs.DistanceFromOrigin;
+	return Lhs.NormalwDistance != Rhs.NormalwDistance;
 }

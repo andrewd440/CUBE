@@ -65,6 +65,8 @@ namespace Atlas
 		// Deactivate entity and reset properties
 		const uint32_t ID = GameObject.mID;
 		RemoveAllComponentsFor(ID);
+
+		mGameObjects.At<FGameObject>(ID).~FGameObject();
 		mGameObjects.Free(ID);
 	}
 

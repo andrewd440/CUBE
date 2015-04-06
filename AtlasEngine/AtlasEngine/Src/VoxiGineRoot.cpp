@@ -27,6 +27,9 @@
 #include "Input\TextEntered.h"
 #include "Components\MeshComponent.h"
 #include "Components\FlyingCamera.h"
+#include "Components\BlockPlacer.h"
+#include "Components\TimeBombShooter.h"
+#include "Components\BoxShooter.h"
 
 const uint32_t WindowWidth = 1920;
 const uint32_t WindowHeight = 1080;
@@ -47,7 +50,7 @@ FVoxiGineRoot::FVoxiGineRoot()
 	}
 
 	IFileSystem* FileSystem = new FFileSystem;
-	FileSystem->SetToProgramDirectory();
+	//FileSystem->SetToProgramDirectory();
 
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
@@ -74,11 +77,10 @@ FVoxiGineRoot::~FVoxiGineRoot()
 void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
-	FTransform& CameraTransform = MainCamera.Transform;
-	const Vector3f CameraPosition = Vector3f{ 20.0f, 210.0f, 20.0f };
-	CameraTransform.SetPosition(CameraPosition);
+	const Vector3f CameraPosition = Vector3f{ 50.0f, 60.0f, 20.0f };
+	MainCamera.Transform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 256.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 330.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -91,7 +93,7 @@ void FVoxiGineRoot::Start()
 	Console.SetRenderSystem(&Renderer);
 
 	mChunkManager->SetPhysicsSystem(Physics);
-	mChunkManager->LoadWorld(L"LargeWorld");
+	mChunkManager->LoadWorld(L"GenWorld");
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 	GameObjectManager.SetChunkManager(mChunkManager);
@@ -112,29 +114,37 @@ void FVoxiGineRoot::ConstructScene()
 {
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
+	auto& PlayerController = GameObjectManager.CreateGameObject();
+	PlayerController.AddBehavior<CFlyingCamera>();
+	PlayerController.AddBehavior<CBlockPlacer>();
+	//PlayerController.AddBehavior<CTimeBombShooter>();
+	PlayerController.AddBehavior<CBoxShooter>();
+
 	////////////////////////////////////////////////////////////////////////
 	//////// Directional Light /////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
-	auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.7, .7, .7);
-	DirectionalLight.Transform.SetRotation(FQuaternion{ -40, 20, 0 });
-	DirectionalLight.AddBehavior<CFlyingCamera>();
+	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	//DLight.Color = Vector3f(.7, .7, .7);
+	//DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
 
 	auto& PointLight = GameObjectManager.CreateGameObject();
-	//FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
-	//PLight.Color = Vector3f(0.2f, .1f, .8f);
-	//PLight.MinDistance = 1;
-	//PLight.MaxDistance = 3;
-	FMeshComponent& Mesh = PointLight.AddComponent<Atlas::EComponent::Mesh>();
-	Mesh.LoadModel("Sword.obj");
-	PointLight.Transform.SetPosition(Vector3f{ 250.0f, 220.0f, 250.0f });
-	PointLight.Transform.Rotate(FQuaternion{ 90, 0, -45 });
+	PointLight.Transform.SetPosition(Vector3f{ 20, 55, 20 });
+	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
+	PLight.Color = Vector3f(0.2f, .1f, .8f);
+	PLight.MinDistance = 3;
+	PLight.MaxDistance = 20;
+
+	//auto& Sword = GameObjectManager.CreateGameObject();
+	//FMeshComponent& Mesh = Sword.AddComponent<Atlas::EComponent::Mesh>();
+	//Mesh.LoadModel("Sword.obj");
+	//Sword.Transform.SetPosition(Vector3f{ 100.0f, 230.0f, 100.0f });
+	//Sword.Transform.Rotate(FQuaternion{ 90, 0, -45 });
 }
 
 void FVoxiGineRoot::GameLoop()
 {
-	STime::SetFixedUpdate(.02f);
+	STime::SetFixedUpdate(1.0f / 60.0f);
 	STime::SetDeltaTime(1.0f / 30.0f); // Default delta time with 30fps
 
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -144,21 +154,6 @@ void FVoxiGineRoot::GameLoop()
 	float lag = 0.0f;
 	while (mGameWindow.isOpen())
 	{	
-		if (SButtonEvent::GetMouseDown(sf::Mouse::Right))
-		{
-			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
-			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
-			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
-			mChunkManager->DestroyBlock(IntPosition);
-		}
-		if (SButtonEvent::GetMouseDown(sf::Mouse::Left))
-		{
-			Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * 4.0f;
-			Vector3f CamPosition = MainCamera.Transform.GetPosition() + CamForward;
-			Vector3i IntPosition{ (int32_t)CamPosition.x, (int32_t)CamPosition.y, (int32_t)CamPosition.z };
-			mChunkManager->SetBlock(IntPosition, FBlock::Brick);
-		}
-
 		mChunkManager->Update();
 		GameObjectManager.Update();
 

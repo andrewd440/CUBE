@@ -21,7 +21,7 @@ namespace
 		Model = 0,
 		View = 64,
 		Projection = 128,
-		InvViewProjection = 192,
+		InvProjection = 192,
 		Size = 256
 	};
 }
@@ -111,20 +111,8 @@ void FRenderSystem::Update()
 	mGBuffer.EndRead();
 
 	// Render debug draws
-	static bool ShowBox = false;
-	if (SButtonEvent::GetKeyDown(sf::Keyboard::B))
-		ShowBox = !ShowBox;
 
-	if (ShowBox)
-	{
-		Vector3f CamForward = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward * 4.0f;
-		Vector3f CamPosition = FCamera::Main->Transform.GetPosition() + CamForward;
-		CamPosition = Vector3f{ std::floor(CamPosition.x) + 0.5f, std::floor(CamPosition.y) + 0.5f, std::floor(CamPosition.z) + 0.5f };
-		FDebug::Draw::GetInstance().DrawBox(CamPosition, Vector3f{ 1, 1, 1 }, Vector3f{ 1, 1, 1 });
-	}
-
-
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 	FDebug::Draw::GetInstance().Render();
 
 	static const vec4 White{ { 1, 1, 1, 1 } };
@@ -194,7 +182,7 @@ void FRenderSystem::LightingPass()
 	auto& SubSystems = GetSubSystems();
 
 	// Send inverse project to reconstruct world coord. from depth texture
-	mTransformBuffer.SetData(TransformBuffer::InvViewProjection, (FCamera::Main->GetProjection() * FCamera::Main->Transform.WorldToLocalMatrix()).GetInverse());
+	mTransformBuffer.SetData(TransformBuffer::InvProjection, FCamera::Main->GetProjection().GetInverse());
 
 	for (auto& SubSystem : SubSystems)
 		SubSystem->Update();

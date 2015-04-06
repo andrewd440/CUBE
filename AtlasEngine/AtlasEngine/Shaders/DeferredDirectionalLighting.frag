@@ -8,7 +8,7 @@ struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
-	vec3 WorldCoord;
+	vec3 ViewCoord;
 	float AmbientOcclusion;
 	uint MaterialID;
 };
@@ -21,6 +21,14 @@ struct DirectionalLight_t
 	vec3 Color;            //    16               16             28
 };
 
+layout(std140, binding = 2) uniform TransformBlock
+{
+// Member					Base Align		Aligned Offset		End
+	mat4 Model;				//		16					0			64
+	mat4 View;				//		16					64			128
+	mat4 Projection;		//		16					128			192
+	mat4 InvProjection;     //      16                  192         256
+} Transforms;
 
 layout(std140, binding = 11) uniform DirectionalLightBlock
 {
@@ -47,20 +55,20 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 	if (Fragment.MaterialID != 0)
 	{
 		// Normal and reflection vectors
+		vec3 L = mat3(Transforms.View) * (-Light.Direction);
 		vec3 N = normalize(Fragment.Normal);
-		vec3 R = reflect(-Light.Direction, N);
+		vec3 H = normalize(L - Fragment.ViewCoord);
 
 		// Calc lighting
-		float NdotR = max(0.0, dot(N, R));
-		float NdotL = max(0.0, dot(N, -Light.Direction));
+		float NdotH = max(0.0, dot(N, H));
+		float NdotL = max(0.0, dot(N, L));
 
 		vec3 Diffuse = Light.Color * Fragment.Color * NdotL;
-		vec3 Specular = Light.Color * pow(NdotR, 12);
-		if(dot(N, -Light.Direction) < 0.0)
+		vec3 Specular = Light.Color * pow(NdotH, 12);
+		if(NdotL < 0.0)
 			Specular = vec3(0,0,0);
 
 		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
-		//Result = vec4(Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, Fragment.AmbientOcclusion, 1);
 	}
 	return Result;
 }

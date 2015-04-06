@@ -5,6 +5,7 @@
 #include "ComponentTypes.h"
 #include "Math\Transform.h"
 #include "btBulletCollisionCommon.h"
+#include "Atlas\Behavior.h"
 #include <map>
 #include <typeindex>
 
@@ -13,7 +14,6 @@ class FChunkManager;
 namespace Atlas
 {
 	class IComponent;
-	class FBehavior;
 
 	/**
 	* Used to represent any game object. 
@@ -29,6 +29,7 @@ namespace Atlas
 		FTransform Transform;
 
 	public:
+		~FGameObject() {}
 		FGameObject(const FGameObject& Other) = delete;
 		FGameObject& operator=(const FGameObject& Other) = delete;
 

@@ -10,6 +10,8 @@
 CFlyingCamera::CFlyingCamera()
 	: FBehavior()
 	, mCamera(nullptr)
+	, mMoveSpeed(20.0f)
+	, mLookSpeed(15.0f)
 {
 }
 
@@ -25,13 +27,8 @@ void CFlyingCamera::OnStart()
 
 void CFlyingCamera::Update()
 {
-	if (SButtonEvent::GetKeyDown(sf::Keyboard::M))
-	{
-		SpawnBox();
-	}
-
 	float ZMovement = 0, XMovement = 0, YMovement = 0;
-	float MoveSpeed = (40.0f * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
+	float MoveSpeed = (mMoveSpeed * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		ZMovement = MoveSpeed;
@@ -46,7 +43,7 @@ void CFlyingCamera::Update()
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		YMovement = -MoveSpeed;
 
-	const float LookSpeed = 15.0f * STime::GetDeltaTime();
+	const float LookSpeed = mLookSpeed * STime::GetDeltaTime();
 	FQuaternion CameraRotation = mCamera->Transform.GetRotation();
 
 	Vector3f CameraForward = CameraRotation * Vector3f::Forward;
@@ -60,24 +57,9 @@ void CFlyingCamera::Update()
 
 	Vector3f NewForward = CameraRotation * Vector3f::Forward;
 
-	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.999f)
+	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.995f)
 		mCamera->Transform.SetRotation(CameraRotation);
 
-	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement } *MoveSpeed;
+	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement };
 	mCamera->Transform.Translate(Translation);
-}
-
-void CFlyingCamera::SpawnBox()
-{
-	auto& Box = CreateGameObject();
-	Box.Transform.SetPosition(mCamera->Transform.GetPosition());
-	Box.Transform.SetScale(Vector3f{ .5f, .5f, .5f });
-
-	auto& Body = Box.AddComponent<Atlas::EComponent::RigidBody>();
-	Vector3f Forward = mCamera->Transform.GetRotation() * -Vector3f::Forward;
-	Body.Body.setLinearVelocity(btVector3{ Forward.x, Forward.y, Forward.z } * 40.0f);
-	Body.BoxCollider.setImplicitShapeDimensions(btVector3{ .5f, .5f, .5f });
-
-	auto& Mesh = Box.AddComponent<Atlas::EComponent::Mesh>();
-	Mesh.LoadModel("Box.obj");
 }

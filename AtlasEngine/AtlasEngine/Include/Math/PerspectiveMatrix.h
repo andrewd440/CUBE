@@ -49,7 +49,7 @@ inline FPerspectiveMatrix::FPerspectiveMatrix(const float Aspect, const float Ha
 	*this = FMatrix4{
 		1.0f / (Aspect * TanHalfFOV), 0, 0, 0,
 		0, 1.0f / TanHalfFOV, 0, 0,
-		0, 0, -((Far + Near) / (Far - Near)), -((2 * Far * Near) / (Far - Near)),
+		0, 0, ((Far + Near) / (Near - Far)), ((2 * Far * Near) / (Near - Far)),
 		0, 0, -1, 0
 	};
 }

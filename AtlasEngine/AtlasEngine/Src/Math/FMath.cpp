@@ -47,31 +47,31 @@ namespace FMath
 	}
 
 	
-	IntersectionType Intersects(const FPlane& Plane, const FBox& Box)
-	{
-		// From Real-Time Collision Detection
-		const Vector3f BoxCenter = Box.GetCenter();
-		const Vector3f Extents = Box.Max - BoxCenter;
+	//IntersectionType Intersects(const FPlane& Plane, const FBox& Box)
+	//{
+	//	// From Real-Time Collision Detection
+	//	const Vector3f BoxCenter = Box.GetCenter();
+	//	const Vector3f Extents = Box.Max - BoxCenter;
 
-		// Compute projection interval radius of box
-		float Radius = Extents.x * abs(Plane.Normal.x) + Extents.y * abs(Plane.Normal.y) + Extents.z * abs(Plane.Normal.z);
-		
-		// Compute distance of box center from plane
-		float Distance = Vector3f::Dot(Plane.Normal, BoxCenter) - Plane.DistanceFromOrigin;
+	//	// Compute projection interval radius of box
+	//	float Radius = Extents.x * abs(Plane.Normal.x) + Extents.y * abs(Plane.Normal.y) + Extents.z * abs(Plane.Normal.z);
+	//	
+	//	// Compute distance of box center from plane
+	//	float Distance = Vector3f::Dot(Plane.Normal, BoxCenter) - Plane.DistanceFromOrigin;
 
-		if (abs(Distance) <= Radius)
-		{
-			return IntersectionType::Straddle;
-		}
-		else if (Distance >= 0)
-		{
-			return IntersectionType::Front;
-		}
-		else
-		{
-			return IntersectionType::Behind;
-		}
-	}
+	//	if (abs(Distance) <= Radius)
+	//	{
+	//		return IntersectionType::Straddle;
+	//	}
+	//	else if (Distance >= 0)
+	//	{
+	//		return IntersectionType::Front;
+	//	}
+	//	else
+	//	{
+	//		return IntersectionType::Behind;
+	//	}
+	//}
 
 	IntersectionType Intersects(const FPlane& Plane, const FSphere& Sphere)
 	{

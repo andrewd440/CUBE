@@ -38,10 +38,8 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 		float Distance = length(LightDirection);
 		LightDirection = normalize(LightDirection);
 
-		float Attenuation;
-		if(Distance > Light.MaxDistance)
-			return Result;
-		else if (Distance < Light.MinDistance)
+		float Attenuation = 1;
+		if (Distance < Light.MinDistance)
 			Attenuation = 1.0;
 		else
 		{
@@ -56,13 +54,14 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 		float NdotR = max(0.0, dot(N, R));
 		float NdotL = max(0.0, dot(N, LightDirection));
 
-		vec3 Diffuse = Light.Color * Fragment.Color * NdotL * Attenuation;
+		vec3 Diffuse = Light.Color * Fragment.Color * Attenuation;
 		vec3 Specular = Light.Color * pow(NdotR, 12) * Attenuation;
 		if(dot(N, LightDirection) < 0.0)
 			Specular = vec3(0,0,0);
 		
 		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
 	}
+
 	return Result;
 }
 

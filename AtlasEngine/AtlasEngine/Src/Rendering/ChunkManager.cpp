@@ -38,8 +38,8 @@ FChunkManager::FChunkManager()
 	, mPhysicsSystem(nullptr)
 {
 	mChunks = new FChunk[DEFAULT_CHUNK_SIZE];
-	mMustShutdown.store(false);
-	mIsLoadListRefreshing.store(false);
+	mIsLoadListRefreshing = false;
+	mMustShutdown = false;
 }
 
 FChunkManager::~FChunkManager()
@@ -56,7 +56,7 @@ void FChunkManager::Shutdown()
 		mLoaderThread.join();
 
 	mLoadList = std::queue<Vector3i>();
-	mRebuildList = std::queue<uint32_t>();
+	mRebuildList.clear();
 	mRenderList.clear();
 
 	const uint32_t Size = ChunkCount();
@@ -136,7 +136,7 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 {
 	// Get camera data
 	const Vector3f CameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 
 	// Update the renderlist if the camera position or direction has changed.
 	if (mLastCameraPosition != CameraPosition || mLastCameraDirection != CameraDirection)
@@ -161,7 +161,7 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 void FChunkManager::Update()
 {
 	// Get the chunk that the camera is currently in.
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetPosition();
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 	const Vector3i CameraChunk = CameraPosition / FChunk::CHUNK_SIZE;
 
 	// Only update visibility list when that camera crosses a chunk boundary
@@ -199,7 +199,8 @@ void FChunkManager::SetBlock(Vector3i Position, FBlock::BlockType BlockType)
 	mChunks[ChunkNumber].SetBlock(Position, BlockType);
 
 	std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-	mRebuildList.push(ChunkNumber);
+	if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
+		mRebuildList.push_back(ChunkNumber);
 }
 
 FBlock::BlockType FChunkManager::GetBlock(Vector3i Position) const
@@ -220,7 +221,8 @@ void FChunkManager::DestroyBlock(Vector3i Position)
 	mChunks[ChunkNumber].DestroyBlock(Position);
 
 	std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-	mRebuildList.push(ChunkNumber);
+	if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
+		mRebuildList.push_back(ChunkNumber);
 }
 
 void FChunkManager::SetPhysicsSystem(FPhysicsSystem& Physics)
@@ -315,7 +317,7 @@ void FChunkManager::UpdateRebuildList()
 	while (!mRebuildList.empty())
 	{
 		int32_t ChunkIndex = mRebuildList.front();
-		mRebuildList.pop();
+		mRebuildList.pop_front();
 		RebuildLock.unlock();
 
 		mChunks[ChunkIndex].RebuildMesh();
@@ -450,16 +452,18 @@ void FChunkManager::UpdateRenderList()
 
 	// The the current view frustum
 	const FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
-	const float ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
+	const int32_t ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
+
+	const Vector4i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 1 };
+	const Vector4i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 0 };
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		Vector3f ChunkCenter = mChunkPositions[i];
-		ChunkCenter = ChunkCenter * FChunk::CHUNK_SIZE + ChunkHalfWidth;
+		const Vector4f ChunkCenter{ Vector4i{ mChunkPositions[i], 1 } * ChunkSizeVector + HalfChunkVector};
 
-		if (ViewFrustum.IsUniformAABBVisible(ChunkCenter, FChunk::CHUNK_SIZE) && !mChunks[i].IsEmpty())
+		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(ChunkCenter, FChunk::CHUNK_SIZE))
 		{
 			mRenderList.push_back(i);
 		}
