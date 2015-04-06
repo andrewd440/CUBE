@@ -14,8 +14,8 @@ bool FFrustum::IsUniformAABBVisible(const Vector4f& CenterPoint, const float Box
 	{
 		// Compute effective radius of the box against the plane
 		const float EffectiveRadius = 0.5f *   (abs(Vector4f::Dot4(Plane.NormalwDistance, BoxRight)) +
-			abs(Vector4f::Dot4(Plane.NormalwDistance, BoxUp)) +
-			abs(Vector4f::Dot4(Plane.NormalwDistance, BoxForward)));
+												abs(Vector4f::Dot4(Plane.NormalwDistance, BoxUp)) +
+												abs(Vector4f::Dot4(Plane.NormalwDistance, BoxForward)));
 
 		const float CenterDotNormal = Vector4f::Dot4(CenterPoint, Plane.NormalwDistance);
 		if (CenterDotNormal <= -EffectiveRadius)
@@ -31,7 +31,7 @@ bool FFrustum::IsSphereVisible(const FSphere& Sphere) const
 	for (const FPlane& Plane : mPlanes)
 	{
 		float Dot;
-		Dot4Product(&Plane.NormalwDistance.x, &SphereVector.x, Dot);
+		Dot4Product(&Plane.NormalwDistance.x, &SphereVector.x, &Dot);
 		if (Dot <= -Sphere.Radius)
 			return false;
 	}

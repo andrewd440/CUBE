@@ -12,8 +12,9 @@ inline TVector4<T>::TVector4(const T X, const T Y, const T Z, const T W)
 	: x(X), y(Y), z(Z), w(W){}
 
 template <typename T>
-inline TVector4<T>::TVector4(const TVector3<T>& Vec3, const T W)
-	: TVector4<T>(Vec3.x, Vec3.y, Vec3.z, W)
+template <typename U>
+inline TVector4<T>::TVector4(const TVector3<U>& Vec3, const T W)
+	: TVector4<T>((T)Vec3.x, (T)Vec3.y, (T)Vec3.z, W)
 {
 }
 
@@ -47,8 +48,8 @@ template <typename T>
 template <typename U>
 inline TVector4<T>& TVector4<T>::operator+=(const U Scalar)
 {
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	AddVectorVector(*this, ScalarField, *this);
+	const T ScalarField[4] = { Scalar, Scalar, Scalar, Scalar };
+	AddVectorVector(&x, ScalarField, &x);
 	return *this;
 }
 
@@ -56,8 +57,8 @@ template <typename T>
 template <typename U>
 inline TVector4<T>& TVector4<T>::operator-=(const U Scalar)
 {
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	SubtractVectorVector(*this, ScalarField, *this);
+	const T ScalarField[4] = { Scalar, Scalar, Scalar, Scalar };
+	SubtractVectorVector(&x, ScalarField, &x);
 	return *this;
 }
 
@@ -65,8 +66,8 @@ template <typename T>
 template <typename U>
 inline TVector4<T>& TVector4<T>::operator*=(const U Scalar)
 {
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	MultVectorVector(*this, ScalarField, *this);
+	const T ScalarField[4] = { Scalar, Scalar, Scalar, Scalar };
+	MultVectorVector(&x, ScalarField, &x);
 	return *this;
 }
 
@@ -74,36 +75,36 @@ template <typename T>
 template <typename U>
 inline TVector4<T>& TVector4<T>::operator/=(const U Scalar)
 {
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	DivideVectorVector(*this, ScalarField, *this);
+	const T ScalarField[4] = { Scalar, Scalar, Scalar, Scalar };
+	DivideVectorVector(&x, ScalarField, &x);
 	return *this;
 }
 
 template <typename T>
-inline TVector4<T>& TVector4<T>::operator+=(const TVector4<T>& rhs)
+inline TVector4<T>& TVector4<T>::operator+=(const TVector4<T>& Rhs)
 {
-	AddVectorVector(*this, rhs, *this);
+	AddVectorVector(&x, &Rhs.x, &x);
 	return *this;
 }
 
 template <typename T>
-inline TVector4<T>& TVector4<T>::operator-=(const TVector4<T>& rhs)
+inline TVector4<T>& TVector4<T>::operator-=(const TVector4<T>& Rhs)
 {
-	SubtractVectorVector(*this, rhs, *this);
+	SubtractVectorVector(&x, &Rhs.x, &x);
 	return *this;
 }
 
 template <typename T>
 inline TVector4<T>& TVector4<T>::operator*=(const TVector4<T>& Rhs)
 {
-	MultVectorVector(*this, Rhs, *this);
+	MultVectorVector(&x, &Rhs.x, &x);
 	return *this;
 }
 
 template <typename T>
 inline TVector4<T>& TVector4<T>::operator/=(const TVector4<T>& Rhs)
 {
-	DivideVectorVector(*this, Rhs, *this);
+	DivideVectorVector(&x, &Rhs.x, &x);
 	return *this;
 }
 
@@ -168,25 +169,25 @@ inline TVector4<T>& TVector4<T>::Normalize3()
 template <typename T>
 inline float TVector4<T>::Length4() const
 {
-	return sqrt(x*x + y*y + z*z + w*w);
+	return sqrt(LengthSquared4());
 }
 
 template <typename T>
 inline float TVector4<T>::Length3() const
 {
-	return sqrt(x*x + y*y + z*z);
+	return sqrt(LengthSquared3());
 }
 
 template <typename T>
 inline float TVector4<T>::LengthSquared4() const
 {
-	return (x*x + y*y + z*z + w*w);
+	return Dot4(*this, *this);
 }
 
 template <typename T>
 inline float TVector4<T>::LengthSquared3() const
 {
-	return (x*x + y*y + z*z);
+	return Dot3(*this, *this);
 }
 
 template <typename T>
@@ -251,7 +252,7 @@ inline T TVector4<T>::Dot3(const TVector4<T>& lhs, const TVector4<T>& rhs)
 	auto L = lhs;
 	auto R = rhs;
 	L.z = R.z = 0;
-	Dot4Product(L, R, Result);
+	Dot4Product(&L.x, &R.x, &Result);
 	return Result;
 }
 
@@ -265,7 +266,7 @@ template <typename T>
 inline T TVector4<T>::Dot4(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
 	T Result;
-	Dot4Product(lhs, rhs, Result);
+	Dot4Product(&lhs.x, &rhs.x, &Result);
 	return Result;
 }
 
@@ -293,8 +294,8 @@ template <typename T>
 */
 inline TVector4<T> operator+(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	TVector4<T> Result;
-	AddVectorVector(lhs, rhs, Result);
+	TVector4<T> Result = lhs;
+	Result += rhs;
 	return Result;
 }
 
@@ -307,8 +308,8 @@ template <typename T>
 */
 inline TVector4<T> operator-(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	TVector4<T> Result;
-	SubtractVectorVector(lhs, rhs, Result);
+	TVector4<T> Result = lhs;
+	Result -= rhs;
 	return Result;
 }
 
@@ -320,8 +321,8 @@ template <typename T>
 */
 inline TVector4<T> operator*(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	TVector4<T> Result;
-	MultVectorVector(lhs, rhs, Result);
+	TVector4<T> Result = lhs;
+	Result *= rhs;
 	return Result;
 }
 
@@ -333,8 +334,8 @@ template <typename T>
 */
 inline TVector4<T> operator/(const TVector4<T>& lhs, const TVector4<T>& rhs)
 {
-	TVector4<T> Result;
-	DivideVectorVector(lhs, rhs, Result);
+	TVector4<T> Result = lhs;
+	Result /= rhs;
 	return Result;
 }
 
@@ -358,9 +359,8 @@ template <typename T, typename U>
 */
 inline TVector4<T> operator+(const TVector4<T>& Vec, const U Scalar)
 {
-	TVector4<T> Result;
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	AddVectorVector(Vec, ScalarField, Result);
+	TVector4<T> Result = Vec;
+	Result += Scalar;
 	return Result;
 }
 
@@ -385,9 +385,8 @@ template <typename T, typename U>
 */
 inline TVector4<T> operator-(const TVector4<T>& Vec, const U Scalar)
 {
-	TVector4<T> Result;
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	SubtractVectorVector(Vec, ScalarField, Result);
+	TVector4<T> Result = Vec;
+	Result -= Scalar;
 	return Result;
 }
 
@@ -400,9 +399,8 @@ template <typename T, typename U>
 */
 inline TVector4<T> operator*(const TVector4<T>& Vec, const U Scalar)
 {
-	TVector4<T> Result;
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	MultVectorVector(Vec, ScalarField, Result);
+    TVector4<T> Result = Vec;
+	Result *= Scalar;
 	return Result;
 }
 
@@ -427,9 +425,8 @@ template <typename T, typename U>
 */
 inline TVector4<T> operator/(const TVector4<T>& Vec, const U Scalar)
 {
-	TVector4<T> Result;
-	TVector4<T> ScalarField{ Scalar, Scalar, Scalar, Scalar };
-	DivideVectorVector(Vec, ScalarField, Result);
+	TVector4<T> Result = Vec;
+	Result /= Scalar;
 	return Result;
 }
 
@@ -484,23 +481,16 @@ template <typename T>
 inline T TVector3<T>::Dot(const TVector3<T>& lhs, const TVector3<T>& rhs)
 {
 	// forward to vec4 with sse
-	TVector4<T> L{ lhs, 0 };
-	TVector4<T> R{ rhs, 0 };
-	return 	TVector4<T>::Dot4(L, R);
+	return (lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z);
 }
 
 template <typename T>
 template <typename U>
 inline TVector3<T>& TVector3<T>::operator*=(const U Scalar)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	This *= Scalar;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x *= Scalar;
+	y *= Scalar;
+	z *= Scalar;
 
 	return *this;
 }
@@ -508,15 +498,9 @@ inline TVector3<T>& TVector3<T>::operator*=(const U Scalar)
 template <typename T>
 inline TVector3<T>& TVector3<T>::operator*=(const TVector3<T>& Rhs)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	TVector4<T> Other{ Rhs, 0 };
-	This *= Other;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x *= Rhs.x;
+	y *= Rhs.y;
+	z *= Rhs.z;
 
 	return *this;
 }
@@ -524,15 +508,9 @@ inline TVector3<T>& TVector3<T>::operator*=(const TVector3<T>& Rhs)
 template <typename T>
 inline TVector3<T>& TVector3<T>::operator/=(const TVector3<T>& Rhs)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 1 };
-	TVector4<T> Other{ Rhs, 1 };
-	This /= Other;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x /= Rhs.x;
+	y /= Rhs.y;
+	z /= Rhs.z;
 
 	return *this;
 }
@@ -541,14 +519,9 @@ template <typename T>
 template <typename U>
 inline TVector3<T>& TVector3<T>::operator/=(const U Scalar)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	This /= Scalar;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x /= Scalar;
+	y /= Scalar;
+	z /= Scalar;
 
 	return *this;
 }
@@ -556,15 +529,9 @@ inline TVector3<T>& TVector3<T>::operator/=(const U Scalar)
 template <typename T>
 inline TVector3<T>& TVector3<T>::operator+=(const TVector3<T>& Rhs)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	TVector4<T> Other{ Rhs, 0 };
-	This += Other;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x += Rhs.x;
+	y += Rhs.y;
+	z += Rhs.z;
 
 	return *this;
 }
@@ -572,15 +539,9 @@ inline TVector3<T>& TVector3<T>::operator+=(const TVector3<T>& Rhs)
 template <typename T>
 inline TVector3<T>& TVector3<T>::operator-=(const TVector3<T>& Rhs)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	TVector4<T> Other{ Rhs, 0 };
-	This -= Other;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x -= Rhs.x;
+	y -= Rhs.y;
+	z -= Rhs.z;
 
 	return *this;
 }
@@ -589,14 +550,9 @@ template <typename T>
 template <typename U>
 inline TVector3<T>& TVector3<T>::operator-=(const U Scalar)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	This -= Scalar;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x -= Scalar;
+	y -= Scalar;
+	z -= Scalar;
 
 	return *this;
 }
@@ -605,14 +561,9 @@ template <typename T>
 template <typename U>
 TVector3<T>& TVector3<T>::operator+=(const U Scalar)
 {
-	// forward to vec4 with sse
-	TVector4<T> This{ *this, 0 };
-	This += Scalar;
-
-	// assign results
-	x = This.x;
-	y = This.y;
-	z = This.z;
+	x += Scalar;
+	y += Scalar;
+	z += Scalar;
 
 	return *this;
 }
@@ -681,7 +632,7 @@ inline TVector3<T>& TVector3<T>::Normalize()
 template <typename T>
 inline float TVector3<T>::Length() const
 {
-	return std::sqrt(x*x + y*y + z*z);
+	return std::sqrt(LengthSquared());
 }
 
 template <typename T>
@@ -754,9 +705,9 @@ template <typename T>
 * @param rhs - Right operand
 * @return Addition of the two vectors.
 */
-inline TVector3<T> operator+(TVector3<T> lhs, const TVector3<T>& rhs)
+inline TVector3<T> operator+(TVector3<T> Lhs, const TVector3<T>& rhs)
 {
-	return lhs += rhs;
+	return (Lhs += rhs);
 }
 
 template <typename T>
@@ -766,10 +717,9 @@ template <typename T>
 * @param rhs - Right operand
 * @return Difference of the two vectors.
 */
-inline TVector3<T> operator-(TVector3<T> lhs, const TVector3<T>& rhs)
+inline TVector3<T> operator-(TVector3<T> Lhs, const TVector3<T>& rhs)
 {
-	lhs -= rhs;
-	return lhs;
+	return (Lhs -= rhs);
 }
 
 template <typename T>
@@ -779,7 +729,7 @@ template <typename T>
 */
 TVector3<T> operator*(TVector3<T> Lhs, const TVector3<T>& Rhs)
 {
-	return Lhs *= Rhs;;
+	return (Lhs *= Rhs);
 }
 
 template <typename T>
@@ -789,7 +739,7 @@ template <typename T>
 */
 TVector3<T> operator/(TVector3<T> Lhs, const TVector3<T>& Rhs)
 {
-	return Lhs /= Rhs;;
+	return (Lhs /= Rhs);
 }
 
 template <typename T>
@@ -811,7 +761,7 @@ template <typename T, typename U>
 */
 inline TVector3<T> operator-(TVector3<T> Lhs, const U Scalar)
 {
-	return Lhs -= Scalar;
+	return (Lhs -= Scalar);
 }
 
 template <typename T, typename U>
@@ -822,7 +772,7 @@ template <typename T, typename U>
 */
 inline TVector3<T> operator+(TVector3<T> Lhs, const U Scalar)
 {
-	return Lhs += Scalar;
+	return (Lhs += Scalar);
 }
 
 template <typename T, typename U>
@@ -831,9 +781,9 @@ template <typename T, typename U>
 * @param Lhs - Vector operand
 * @param Rhs - Value to subtract
 */
-inline TVector3<T> operator+(const U Scalar, const TVector3<T>& Lhs)
+inline TVector3<T> operator+(const U Scalar, const TVector3<T>& Rhs)
 {
-	return Lhs + Scalar;
+	return (Rhs += Scalar);
 }
 
 template <typename T, typename U>
@@ -843,9 +793,9 @@ template <typename T, typename U>
 * @param Scalar - Right operand (scalar)
 * @return Memberwise multiplied vector
 */
-inline TVector3<T> operator*(TVector3<T> Vec, const U Scalar)
+inline TVector3<T> operator*(TVector3<T> Lhs, const U Scalar)
 {
-	return Vec *= Scalar;
+	return (Lhs *= Scalar);
 }
 
 template <typename T, typename U>
@@ -855,9 +805,9 @@ template <typename T, typename U>
 * @param vector - Right operand (vector)
 * @return Memberwise multiplied vector
 */
-inline TVector3<T> operator*(const U Scalar, TVector3<T> Vector)
+inline TVector3<T> operator*(const U Scalar, TVector3<T> Rhs)
 {
-	return Vector * Scalar;
+	return (Rhs *= Scalar);
 }
 
 template <typename T, typename U>
@@ -867,7 +817,7 @@ template <typename T, typename U>
 * @param Scalar - Unit to divide by.
 * @return Memberwise divided vector
 */
-inline TVector3<T> operator/(TVector3<T> Vec, const U Scalar)
+inline TVector3<T> operator/(TVector3<T> Lhs, const U Scalar)
 {
-	return Vec /= Scalar;
+	return (Lhs /= Scalar);
 }

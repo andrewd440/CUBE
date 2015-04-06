@@ -50,6 +50,7 @@ public:
 	* within the frustum.
 	* Don't forget that the AABB and frustum must be in the 
 	* same coordinate space.
+	* @param CenterPoint - The center of the box.
 	* @param Box - The AABB to check.
 	*/
 	bool IsUniformAABBVisible(const Vector4f& CenterPoint, const float BoxWidth) const;

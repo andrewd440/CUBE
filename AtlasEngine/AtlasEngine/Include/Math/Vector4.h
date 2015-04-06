@@ -37,13 +37,14 @@ public:
 	*/
 	TVector4(const U X, const U Y, const U Z, const U W);
 
+	template <typename U>
 	/**
 	* Constructs vector with first 3 components of
 	* TVector3.
 	* @param Vec3 Vector with x, y, z components.
 	* @param W - The fourth component of the vec4
 	*/
-	TVector4(const TVector3<T>& Vec3, const T W);
+	TVector4(const TVector3<U>& Vec3, const T W);
 
 	/**
 	* Default copy constructor.

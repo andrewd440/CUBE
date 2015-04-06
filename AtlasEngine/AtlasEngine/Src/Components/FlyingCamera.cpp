@@ -57,7 +57,7 @@ void CFlyingCamera::Update()
 
 	Vector3f NewForward = CameraRotation * Vector3f::Forward;
 
-	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.995f)
+	if (abs(Vector3f::Dot(NewForward, Vector3f::Up)) < 0.9f)
 		mCamera->Transform.SetRotation(CameraRotation);
 
 	const Vector3f Translation = Vector3f{ -XMovement, -YMovement, ZMovement };

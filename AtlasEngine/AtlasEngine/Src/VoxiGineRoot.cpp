@@ -77,7 +77,7 @@ FVoxiGineRoot::~FVoxiGineRoot()
 void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
-	const Vector3f CameraPosition = Vector3f{ 50.0f, 60.0f, 20.0f };
+	const Vector3f CameraPosition = Vector3f{ 250.0f, 260.0f, 220.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
 
 	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 330.0f });
@@ -93,7 +93,7 @@ void FVoxiGineRoot::Start()
 	Console.SetRenderSystem(&Renderer);
 
 	mChunkManager->SetPhysicsSystem(Physics);
-	mChunkManager->LoadWorld(L"GenWorld");
+	mChunkManager->LoadWorld(L"PrettyWorld");
 
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 	GameObjectManager.SetChunkManager(mChunkManager);
@@ -123,17 +123,18 @@ void FVoxiGineRoot::ConstructScene()
 	////////////////////////////////////////////////////////////////////////
 	//////// Directional Light /////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
-	//auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	//FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	//DLight.Color = Vector3f(.7, .7, .7);
-	//DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
+	auto& DirectionalLight = GameObjectManager.CreateGameObject();
+	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
+	DLight.Color = Vector3f(.7, .7, .7);
+	DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
 
-	auto& PointLight = GameObjectManager.CreateGameObject();
-	PointLight.Transform.SetPosition(Vector3f{ 20, 55, 20 });
-	FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
-	PLight.Color = Vector3f(0.2f, .1f, .8f);
-	PLight.MinDistance = 3;
-	PLight.MaxDistance = 20;
+	
+	//auto& PointLight = GameObjectManager.CreateGameObject();
+	//PointLight.Transform.SetPosition(Vector3f{ 3 * i, 40, 3 * i });
+	//FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
+	//PLight.Color = Vector3f(0.05f * i, .1f, .5f);
+	//PLight.MinDistance = 1;
+	//PLight.MaxDistance = 10;
 
 	//auto& Sword = GameObjectManager.CreateGameObject();
 	//FMeshComponent& Mesh = Sword.AddComponent<Atlas::EComponent::Mesh>();

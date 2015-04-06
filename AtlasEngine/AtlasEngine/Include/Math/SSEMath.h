@@ -2,13 +2,6 @@
 
 #include <emmintrin.h>
 
-struct FMatrix4;
-class FQuaternion;
-template <typename T>
-class TVector4;
-using Vector4f = TVector4<float>;
-using Vector4i = TVector4<int32_t>;
-
 #define SHUFFLE_PARAM(x, y, z, w) \
 	((x) | ((y) << 2) | ((z) << 4) | ((w) << 6))
 
@@ -27,28 +20,36 @@ using Vector4i = TVector4<int32_t>;
 #define _mm_madd_ps(a, b, c) \
 	_mm_add_ps(_mm_mul_ps((a), (b)), (c))
 
+#define LoadVector(Vec4) _mm_load_ps(Vec4)
+#define LoadVectori(Vec4i) _mm_load_si128((__m128i const*)Vec4i)
+
+#define StoreVector(Memory, Vector) _mm_store_ps(Memory, Vector)
+#define StoreVectori(Memory, Vector) _mm_store_si128 ((__m128i*)Memory, Vector)
+
 /**
 * Matrix - Vector multiplication with SSE SIMD instructions.
 * Matrix should be column-vector and stored as column-major.
 * The FMatrix4 and Vector4f must be 16 byte aligned.
-* @param Matrix to multiply
-* @param Vector to multiply
-* @param ResultOUt The resulting calculation will be placed in this variable.
+* @param Matrix - Column major 4x4 matrix to multiply
+* @param Vector - Vector to multiply
+* @param ResultOut - A 4 component vector where the resulting calculation will be placed.
 */
-__forceinline void MultVectorMatrix(const FMatrix4& Matrix, const Vector4f& Vector, Vector4f& ResultOut)
+__forceinline void MultVectorMatrix(const float* Matrix4, const float* Vector4, float* ResultOut)
 {
-	__m128* V = (__m128*)&Vector;
-	const __m128* MCols = (const __m128*)&Matrix;
+	const __m128 V = LoadVector(Vector4);
+	const __m128 MCol0 = LoadVector(Matrix4);
+	const __m128 MCol1 = LoadVector(Matrix4 + 4);
+	const __m128 MCol2 = LoadVector(Matrix4 + 8);
+	const __m128 MCol3 = LoadVector(Matrix4 + 12);
 
 	// Multiply and add each column in the matrix with respective component of the vector
-	__m128 Mult = _mm_mul_ps(MCols[0], _mm_replicate_x_ps(*V));
-	Mult = _mm_madd_ps(MCols[1], _mm_replicate_y_ps(*V), Mult);
-	Mult = _mm_madd_ps(MCols[2], _mm_replicate_z_ps(*V), Mult);
-	Mult = _mm_madd_ps(MCols[3], _mm_replicate_w_ps(*V), Mult);
+	__m128 Mult = _mm_mul_ps(MCol0, _mm_replicate_x_ps(V));
+	Mult = _mm_madd_ps(MCol1, _mm_replicate_y_ps(V), Mult);
+	Mult = _mm_madd_ps(MCol2, _mm_replicate_z_ps(V), Mult);
+	Mult = _mm_madd_ps(MCol3, _mm_replicate_w_ps(V), Mult);
 
 	// Store the result
-	__m128* Result = (__m128*)&ResultOut;
-	*Result = Mult;
+	StoreVector(ResultOut, Mult);
 }
 
 /**
@@ -59,7 +60,22 @@ __forceinline void MultVectorMatrix(const FMatrix4& Matrix, const Vector4f& Vect
 */
 __forceinline void Vector4FloatToInt(const float* Floats, int32_t* Results)
 {
-	*(__m128i*)Results = _mm_cvttps_epi32(_mm_load_ps(Floats));
+	const __m128 FloatVec = LoadVector(Floats);
+	const __m128i Ints = _mm_cvttps_epi32(FloatVec);
+	StoreVectori(Results, Ints);
+}
+
+/**
+* Converts 4 32-bit signied integer values to 4 32-bit
+* floating-point values.
+* @param Ints - The value to convert.
+* @param Results - Memory location to place the converted values.
+*/
+__forceinline void Vector4IntToFloat(const int32_t* Ints, float* Results)
+{
+	const __m128i IntVec = LoadVectori(Ints);
+	const __m128 Floats = _mm_cvtepi32_ps(IntVec);
+	StoreVector(Results, Floats);
 }
 
 /**
@@ -68,11 +84,11 @@ __forceinline void Vector4FloatToInt(const float* Floats, int32_t* Results)
 * @param Mat2 - Second matrix
 * @param ResultOut - Location of the result.
 */
-__forceinline void MultMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, FMatrix4& ResultOut)
+__forceinline void MultMatrixMatrix(const float* Mat1, const float* Mat2, float* ResultOut)
 {
-	const __m128* M1 = (const __m128*)&Mat1;
-	const __m128* M2 = (const __m128*)&Mat2;
-	__m128* Result = (__m128*)&ResultOut;
+	const __m128* M1 = (const __m128*)Mat1;
+	const __m128* M2 = (const __m128*)Mat2;
+
 
 	// Mat1 * Mat2[0]
 	__m128 R0 = _mm_mul_ps(M1[0], _mm_replicate_x_ps(M2[0]));
@@ -99,6 +115,7 @@ __forceinline void MultMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, 
 	R3 = _mm_madd_ps(M1[3], _mm_replicate_w_ps(M2[3]), R3);
 
 	// Store the result
+	__m128* Result = (__m128*)ResultOut;
 	Result[0] = R0;
 	Result[1] = R1;
 	Result[2] = R2;
@@ -111,17 +128,17 @@ __forceinline void MultMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, 
 * @param Mat2 - Second matrix
 * @param ResultOut - Location of the result.
 */
-__forceinline void AddMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, FMatrix4& ResultOut)
+__forceinline void AddMatrixMatrix(const float* Mat1, const float* Mat2, float* ResultOut)
 {
-	const __m128* M1 = (const __m128*)&Mat1;
-	const __m128* M2 = (const __m128*)&Mat2;
+	const __m128* M1 = (const __m128*)Mat1;
+	const __m128* M2 = (const __m128*)Mat2;
 
 	const __m128 Col0 = _mm_add_ps(M1[0], M2[0]);
 	const __m128 Col1 = _mm_add_ps(M1[1], M2[1]);
 	const __m128 Col2 = _mm_add_ps(M1[2], M2[2]);
 	const __m128 Col3 = _mm_add_ps(M1[3], M2[3]);
 
-	__m128* Result = (__m128*)&ResultOut;
+	__m128* Result = (__m128*)ResultOut;
 	Result[0] = Col0;
 	Result[1] = Col1;
 	Result[2] = Col2;
@@ -134,17 +151,17 @@ __forceinline void AddMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, F
 * @param Mat2 - Second matrix
 * @param ResultOut - Location of the result.
 */
-__forceinline void MultComponentMatrixMatrix(const FMatrix4& Mat1, const FMatrix4& Mat2, FMatrix4& ResultOut)
+__forceinline void MultComponentMatrixMatrix(const float* Mat1, const float* Mat2, float* ResultOut)
 {
-	const __m128* M1 = (const __m128*)&Mat1;
-	const __m128* M2 = (const __m128*)&Mat2;
+	const __m128* M1 = (const __m128*)Mat1;
+	const __m128* M2 = (const __m128*)Mat2;
 
 	const __m128 Col0 = _mm_mul_ps(M1[0], M2[0]);
 	const __m128 Col1 = _mm_mul_ps(M1[1], M2[1]);
 	const __m128 Col2 = _mm_mul_ps(M1[2], M2[2]);
 	const __m128 Col3 = _mm_mul_ps(M1[3], M2[3]);
 
-	__m128* Result = (__m128*)&ResultOut;
+	__m128* Result = (__m128*)ResultOut;
 	Result[0] = Col0;
 	Result[1] = Col1;
 	Result[2] = Col2;
@@ -156,76 +173,55 @@ template <typename T>
 * Gets the 4-component dot product of two vectors.
 * If a 3-component dot product is required, 0 the w componet
 * of the vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
+* @param Vec1 - A 4-component vector, must be a pointer to the first component
+* @param Vec2 - A 4-component vector, must be a pointer to the first component
+* @ResultOut - Location to place result
 */
-__forceinline void Dot4Product(const TVector4<T>& Vec1, const TVector4<T>& Vec2, T& ResultOut)
+__forceinline void Dot4Product(const T* Vec1, const T* Vec2, T* ResultOut)
 {
-	// default to FPU for integer types for now
-	ResultOut = Vec1.x * Vec2.x + Vec1.y * Vec2.y + Vec1.z * Vec2.z + Vec1.w * Vec2.w;
+	// default to FPU for unspecialized types for now
+	ResultOut = Vec1[0] * Vec2[0] + Vec1[1] * Vec2[1] + Vec1[2] * Vec2[2] + Vec1[3] * Vec2[3];
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////// Dot4Product specializations //////////////////////////////////////////////////////////////////////////
 
 template <>
-/**
-* Gets the 4-component dot product of two vectors.
-* If a 3-component dot product is required, 0 the w componet
-* of the vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
-*/
-__forceinline void Dot4Product(const Vector4f& Vec1, const Vector4f& Vec2, float& ResultOut)
+__forceinline void Dot4Product(const float* Vec1, const float* Vec2, float* ResultOut)
 {
-	const __m128* V1 = (const __m128*)&Vec1;
-	const __m128* V2 = (const __m128*)&Vec2;
+	const __m128 V1 = LoadVector(Vec1);
+	const __m128 V2 = LoadVector(Vec2);
 
-	__m128 Dot = _mm_mul_ps(V1[0], V2[0]);
+	__m128 Dot = _mm_mul_ps(V1, V2);
 	Dot = _mm_hadd_ps(Dot, Dot);
 	Dot = _mm_hadd_ps(Dot, Dot);
 
-	ResultOut = Dot.m128_f32[0];
-}
-
-__forceinline void Dot4Product(const float* Vec1, const float* Vec2, float& ResultOut)
-{
-	const __m128* V1 = (const __m128*)Vec1;
-	const __m128* V2 = (const __m128*)Vec2;
-
-	__m128 Dot = _mm_mul_ps(*V1, *V2);
-	Dot = _mm_hadd_ps(Dot, Dot);
-	Dot = _mm_hadd_ps(Dot, Dot);
-
-	ResultOut = Dot.m128_f32[0];
+	*ResultOut = Dot.m128_f32[0];
 }
 
 template <>
-__forceinline void Dot4Product(const Vector4i& Vec1, const Vector4i& Vec2, int32_t& ResultOut)
+__forceinline void Dot4Product(const int32_t* Vec1, const int32_t* Vec2, int32_t* ResultOut)
 {
-	const __m128i* V1 = (const __m128i*)&Vec1;
-	const __m128i* V2 = (const __m128i*)&Vec2;
+	const __m128i V1 = LoadVectori(Vec1);
+	const __m128i V2 = LoadVectori(Vec2);
 
-	__m128i Dot = _mm_mullo_epi32(*V1, *V2);
+	__m128i Dot = _mm_mullo_epi32(V1, V2);
 	Dot = _mm_hadd_epi32(Dot, Dot);
 	Dot = _mm_hadd_epi32(Dot, Dot);
 
-	ResultOut = Dot.m128i_i32[0];
+	*ResultOut = Dot.m128i_i32[0];
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 /**
 * Component-wise addition of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
+* @param Vec1 - A 4-component vector, must be a pointer to the first component
+* @param Vec2 - A 4-component vector, must be a pointer to the first component
+* @ResultOut  A 4-component vector where the result should be placed.
 */
-__forceinline void AddVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+__forceinline void AddVectorVector(const T* Vec1, const T* Vec2, T* ResultOut)
 {
 	// default to FPU for integer types for now
 	ResultOut.x = Vec1.x + Vec2.x;
@@ -238,22 +234,27 @@ __forceinline void AddVectorVector(const TVector4<T>& Vec1, const TVector4<T>& V
 /////// AddVectorVector specializations //////////////////////////////////////////////////////////////////////
 
 template <>
-/**
-* Component-wise addition of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
-*/
-__forceinline void AddVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+__forceinline void AddVectorVector(const float* Vec1, const float* Vec2, float* ResultOut)
 {
-	const __m128* V1 = (const __m128*)&Vec1;
-	const __m128* V2 = (const __m128*)&Vec2;
+	const __m128 V1 = LoadVector(Vec1);
+	const __m128 V2 = LoadVector(Vec2);
 
-	__m128 Sum = _mm_add_ps(*V1, *V2);
+	__m128 Sum = _mm_add_ps(V1, V2);
 
 	// Store the result
-	__m128* Result = (__m128*)&ResultOut;
-	*Result = Sum;
+	StoreVector(ResultOut, Sum);
+}
+
+template <>
+__forceinline void AddVectorVector(const int32_t* Vec1, const int32_t* Vec2, int32_t* ResultOut)
+{
+	const __m128i V1 = LoadVectori(Vec1);
+	const __m128i V2 = LoadVectori(Vec2);
+
+	__m128i Sum = _mm_add_epi32(V1, V2);
+
+	// Store the result
+	StoreVectori(ResultOut, Sum);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,11 +262,11 @@ __forceinline void AddVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, V
 template <typename T>
 /**
 * Component-wise subtraction of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
+* @param Vec1 - A 4-component vector, must be a pointer to the first component
+* @param Vec2 - A 4-component vector, must be a pointer to the first component
+* @ResultOut  A 4-component vector where the result should be placed.
 */
-__forceinline void SubtractVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+__forceinline void SubtractVectorVector(const T* Vec1, const T* Vec2, T* ResultOut)
 {
 	// default to FPU for integer types for now
 	ResultOut.x = Vec1.x - Vec2.x;
@@ -278,22 +279,27 @@ __forceinline void SubtractVectorVector(const TVector4<T>& Vec1, const TVector4<
 /////// SubtractVectorVector specializations ////////////////////////////////////////////////////////////////////
 
 template <>
-/**
-* Component-wise subtraction of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
-*/
-__forceinline void SubtractVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+__forceinline void SubtractVectorVector(const float* Vec1, const float* Vec2, float* ResultOut)
 {
-	const __m128* V1 = (const __m128*)&Vec1;
-	const __m128* V2 = (const __m128*)&Vec2;
+	const __m128 V1 = LoadVector(Vec1);
+	const __m128 V2 = LoadVector(Vec2);
 
-	__m128 Sum = _mm_sub_ps(*V1, *V2);
+	__m128 Sum = _mm_sub_ps(V1, V2);
 
 	// Store the result
-	__m128* Result = (__m128*)&ResultOut;
-	*Result = Sum;
+	StoreVector(ResultOut, Sum);
+}
+
+template <>
+__forceinline void SubtractVectorVector(const int32_t* Vec1, const int32_t* Vec2, int32_t* ResultOut)
+{
+	const __m128i V1 = LoadVectori(Vec1);
+	const __m128i V2 = LoadVectori(Vec2);
+
+	__m128i Sum = _mm_sub_epi32(V1, V2);
+
+	// Store the result
+	StoreVectori(ResultOut, Sum);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,11 +307,11 @@ __forceinline void SubtractVectorVector(const Vector4f& Vec1, const Vector4f& Ve
 template <typename T>
 /**
 * Component-wise multiplication of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
+* @param Vec1 - A 4-component vector, must be a pointer to the first component
+* @param Vec2 - A 4-component vector, must be a pointer to the first component
+* @ResultOut  A 4-component vector where the result should be placed.
 */
-__forceinline void MultVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+__forceinline void MultVectorVector(const T* Vec1, const T* Vec2, T* ResultOutt)
 {
 	// default to FPU for integer types for now
 	ResultOut.x = Vec1.x * Vec2.x;
@@ -318,22 +324,27 @@ __forceinline void MultVectorVector(const TVector4<T>& Vec1, const TVector4<T>& 
 /////// MultVectorVector specializations ////////////////////////////////////////////////////////////////////////
 
 template <>
-/**
-* Component-wise multiplication of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
-*/
-__forceinline void MultVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+__forceinline void MultVectorVector(const float* Vec1, const float* Vec2, float* ResultOut)
 {
-	const __m128* V1 = (const __m128*)&Vec1;
-	const __m128* V2 = (const __m128*)&Vec2;
+	const __m128 V1 = LoadVector(Vec1);
+	const __m128 V2 = LoadVector(Vec2);
 
-	__m128 Sum = _mm_mul_ps(*V1, *V2);
+	__m128 Sum = _mm_mul_ps(V1, V2);
 
 	// Store the result
-	__m128* Result = (__m128*)&ResultOut;
-	*Result = Sum;
+	StoreVector(ResultOut, Sum);
+}
+
+template <>
+__forceinline void MultVectorVector(const int32_t* Vec1, const int32_t* Vec2, int32_t* ResultOut)
+{
+	const __m128i V1 = LoadVectori(Vec1);
+	const __m128i V2 = LoadVectori(Vec2);
+
+	__m128i Sum = _mm_mullo_epi32(V1, V2);
+
+	// Store the result
+	StoreVectori(ResultOut, Sum);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,11 +352,11 @@ __forceinline void MultVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, 
 template <typename T>
 /**
 * Component-wise division of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
+* @param Vec1 - A 4-component vector, must be a pointer to the first component
+* @param Vec2 - A 4-component vector, must be a pointer to the first component
+* @ResultOut  A 4-component vector where the result should be placed.
 */
-__forceinline void DivideVectorVector(const TVector4<T>& Vec1, const TVector4<T>& Vec2, TVector4<T>& ResultOut)
+__forceinline void DivideVectorVector(const T* Vec1, const T* Vec2, T* ResultOut)
 {
 	// default to FPU for integer types for now
 	ResultOut.x = Vec1.x / Vec2.x;
@@ -358,26 +369,20 @@ __forceinline void DivideVectorVector(const TVector4<T>& Vec1, const TVector4<T>
 /////// DivideVectorVector specializations //////////////////////////////////////////////////////////////////////
 
 template <>
-/**
-* Component-wise division of two vectors.
-* @param Vec1 First vector
-* @param Vec2 Second vector
-* @ResultOut Location the result should be placed.
-*/
-__forceinline void DivideVectorVector(const Vector4f& Vec1, const Vector4f& Vec2, Vector4f& ResultOut)
+__forceinline void DivideVectorVector(const float* Vec1, const float* Vec2, float* ResultOut)
 {
-	const __m128* V1 = (const __m128*)&Vec1;
-	const __m128* V2 = (const __m128*)&Vec2;
+	const __m128 V1 = LoadVector(Vec1);
+	const __m128 V2 = LoadVector(Vec2);
 
-	__m128 Sum = _mm_div_ps(*V1, *V2);
+	const __m128 Sum = _mm_div_ps(V1, V2);
 
 	// Store the result
-	__m128* Result = (__m128*)&ResultOut;
-	*Result = Sum;
+	StoreVector(ResultOut, Sum);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class FQuaternion;
 /**
 * Multiply two quaternions.
 * @param Lhs Left operand

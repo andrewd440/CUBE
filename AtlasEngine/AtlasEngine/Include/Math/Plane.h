@@ -42,7 +42,7 @@ struct FPlane
 	* @param P3 - Third point.
 	*/
 	FPlane(const Vector3f& P1, const Vector3f& P2, const Vector3f& P3);
-
+	
 	/**
 	* Constructs a plane from a 4 component vector. x, y, z is the normal.
 	* w is the distance from origin.
@@ -98,7 +98,7 @@ inline FPlane::FPlane(const Vector3f& PlaneNormal, const float DistanceFromOrigi
 inline FPlane::FPlane(const Vector3f& P1, const Vector3f& P2, const Vector3f& P3)
 	: NormalwDistance()
 {
-	NormalwDistance = Vector4f{ Vector3f::Cross((P2 - P1), (P3 - P1)).Normalize(), 0 };
+	NormalwDistance = Vector4f{ Vector3f::Cross((P2 - P1), (P3 - P1)).Normalize(), 0};
 	NormalwDistance.w = Vector4f::Dot3(Vector4f{ P1, 0 }, NormalwDistance);
 }
 

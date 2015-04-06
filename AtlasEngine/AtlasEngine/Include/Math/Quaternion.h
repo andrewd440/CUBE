@@ -263,7 +263,6 @@ inline float FQuaternion::Length() const
 inline float FQuaternion::Dot(const FQuaternion& Lhs, const FQuaternion& Rhs)
 {
 	float Result;
-	Vector4f L{ Lhs.w, Lhs.x, Lhs.y, Lhs.z }, R{ Rhs.w, Rhs.x, Rhs.y, Rhs.z };
-	Dot4Product(L, R, Result);
+	Dot4Product(&Lhs.w, &Rhs.w, &Result);
 	return Result;
 }

@@ -123,7 +123,19 @@ namespace EZGL
 	}
 
 	template <>
+	inline void FUniformBlock::SetData<Vector3i>(const uint32_t DataOffset, const Vector3i& Type)
+	{
+		SetData(DataOffset, (uint8_t*)&Type.x, 12);
+	}
+
+	template <>
 	inline void FUniformBlock::SetData<Vector4f>(const uint32_t DataOffset, const Vector4f& Type)
+	{
+		SetData(DataOffset, (uint8_t*)&Type.x, 16);
+	}
+
+	template <>
+	inline void FUniformBlock::SetData<Vector4i>(const uint32_t DataOffset, const Vector4i& Type)
 	{
 		SetData(DataOffset, (uint8_t*)&Type.x, 16);
 	}

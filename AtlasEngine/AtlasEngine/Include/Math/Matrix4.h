@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #include "SystemMath.h"
-#include "..\Common.h"
+#include "Common.h"
 #include "FMath.h"
 #include "Math\Vector3.h"
 #include "Math\Vector4.h"
@@ -161,7 +161,7 @@ struct FMatrix4
 	* Rotate, in degrees, each asix.
 	* @param Degrees to rotate by on each axis.
 	*/
-	void Rotate(Vector3f Degrees);
+	void Rotate(const Vector3f& Degrees);
 
 	/**
 	* Sets a uniform scale from origin.
@@ -225,7 +225,7 @@ inline FMatrix4 operator*(const FMatrix4& Lhs, const float Scalar)
 		Scalar, Scalar, Scalar, Scalar
 	};
 
-	MultComponentMatrixMatrix(Lhs, Scale, Result);
+	MultComponentMatrixMatrix(Lhs.M[0], Scale.M[0], Result.M[0]);
 	return Result;
 }
 
@@ -237,14 +237,14 @@ inline FMatrix4 operator*(const float Scalar, const FMatrix4& Lhs)
 inline FMatrix4 operator+(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	AddMatrixMatrix(Lhs, Rhs, Result);
+	AddMatrixMatrix(Lhs.M[0], Rhs.M[0], Result.M[0]);
 	return Result;
 }
 
 inline FMatrix4 operator*(const FMatrix4& Lhs, const FMatrix4& Rhs)
 {
 	FMatrix4 Result;
-	MultMatrixMatrix(Lhs, Rhs, Result);
+	MultMatrixMatrix(Lhs.M[0], Rhs.M[0], Result.M[0]);
 	return Result;
 }
 
@@ -311,7 +311,7 @@ inline FMatrix4& FMatrix4::operator=(const FMatrix4& Other)
 
 inline FMatrix4& FMatrix4::operator*=(const FMatrix4& Rhs)
 {
-	MultMatrixMatrix(*this, Rhs, *this);
+	MultMatrixMatrix(M[0], Rhs.M[0], M[0]);
 	return *this;
 }
 
@@ -381,7 +381,7 @@ inline Vector3f FMatrix4::TransformPosition(const Vector3f& Position) const
 inline Vector4f FMatrix4::TransformVector(const Vector4f& Vector) const
 {
 	Vector4f Transformed;
-	MultVectorMatrix(*this, Vector, Transformed);
+	MultVectorMatrix(M[0], &Vector.x, &Transformed.x);
 	return Transformed;
 }
 
@@ -443,7 +443,7 @@ inline void FMatrix4::Rotate(EAxis Axis, float Degrees)
 	SetOrigin(translation);
 }
 
-inline void FMatrix4::Rotate(Vector3f Degrees)
+inline void FMatrix4::Rotate(const Vector3f& Degrees)
 {
 	Rotate(EAxis::X, Degrees.x);
 	Rotate(EAxis::Y, Degrees.y);

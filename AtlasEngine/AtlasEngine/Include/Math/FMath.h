@@ -23,11 +23,6 @@ namespace FMath
 		return ((1 - Value) * From) + (Value * To);
 	}
 
-	inline float MapValue(const float Value, const float MinOriginal, const float MaxOriginal, const float MinResult, const float MaxResult)
-	{
-		return (Value - MinOriginal) / (MaxOriginal - MinOriginal) * (MaxResult - MinResult) + MinResult;
-	}
-
 	/**
 	* Checks the bounds of a vector against current min and max bounds.
 	* The min and max bounds are updated if the new point is outside the current
@@ -37,6 +32,11 @@ namespace FMath
 	* @param NewPoint The point to check.
 	*/
 	void UpdateBounds(Vector3f& CurrentMin, Vector3f& CurrentMax, const Vector3f& NewPoint);
+
+	inline float MapValue(const float Value, const float MinOriginal, const float MaxOriginal, const float MinResult, const float MaxResult)
+	{
+		return (Value - MinOriginal) / (MaxOriginal - MinOriginal) * (MaxResult - MinResult) + MinResult;
+	}
 
 	/**
 	* Computes the barycentric coordinates of a point in respect
