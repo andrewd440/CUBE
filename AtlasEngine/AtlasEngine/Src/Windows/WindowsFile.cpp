@@ -181,12 +181,13 @@ bool FWindowsFileSystem::DeleteDirectory(const wchar_t* DirectoryName)
 	FileOp.pFrom = NameBuffer;
 
 	FileOp.fFlags = FOF_NO_UI;
-	if (SHFileOperation(&FileOp) == 0)
+	int Error = SHFileOperation(&FileOp);
+	if (Error == 0)
 	{
 		return true;
 	}
 
-	PrintError();
+	std::wcerr << "Delete directory operation failded on " << DirectoryName << " with code: " << Error << std::endl;
 	return false;
 }
 

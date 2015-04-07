@@ -5,6 +5,7 @@
 #include "Rendering\ShaderProgram.h"
 #include "Rendering\GBuffer.h"
 #include "Math\Box.h"
+#include "IRenderPostProcess.h"
 
 class FChunkManager;
 
@@ -43,6 +44,22 @@ public:
 	*/
 	FBox GetViewBounds() const;
 
+	/**
+	* Adds a rendering post process technique.
+	* @return The id of the postprocess.
+	*/
+	uint32_t AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess);
+
+	/**
+	* Enables a rendering post process that was previously added.
+	*/
+	void EnablePostProcess(const uint32_t ID);
+
+	/**
+	* Disables a rendering post process.
+	*/
+	void DisablePostProcess(const uint32_t ID);
+
 private:
 	/**
 	* Load all rendering based shaders to the
@@ -65,8 +82,6 @@ private:
 	*/
 	void LightingPass();
 
-	void FogPostProcess();
-
 	/**
 	* Updates the AABB for the current view volume.
 	*/
@@ -85,11 +100,27 @@ private:
 	};
 
 private:
+	struct PostProcessRecord
+	{
+		PostProcessRecord(std::unique_ptr<IRenderPostProcess> PostProcess)
+			: Process(std::move(PostProcess))
+			, IsActive(false)
+		{}
+		PostProcessRecord(PostProcessRecord& Other)
+			: Process(std::move(Other.Process))
+			, IsActive(Other.IsActive)
+		{}
+		std::unique_ptr<IRenderPostProcess> Process;
+		bool IsActive;
+	};
+	using PostProcessContainer = std::vector<PostProcessRecord>;
+
+private:
 	sf::Window& mWindow;
 	FChunkManager& mChunkManager;
 	EZGL::FUniformBlock mTransformBuffer;
 	FShaderProgram mDeferredRender;
-	FShaderProgram mFogPostProcess;
 	GBuffer mGBuffer;
+	PostProcessContainer mPostProcesses;
 	FBox mViewAABB;
 };

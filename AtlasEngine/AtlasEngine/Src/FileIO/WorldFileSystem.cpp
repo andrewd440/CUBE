@@ -1,5 +1,8 @@
 #include "FileIO\WorldFileSystem.h"
 
+const wchar_t FWorldFileSystem::TEMP_DIRECTORY_NAME[] = L"Temp_World";
+const wchar_t FWorldFileSystem::WORLDS_DIRECTORY_NAME[] = L"./Worlds/";
+const wchar_t FWorldFileSystem::TEMP_DIRECTORY_PATH[] = L"./Worlds/Temp_World";
 
 FWorldFileSystem::FWorldFileSystem()
 	: mWorldName()
@@ -11,22 +14,43 @@ FWorldFileSystem::FWorldFileSystem()
 
 FWorldFileSystem::~FWorldFileSystem()
 {
+	IFileSystem& FileSystem = IFileSystem::GetInstance();
+	mRegionFiles.clear();
 
+	// Delete the temp directory
+	std::wstring TempPath{ TEMP_DIRECTORY_PATH };
+	FileSystem.DeleteDirectory(TempPath.c_str());
 }
 
-void FWorldFileSystem::SetWorld(const wchar_t* WorldName)
+bool FWorldFileSystem::SetWorld(const wchar_t* WorldName)
 {
+	mRegionFiles.clear();
 	mWorldName = WorldName;
 
 	IFileSystem& FileSystem = IFileSystem::GetInstance();
+
+	// Copy world into temp directory
 	std::wstring Filepath{ WORLDS_DIRECTORY_NAME };
 	Filepath += WorldName;
 
-	Filepath += L"/WorldInfo.vgw";
+	std::wstring TempPath{ TEMP_DIRECTORY_PATH };
 
-	auto WorldInfoFile = FileSystem.OpenReadable(Filepath.c_str());
-	WorldInfoFile->Read((uint8_t*)&mWorldSize, 4);
-	ASSERT((mWorldSize & (mWorldSize - 1)) == 0x0 && "World size must be a power of two.");
+	FileSystem.DeleteDirectory(TempPath.c_str());
+	FileSystem.CopyFileDirectory(Filepath.c_str(), TempPath.c_str());
+
+	// Get the world size
+	TempPath += L"/WorldInfo.vgw";
+
+	auto WorldInfoFile = FileSystem.OpenReadable(TempPath.c_str());
+	
+	if (WorldInfoFile)
+	{
+		WorldInfoFile->Read((uint8_t*)&mWorldSize, 4);
+		return true;
+	}
+	
+	std::wcerr << L"World file could not be found for " << WorldName << std::endl;
+	return false;
 }
 
 uint32_t FWorldFileSystem::GetWorldSize() const
@@ -34,9 +58,24 @@ uint32_t FWorldFileSystem::GetWorldSize() const
 	return mWorldSize;
 }
 
+std::wstring FWorldFileSystem::GetWorldName() const
+{
+	return mWorldName;
+}
+
 void FWorldFileSystem::SaveWorld()
 {
+	// Delete the original world directory
+	IFileSystem& FileSystem = IFileSystem::GetInstance();
+	std::wstring Filepath{ WORLDS_DIRECTORY_NAME };
+	Filepath += mWorldName;
 
+	FileSystem.DeleteDirectory(Filepath.c_str());
+
+	// Copy temp world into a new world directory
+	std::wstring TempPath{ WORLDS_DIRECTORY_NAME };
+	TempPath += TEMP_DIRECTORY_NAME;
+	FileSystem.CopyFileDirectory(TempPath.c_str(), Filepath.c_str());
 }
 
 void FWorldFileSystem::AddRegionFileReference(const Vector3i& ChunkPosition)
@@ -82,7 +121,7 @@ void FWorldFileSystem::GetChunkData(const Vector3i& ChunkPosition, std::vector<u
 
 	ASSERT(mRegionFiles.find(RegionID) != mRegionFiles.end());
 
-	FRegionFile& File = mRegionFiles.at(RegionID).File;
+	FRegionFile& File = mRegionFiles[RegionID].File;
 
 	// Get size and offset
 	uint32_t DataSize, SectorOffset;
@@ -101,7 +140,7 @@ void FWorldFileSystem::WriteChunkData(const Vector3i& ChunkPosition, const std::
 
 	ASSERT(mRegionFiles.find(RegionID) != mRegionFiles.end());
 
-	FRegionFile& File = mRegionFiles.at(RegionID).File;
+	FRegionFile& File = mRegionFiles[RegionID].File;
 	File.WriteChunkData(RegionPosition, Data.data(), Data.size());
 
 }

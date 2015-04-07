@@ -13,6 +13,7 @@
 #include "markup.h"
 #include "Atlas\World.h"
 #include "Components\MeshComponent.h"
+#include "Rendering\GLBindings.h"
 
 namespace
 {
@@ -32,7 +33,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mChunkManager(ChunkManager)
 	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
 	, mDeferredRender()
-	, mFogPostProcess()
+	, mPostProcesses()
 	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_R32F)
 {
 	glEnable(GL_CULL_FACE);
@@ -63,11 +64,6 @@ void FRenderSystem::LoadShaders()
 	mDeferredRender.AttachShader(DeferredVert);
 	mDeferredRender.AttachShader(DeferredFrag);
 	mDeferredRender.LinkProgram();
-
-	FShader FogFrag{ L"Shaders/DeferredFog.frag", GL_FRAGMENT_SHADER };
-	mFogPostProcess.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mFogPostProcess.AttachShader(FogFrag);
-	mFogPostProcess.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
@@ -79,6 +75,26 @@ void FRenderSystem::LoadSubSystems()
 FRenderSystem::~FRenderSystem()
 {
 
+}
+
+uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess)
+{
+	uint32_t ID = mPostProcesses.size();
+
+	mPostProcesses.push_back(PostProcessRecord{ std::move(PostProcess)});
+	return ID;
+}
+
+void FRenderSystem::EnablePostProcess(const uint32_t ID)
+{
+	ASSERT(ID < mPostProcesses.size());
+	mPostProcesses[ID].IsActive = true;
+}
+
+void FRenderSystem::DisablePostProcess(const uint32_t ID)
+{
+	ASSERT(ID < mPostProcesses.size());
+	mPostProcesses[ID].IsActive = false;
 }
 
 void FRenderSystem::SetModelTransform(const FTransform& WorldTransform)
@@ -95,6 +111,12 @@ void FRenderSystem::Update()
 
 	mGBuffer.StartRead();
 
+	for (auto& Record : mPostProcesses)
+	{
+		if (Record.IsActive)
+			Record.Process->OnPreLightingPass();
+	}
+
 	// No depth testing for lighting and post-processes
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -103,15 +125,16 @@ void FRenderSystem::Update()
 
 	LightingPass();
 
-	glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-	FogPostProcess();
-
-	glDisable(GL_BLEND);
+	for (auto& Record : mPostProcesses)
+	{
+		if (Record.IsActive)
+			Record.Process->OnPostLightingPass();
+	}
 
 	mGBuffer.EndRead();
 
 	// Render debug draws
-
+	glDisable(GL_BLEND);
 	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 	FDebug::Draw::GetInstance().Render();
 
@@ -186,12 +209,6 @@ void FRenderSystem::LightingPass()
 
 	for (auto& SubSystem : SubSystems)
 		SubSystem->Update();
-}
-
-void FRenderSystem::FogPostProcess()
-{
-	mFogPostProcess.Use();
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 FBox FRenderSystem::GetViewBounds() const

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GLBindings.h"
+
 namespace FDebug
 {
 	struct DrawVertex;

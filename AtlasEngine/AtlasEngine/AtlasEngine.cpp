@@ -13,14 +13,10 @@
 
 int main()
 {
-	//FVoxiGineRoot root;
-	//root.Start();
+	FVoxiGineRoot root;
+	root.Start();
 
-	IFileSystem* FileSys = new FFileSystem;
-
-	FileSys->CopyFileDirectory(L"./Worlds/PrettyWorld", L"./Worlds/Temp");
-	FileSys->DeleteDirectory(L"./Worlds/PrettyWorld");
-	FileSys->RenameDirectory(L"./Worlds/Temp", L"./Worlds/PrettyWorld");
+	//IFileSystem* FileSys = new FFileSystem;
 
 	//module::RidgedMulti mountainTerrain;
 

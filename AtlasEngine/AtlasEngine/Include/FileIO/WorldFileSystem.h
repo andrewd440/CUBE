@@ -11,21 +11,31 @@ class FWorldFileSystem
 public:
 	static const wchar_t TEMP_DIRECTORY_NAME[];
 	static const wchar_t WORLDS_DIRECTORY_NAME[];
+	static const wchar_t TEMP_DIRECTORY_PATH[];
 
 public:
 	FWorldFileSystem();
 	~FWorldFileSystem();
 
+	FWorldFileSystem(const FWorldFileSystem& Other) = delete;
+	FWorldFileSystem& operator=(const FWorldFileSystem& Other) = delete;
+
 	/**
 	* Sets the specified world as the one currently being operated
 	* on.
+	* @return False if the world file could not be loaded, true otherwise.
 	*/
-	void SetWorld(const wchar_t* WorldName);
+	bool SetWorld(const wchar_t* WorldName);
 	
 	/**
 	* Chunk size of the current world.
 	*/
 	uint32_t GetWorldSize() const;
+
+	/**
+	* The name of the currently loaded world.
+	*/
+	std::wstring GetWorldName() const;
 
 	/**
 	* Saves the current world data to it's original location on file.
@@ -80,6 +90,3 @@ private:
 	std::unordered_map<Vector3i, RegionFileRecord, Vector3iHash> mRegionFiles;
 	uint32_t mWorldSize;
 };
-
-const wchar_t FWorldFileSystem::TEMP_DIRECTORY_NAME[] = L"Temp_World";
-const wchar_t FWorldFileSystem::WORLDS_DIRECTORY_NAME[] = L"./Worlds/";

@@ -11,7 +11,7 @@
 #include "noise\noise.h"
 #include "noise\noiseutils.h"
 #include "Singleton.h"
-#include "FileIO\RegionFile.h"
+#include "FileIO\WorldFileSystem.h"
 
 class FPhysicsSystem;
 class FRenderSystem;
@@ -142,26 +142,14 @@ private:
 	*/
 	int32_t ChunkIndex(int32_t X, int32_t Y, int32_t Z) const;
 
-	/**
-	* Adds a reference the a region file in the region map. If the
-	* region file is not present, one is created.
-	* @param X, Y, Z Coordinates of the chunk.
-	*/
-	void AddRegionFileReference(const Vector3i& ChunkPosition);
-	
-	/**
-	* Removes a reference the a region file in the region map.
-	* @param X, Y, Z Coordinates of the chunk.
-	*/
-	void RemoveRegionFileReference(const Vector3i& ChunkPosition);
-
 private:
+	FWorldFileSystem      mFileSystem;
 	FChunk*               mChunks;        // All world chunks
 	std::vector<Vector3i> mChunkPositions;
 	std::vector<uint32_t> mRenderList;    // Index list of chunks to render
 	std::queue<Vector3i>  mLoadList;      // Index list of chunks to be loaded
 	std::deque<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
-	std::queue<Vector3i>  mBufferSwapQueue;
+	std::deque<Vector3i>  mBufferSwapQueue;
 	std::thread           mLoaderThread;
 	std::mutex            mRebuildListMutex;
 	std::mutex            mLoadListMutex;
@@ -169,23 +157,7 @@ private:
 	std::atomic_bool      mIsLoadListRefreshing;
 	std::atomic_bool      mMustShutdown;
 
-	struct RegionFileRecord
-	{
-		FRegionFile File;
-		uint32_t ReferenceCount;
-	};
-
-	// Hash functor for Vector3i
-	struct Vector3iHash
-	{
-		std::size_t operator()(const Vector3i& Val)
-		{	
-			const int32_t MaxOpenFiles = 10;
-			return ((Val.x * 73856093) ^ (Val.y * 19349663) ^ (Val.z * 83492791)) % MaxOpenFiles;
-		}
-	};
-
-	std::unordered_map<Vector3i, RegionFileRecord, Vector3iHash> mRegionFiles;
+	
 
 	// Rendering data
 	Vector3i mLastCameraChunk;
@@ -193,7 +165,6 @@ private:
 	Vector3f mLastCameraDirection;
 	int32_t mWorldSize;
 	int32_t mViewDistance;
-	std::wstring mWorldName;
 
 	// Physics Data
 	FPhysicsSystem* mPhysicsSystem;

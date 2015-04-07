@@ -15,7 +15,8 @@ static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
 
 FChunkManager::FChunkManager()
-	: mChunks(nullptr)
+	: mFileSystem()
+	, mChunks(nullptr)
 	, mChunkPositions(DEFAULT_CHUNK_SIZE)
 	, mRenderList()
 	, mLoadList()
@@ -27,13 +28,11 @@ FChunkManager::FChunkManager()
 	, mBufferSwapMutex()
 	, mIsLoadListRefreshing()
 	, mMustShutdown()
-	, mRegionFiles()
 	, mLastCameraChunk()
 	, mLastCameraPosition()
 	, mLastCameraDirection()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
-	, mWorldName()
 	, mPhysicsSystem(nullptr)
 {
 	mChunks = new FChunk[DEFAULT_CHUNK_SIZE];
@@ -50,6 +49,10 @@ FChunkManager::~FChunkManager()
 void FChunkManager::Shutdown()
 {
 	mMustShutdown.store(true);
+
+	// Finish processing chunks and make sure the correct
+	// position are in mChunkPositions
+	SwapChunkBuffers();
 
 	if(mLoaderThread.joinable())
 		mLoaderThread.join();
@@ -70,19 +73,11 @@ void FChunkManager::Shutdown()
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
 	Shutdown();
-
-	// Set world name and extract world size from file
-	mWorldName = WorldName;
 	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
 
-	IFileSystem& FileSystem = IFileSystem::GetInstance();
-	std::wstring Filepath{ L"./Worlds/" };
-	Filepath += WorldName;
-	Filepath += L"/WorldInfo.vgw";
+	mFileSystem.SetWorld(WorldName);
 
-	auto WorldInfoFile = FileSystem.OpenReadable(Filepath.c_str());
-	WorldInfoFile->Read((uint8_t*)&mWorldSize, 4);
-	ASSERT((mWorldSize & (mWorldSize - 1)) == 0x0 && "World size must be a power of two.");
+	mWorldSize = mFileSystem.GetWorldSize();
 
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
@@ -112,23 +107,26 @@ void FChunkManager::UnloadAllChunks()
 	{
 		if (mChunks[i].IsLoaded())
 		{
-			// Buffer for all chunk data
-			std::vector<uint8_t> ChunkData;
-
-			// Unload the chunk currently in this index
-			mChunks[i].Unload(ChunkData);
-
-			// Get region position info for unloaded chunk
 			const Vector3i UnloadChunkPosition = mChunkPositions[i];
-			const Vector3i UnloadRegionPosition = FRegionFile::ChunkToRegionPosition(UnloadChunkPosition);
-			const Vector3i UnloadLocalRegionPosition = FRegionFile::LocalRegionPosition(UnloadChunkPosition);
 
-			// Write the data to file
-			mRegionFiles[UnloadRegionPosition].File.WriteChunkData(UnloadLocalRegionPosition, ChunkData.data(), ChunkData.size());
+			if (UnloadChunkPosition.y != -1)
+			{
+				// Buffer for all chunk data
+				std::vector<uint8_t> ChunkData;
+
+				// Unload the chunk currently in this index
+				mChunks[i].Unload(ChunkData);
+
+				// Get region position info for unloaded chunk
+				const Vector3i UnloadRegionPosition = FRegionFile::ChunkToRegionPosition(UnloadChunkPosition);
+				const Vector3i UnloadLocalRegionPosition = FRegionFile::LocalRegionPosition(UnloadChunkPosition);
+
+				// Write the data to file
+				mFileSystem.WriteChunkData(UnloadChunkPosition, ChunkData);
+				mFileSystem.RemoveRegionFileReference(UnloadChunkPosition);
+			}
 		}
 	}
-
-	mRegionFiles.clear();
 }
 
 void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
@@ -141,7 +139,6 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 	if (mLastCameraPosition != CameraPosition || mLastCameraDirection != CameraDirection)
 	{
 		mLastCameraPosition = CameraPosition;
-		mLastCameraDirection = mLastCameraDirection;
 		UpdateRenderList();
 	}
 
@@ -179,7 +176,7 @@ void FChunkManager::SwapChunkBuffers()
 	while (!mBufferSwapQueue.empty())
 	{
 		const Vector3i ChunkPosition = mBufferSwapQueue.front();
-		mBufferSwapQueue.pop();
+		mBufferSwapQueue.pop_front();
 
 		const uint32_t Index = ChunkIndex(ChunkPosition);
 
@@ -269,38 +266,33 @@ void FChunkManager::UpdateLoadList()
 
 			// Get region position info for unloaded chunk
 			const Vector3i UnloadChunkPosition = mChunkPositions[Index];
-			const Vector3i UnloadRegionPosition = FRegionFile::ChunkToRegionPosition(UnloadChunkPosition);
-			const Vector3i UnloadLocalRegionPosition = FRegionFile::LocalRegionPosition(UnloadChunkPosition);
 
 			// Write the data to file
-			mRegionFiles[UnloadRegionPosition].File.WriteChunkData(UnloadLocalRegionPosition, ChunkData.data(), ChunkData.size());
-			RemoveRegionFileReference(UnloadChunkPosition);
+			mFileSystem.WriteChunkData(UnloadChunkPosition, ChunkData);
+			mFileSystem.RemoveRegionFileReference(UnloadChunkPosition);
 		}
 
 		///// Load Chunk /////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////
-
-		// Get region position info
-		const Vector3i RegionPosition = FRegionFile::ChunkToRegionPosition(ChunkPosition);
-		const Vector3i LocalRegionPosition = FRegionFile::LocalRegionPosition(ChunkPosition);
 		
 		// Get info for chunk data within its region
-		AddRegionFileReference(ChunkPosition);
-		uint32_t ChunkDataSize, ChunkSectorOffset;
-		FRegionFile& RegionFile = mRegionFiles[RegionPosition].File;
-		RegionFile.GetChunkDataInfo(LocalRegionPosition, ChunkDataSize, ChunkSectorOffset);
-		
-		// Obtain info for chunk
-		ChunkData.resize(ChunkDataSize);
-		RegionFile.GetChunkData(ChunkSectorOffset, ChunkData.data(), ChunkDataSize);
+		mFileSystem.AddRegionFileReference(ChunkPosition);
+		mFileSystem.GetChunkData(ChunkPosition, ChunkData);
 	
 		// Load and build the chunk
 		Vector3i WorldPosition = ChunkPosition * FChunk::CHUNK_SIZE;
 		mChunks[Index].Load(ChunkData, WorldPosition);
+
+		BufferSwapLock.lock();
+		auto& InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
+		if (InSwapList != mBufferSwapQueue.end())
+			mBufferSwapQueue.erase(InSwapList);
+		BufferSwapLock.unlock();
+
 		mChunks[Index].RebuildMesh();
 
 		BufferSwapLock.lock();
-			mBufferSwapQueue.push(ChunkPosition);
+			mBufferSwapQueue.push_back(ChunkPosition);
 		BufferSwapLock.unlock();
 
 		LoadsLeft--;
@@ -319,12 +311,23 @@ void FChunkManager::UpdateRebuildList()
 		mRebuildList.pop_front();
 		RebuildLock.unlock();
 
-		mChunks[ChunkIndex].RebuildMesh();
-		
-		BufferSwapLock.lock();
-			mBufferSwapQueue.push(mChunkPositions[ChunkIndex]);
-		BufferSwapLock.unlock();
-		
+		const Vector3i ChunkPosition = mChunkPositions[ChunkIndex];
+		if (ChunkPosition != Vector3i{ -1, -1, -1 })
+		{
+
+			// Check if its already in the swap list and remove if it is.
+			BufferSwapLock.lock();
+			auto& InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
+			if (InSwapList != mBufferSwapQueue.end())
+				mBufferSwapQueue.erase(InSwapList);
+			BufferSwapLock.unlock();
+
+			mChunks[ChunkIndex].RebuildMesh();
+
+			BufferSwapLock.lock();
+			mBufferSwapQueue.push_back(mChunkPositions[ChunkIndex]);
+			BufferSwapLock.unlock();
+		}
 		RebuildLock.lock();
 	}
 }
@@ -409,39 +412,6 @@ void FChunkManager::UpdateVisibleList()
 	}
 
 	mIsLoadListRefreshing.store(false);
-}
-
-void FChunkManager::AddRegionFileReference(const Vector3i& ChunkPosition)
-{
-	Vector3i RegionName = FRegionFile::ChunkToRegionPosition(ChunkPosition);
-
-	// Increment if the file is loaded
-	if (mRegionFiles.find(RegionName) != mRegionFiles.end())
-	{
-		mRegionFiles[RegionName].ReferenceCount++;
-	}
-	else
-	{
-		// Add the file if not loaded
-		RegionFileRecord& Record = mRegionFiles[RegionName];
-		Record.ReferenceCount = 1;
-		Record.File.Load(mWorldName.c_str(), RegionName);
-	}
-}
-
-void FChunkManager::RemoveRegionFileReference(const Vector3i& ChunkPosition)
-{
-	Vector3i RegionName = FRegionFile::ChunkToRegionPosition(ChunkPosition);
-	ASSERT(mRegionFiles.find(RegionName) != mRegionFiles.end() && "Shouldn't be removing a record that is not there.");
-
-	// Decrement reference count and erase if 0
-	RegionFileRecord& Record = mRegionFiles[RegionName];
-	Record.ReferenceCount--;
-
-	if (Record.ReferenceCount <= 0)
-	{
-		mRegionFiles.erase(RegionName);
-	}
 }
 
 void FChunkManager::UpdateRenderList()

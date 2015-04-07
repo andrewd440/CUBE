@@ -30,6 +30,7 @@
 #include "Components\BlockPlacer.h"
 #include "Components\TimeBombShooter.h"
 #include "Components\BoxShooter.h"
+#include "Rendering\FogPostProcess.h"
 
 const uint32_t WindowWidth = 1920;
 const uint32_t WindowHeight = 1080;
@@ -50,7 +51,6 @@ FVoxiGineRoot::FVoxiGineRoot()
 	}
 
 	IFileSystem* FileSystem = new FFileSystem;
-	//FileSystem->SetToProgramDirectory();
 
 	mGameWindow.setMouseCursorVisible(false);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
@@ -68,10 +68,10 @@ FVoxiGineRoot::FVoxiGineRoot()
 FVoxiGineRoot::~FVoxiGineRoot()
 {
 	delete mChunkManager;
-	delete IFileSystem::GetInstancePtr();
 	delete FDebug::Draw::GetInstancePtr();
 	delete FDebug::Text::GetInstancePtr();
 	delete FDebug::GameConsole::GetInstancePtr();
+	delete IFileSystem::GetInstancePtr();
 }
 
 void FVoxiGineRoot::Start()
@@ -80,12 +80,20 @@ void FVoxiGineRoot::Start()
 	const Vector3f CameraPosition = Vector3f{ 250.0f, 260.0f, 220.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 330.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 440.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
 	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
+
+	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
+	FogPostProcess->SetBounds(0, 1);
+	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
+	FogPostProcess->SetDensity(0.00004f);
+
+	Renderer.AddPostProcess(std::move(FogPostProcess));
+	Renderer.EnablePostProcess(0);
 
 	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
 	Console.SetChunkManager(mChunkManager);
@@ -117,8 +125,8 @@ void FVoxiGineRoot::ConstructScene()
 	auto& PlayerController = GameObjectManager.CreateGameObject();
 	PlayerController.AddBehavior<CFlyingCamera>();
 	PlayerController.AddBehavior<CBlockPlacer>();
-	//PlayerController.AddBehavior<CTimeBombShooter>();
-	PlayerController.AddBehavior<CBoxShooter>();
+	PlayerController.AddBehavior<CTimeBombShooter>();
+	//PlayerController.AddBehavior<CBoxShooter>();
 
 	////////////////////////////////////////////////////////////////////////
 	//////// Directional Light /////////////////////////////////////////////

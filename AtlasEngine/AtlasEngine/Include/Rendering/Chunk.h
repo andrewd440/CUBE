@@ -9,6 +9,7 @@
 #include "Block.h"
 #include "Mesh.h"
 #include "btBulletCollisionCommon.h"
+#include "Rendering\GLBindings.h"
 
 /**
 * Voxel vertex { PositionAO, Normal, Color }
@@ -141,7 +142,7 @@ public:
 	/**
 	* Checks if this chunk contains any blocks.
 	*/
-	bool IsEmpty() const { return mIsEmpty[mActiveMesh]; }
+	bool IsEmpty() const { return mIsEmpty; }
 
 private:
 	// Constants used for constructing quads with correct normals in GreedyMesh()
@@ -237,8 +238,8 @@ private:
 	FBlock* mBlocks;
 	TMesh<FVoxelVertex>* mMesh[2];
 	CollisionData* mCollisionData;
-	bool mIsLoaded;
-	bool mIsEmpty[2];
 
+	std::atomic_bool mIsLoaded;
+	std::atomic_bool mIsEmpty;
 	std::atomic_bool mActiveMesh;
 };

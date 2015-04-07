@@ -2,6 +2,7 @@
 
 #include "Rendering\Mesh.h"
 #include "Atlas\ComponentTypes.h"
+#include "Rendering\GLBindings.h"
 
 struct MeshVertex
 {
