@@ -45,7 +45,7 @@ void CBlockPlacer::Update()
 	{
 		Vector3f CamForward = MainCamera.Transform.GetRotation() * -Vector3f::Forward * mPlacerRange;
 		Vector3f CamPosition = MainCamera.Transform.GetWorldPosition() + CamForward;
-		SetBlock(CamPosition, (FBlock::BlockType)mActiveType);
+		SetBlock(CamPosition, (FBlock::Type)mActiveType);
 	}
 }
 

@@ -11,7 +11,7 @@ CFlyingCamera::CFlyingCamera()
 	: FBehavior()
 	, mCamera(nullptr)
 	, mMoveSpeed(20.0f)
-	, mLookSpeed(15.0f)
+	, mLookSpeed(10.0f)
 {
 }
 

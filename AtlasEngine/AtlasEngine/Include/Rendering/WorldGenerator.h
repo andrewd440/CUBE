@@ -25,7 +25,7 @@ public:
 	* This block type will be used for the bounds between it's starting height and the
 	* next terrain level, if added.
 	*/
-	void AddTerrainLevel(const int32_t StartingHeight, const FBlock::BlockType BlockType);
+	void AddTerrainLevel(const int32_t StartingHeight, const FBlock::Type Type);
 
 	/**
 	* Sets the minimum height, in world coordinates, that the world terrain will
@@ -89,7 +89,7 @@ private:
 	struct TerrainLevelRecord
 	{
 		int32_t StartingHeight;
-		FBlock::BlockType BlockType;
+		FBlock::Type BlockType;
 	};
 
 private:

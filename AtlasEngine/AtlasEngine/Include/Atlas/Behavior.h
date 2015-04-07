@@ -19,8 +19,8 @@ namespace Atlas
 		virtual void OnCollisionEnter(){};
 		virtual void OnCollisionExit(){};
 
-		void SetBlock(const Vector3i& Position, const FBlock::BlockType Block);
-		FBlock::BlockType GetBlock(const Vector3i& Position);
+		void SetBlock(const Vector3i& Position, const FBlock::Type Block);
+		FBlock::Type GetBlock(const Vector3i& Position);
 		void DestroyBlock(const Vector3i& Position);
 		void LoadWorld(const wchar_t* WorldName);
 

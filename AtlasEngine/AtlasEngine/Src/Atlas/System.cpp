@@ -46,11 +46,11 @@ namespace Atlas
 
 	void ISystem::OnGameObjectAdd(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
-
+		GameObject; UpdateComponent; // Suppress compiler warning
 	}
 
 	void ISystem::OnGameObjectRemove(FGameObject& GameObject, IComponent& UpdateComponent)
 	{
-
+		GameObject; UpdateComponent; // Suppress compiler warning
 	}
 }

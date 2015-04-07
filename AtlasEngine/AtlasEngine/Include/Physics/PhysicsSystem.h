@@ -56,7 +56,7 @@ private:
 	* Override for removing object from this system. Since this system
 	* does not need to hold object IDs, this evaluates to nothing.
 	*/
-	void RemoveObject(Atlas::FGameObject& GameObject) override {}
+	void RemoveObject(Atlas::FGameObject& GameObject) override { GameObject; } // Suppress compiler warning
 
 private:
 	struct RigidBodyRecord

@@ -133,12 +133,16 @@ void FRigidBodySystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IC
 {
     FRigidBody* RigidBody = static_cast<FRigidBody*>(&UpdateComponent);
 	mDynamicsWorld.addRigidBody(&RigidBody->Body);
+
+	GameObject; 	// Suppress compiler warning
 }
 
 void FRigidBodySystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
 	FRigidBody* RigidBody = static_cast<FRigidBody*>(&UpdateComponent);
 	mDynamicsWorld.removeRigidBody(&RigidBody->Body);
+
+	GameObject; 	// Suppress compiler warning
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,10 +165,14 @@ void FColliderSystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::ICo
 {
 	FCollider* Collider = static_cast<FCollider*>(&UpdateComponent);
 	mDynamicsWorld.addCollisionObject(&Collider->CollisionObject);
+
+	GameObject; 	// Suppress compiler warning
 }
 
 void FColliderSystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
 	FCollider* Collider = static_cast<FCollider*>(&UpdateComponent);
 	mDynamicsWorld.removeCollisionObject(&Collider->CollisionObject);
+
+	GameObject; 	// Suppress compiler warning
 }

@@ -93,8 +93,9 @@ public:
 	* Allocates and builds chunk data. Chunk meshes will still need to 
 	* be built before rendering.
 	* @param BlockData - RLE block layout for this chunk.
+	* @return True if the chunk is not empty, false otherwise.
 	*/
-	void Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition);
+	bool Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition);
 
 	/**
 	* Frees block and mesh data.
@@ -112,6 +113,9 @@ public:
 	*/
 	void RebuildMesh();
 
+	/**
+	* Swaps the currently used mesh for rendering.
+	*/
 	void SwapMeshBuffer(FPhysicsSystem& PhysicsSystem);
 
 	/**
@@ -127,12 +131,12 @@ public:
 	/**
 	* Set a block in the chunk at a specific position.
 	*/
-	void SetBlock(const Vector3i& Position, FBlock::BlockType BlockType);
+	void SetBlock(const Vector3i& Position, FBlock::Type Type);
 
 	/**
 	* Retrieves the type of block in the chunk at a specific position.
 	*/
-	FBlock::BlockType GetBlock(const Vector3i& Position) const;
+	FBlock::Type GetBlock(const Vector3i& Position) const;
 
 	/**
 	* Destroys a block in the chunk at a specific position.
@@ -185,7 +189,7 @@ private:
 	* @param Bottom right position
 	* @param IsBackFace - Used to specify vertex ordering.
 	* @param Side - Direction the surface is facing
-	* @param BlockType - The type of block the quad is used for.
+	* @param Type - The type of block the quad is used for.
 	* @param VerticesOut - Location to place vertex data.
 	* @param IndicesOut - Location to place index data.
 	*/

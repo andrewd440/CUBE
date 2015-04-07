@@ -186,20 +186,20 @@ void FChunkManager::SwapChunkBuffers()
 	}
 }
 
-void FChunkManager::SetBlock(Vector3i Position, FBlock::BlockType BlockType)
+void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 {
 	const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
 	Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
 	int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-	mChunks[ChunkNumber].SetBlock(Position, BlockType);
+	mChunks[ChunkNumber].SetBlock(Position, Type);
 
 	std::lock_guard<std::mutex> Lock(mRebuildListMutex);
 	if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
 		mRebuildList.push_back(ChunkNumber);
 }
 
-FBlock::BlockType FChunkManager::GetBlock(Vector3i Position) const
+FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 {
 	const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
 	Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
@@ -281,15 +281,16 @@ void FChunkManager::UpdateLoadList()
 	
 		// Load and build the chunk
 		Vector3i WorldPosition = ChunkPosition * FChunk::CHUNK_SIZE;
-		mChunks[Index].Load(ChunkData, WorldPosition);
+		bool NeedsRebuild = mChunks[Index].Load(ChunkData, WorldPosition);
 
 		BufferSwapLock.lock();
-		auto& InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
+		auto InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
 		if (InSwapList != mBufferSwapQueue.end())
 			mBufferSwapQueue.erase(InSwapList);
 		BufferSwapLock.unlock();
 
-		mChunks[Index].RebuildMesh();
+		if (!NeedsRebuild)
+			mChunks[Index].RebuildMesh();
 
 		BufferSwapLock.lock();
 			mBufferSwapQueue.push_back(ChunkPosition);
@@ -317,7 +318,7 @@ void FChunkManager::UpdateRebuildList()
 
 			// Check if its already in the swap list and remove if it is.
 			BufferSwapLock.lock();
-			auto& InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
+			auto InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
 			if (InSwapList != mBufferSwapQueue.end())
 				mBufferSwapQueue.erase(InSwapList);
 			BufferSwapLock.unlock();

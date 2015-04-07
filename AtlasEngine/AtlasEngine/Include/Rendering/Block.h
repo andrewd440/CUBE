@@ -13,7 +13,7 @@ public:
 	static const Vector3f Colors[]; // Color for each voxel type
 
 	// Each type of voxel
-	enum BlockType : uint8_t
+	enum Type : uint8_t
 	{
 		Grass,
 		Dirt,
@@ -23,19 +23,19 @@ public:
 		None
 	};
 
-	FBlock(const BlockType BlockType = None)
-		: Type(BlockType){}
+	FBlock(const Type Type = None)
+		: BlockType(Type){}
 
-	BlockType Type{None};
+	Type BlockType{None};
 };
 
 
 inline bool operator==(const FBlock& Lhs, const FBlock& Rhs)
 {
-	return Lhs.Type == Rhs.Type;
+	return Lhs.BlockType == Rhs.BlockType;
 }
 
 inline bool operator!=(const FBlock& Lhs, const FBlock& Rhs)
 {
-	return Lhs.Type != Rhs.Type;
+	return Lhs.BlockType != Rhs.BlockType;
 }

@@ -27,11 +27,11 @@ void CTimeBomb::Update()
 		mHasExploded = true;
 		const Vector3i MinPoint = GetGameObject()->Transform.GetWorldPosition() - mRadius;
 		const uint32_t Bounds = 2 * mRadius + 1;
-		for (int32_t y = 0; y < Bounds; y++)
+		for (uint32_t y = 0; y < Bounds; y++)
 		{
-			for (int32_t x = 0; x < Bounds; x++)
+			for (uint32_t x = 0; x < Bounds; x++)
 			{
-				for (int32_t z = 0; z < Bounds; z++)
+				for (uint32_t z = 0; z < Bounds; z++)
 				{
 					DestroyBlock(MinPoint + Vector3i{ x, y, z });
 				}

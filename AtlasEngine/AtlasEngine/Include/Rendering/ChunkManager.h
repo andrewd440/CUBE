@@ -44,12 +44,12 @@ public:
 	/**
 	* Set a block in the world at a specific position.
 	*/
-	void SetBlock(Vector3i Position, FBlock::BlockType BlockType);
+	void SetBlock(Vector3i Position, FBlock::Type Type);
 
 	/**
 	* Retrieves the type of block in the world at a specific position.
 	*/
-	FBlock::BlockType GetBlock(Vector3i Position) const;
+	FBlock::Type GetBlock(Vector3i Position) const;
 
 	/**
 	* Destroys a block in the world at a specific position.

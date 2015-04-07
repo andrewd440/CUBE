@@ -2,7 +2,7 @@
 
 const float FBlock::BLOCK_SIZE = 1.0f;
 
-const Vector3f FBlock::Colors[BlockType::Count] =
+const Vector3f FBlock::Colors[Type::Count] =
 {
 	Vector3f{ 0.1f, 0.35f, 0.15f },		// Grass
 	Vector3f{ 0.47f, 0.28f, 0.0f },		// Dirt

@@ -22,7 +22,7 @@ FWorldGenerator::~FWorldGenerator()
 
 }
 
-void FWorldGenerator::AddTerrainLevel(const int32_t StartingHeight, const FBlock::BlockType BlockType)
+void FWorldGenerator::AddTerrainLevel(const int32_t StartingHeight, const FBlock::Type BlockType)
 {
 	mTerrainLevels.push_back(TerrainLevelRecord{ StartingHeight, BlockType });
 }
@@ -130,7 +130,7 @@ uint32_t FWorldGenerator::BuildChunk(const Vector3i& WorldPosition, const utils:
 			return Val.StartingHeight <= WorldY;
 		});
 
-		const FBlock::BlockType BlockType = (TerrainLevel != mTerrainLevels.end()) ? TerrainLevel->BlockType : FBlock::Dirt;
+		const FBlock::Type BlockType = (TerrainLevel != mTerrainLevels.end()) ? TerrainLevel->BlockType : FBlock::Dirt;
 
 		for (int32_t x = 0; x < FChunk::CHUNK_SIZE; x++)
 		{

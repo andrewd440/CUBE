@@ -27,7 +27,6 @@ int32_t FChunk::BlockIndex(int32_t X, int32_t Y, int32_t Z)
 
 FChunk::FChunk()
 	: mBlocks(nullptr)
-	, mMesh()
 	, mCollisionData(nullptr)
 	, mIsLoaded()
 	, mIsEmpty()
@@ -66,7 +65,7 @@ FChunk::~FChunk()
 }
 
 
-void FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition)
+bool FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition)
 {
 	ASSERT(!mIsLoaded);
 
@@ -80,7 +79,8 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPo
 	// Current index to access block type
 	int32_t TypeIndex = 0;
 	int32_t DataSize = BlockData.size();
-	
+	int32_t IsEmpty = 0;
+
 	// Write RLE data for chunk
 	for (int32_t y = 0; y < CHUNK_SIZE && TypeIndex < DataSize; y++)
 	{
@@ -90,10 +90,15 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPo
 			for (int32_t z = 0; z < CHUNK_SIZE;)
 			{
 				uint8_t Count = 0;
+				FBlock::Type BlockType = (FBlock::Type)BlockData[TypeIndex];
 				uint8_t RunLength = BlockData[TypeIndex + 1];
+
+				// If a single block is not None, this number can never be 0 again
+				IsEmpty += (int32_t)BlockType - (int32_t)FBlock::None;
+
 				for (Count = 0; Count < RunLength; Count++)
 				{
-					mBlocks[BaseIndex + z + Count].Type = (FBlock::BlockType)BlockData[TypeIndex];
+					mBlocks[BaseIndex + z + Count].BlockType = BlockType;
 				}
 
 				z += RunLength;
@@ -104,6 +109,7 @@ void FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPo
 
 
 	mIsLoaded = true;
+	return (IsEmpty == 0);
 }
 
 void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
@@ -120,14 +126,14 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 			for (int32_t z = 0; z < CHUNK_SIZE;)
 			{
 				const uint32_t CurrentBlockIndex = BlockIndex(x, y, z);
-				const FBlock::BlockType CurrentBlock = mBlocks[CurrentBlockIndex].Type;
+				const FBlock::Type CurrentBlock = mBlocks[CurrentBlockIndex].BlockType;
 				uint8_t Length = 1;
 
-				FBlock::BlockType NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;
+				FBlock::Type NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].BlockType;
 				while (CurrentBlock == NextBlock && Length + z < CHUNK_SIZE)
 				{
 					Length++;
-					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].Type;
+					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].BlockType;
 				}
 
 				// Append RLE data
@@ -216,19 +222,19 @@ void FChunk::RebuildMesh()
 	GreedyMesh();
 }
 
-void FChunk::SetBlock(const Vector3i& Position, FBlock::BlockType BlockType)
+void FChunk::SetBlock(const Vector3i& Position, FBlock::Type BlockType)
 {
-	mBlocks[BlockIndex(Position)].Type = BlockType;
+	mBlocks[BlockIndex(Position)].BlockType = BlockType;
 }
 
-FBlock::BlockType FChunk::GetBlock(const Vector3i& Position) const
+FBlock::Type FChunk::GetBlock(const Vector3i& Position) const
 {
-	return mBlocks[BlockIndex(Position)].Type;
+	return mBlocks[BlockIndex(Position)].BlockType;
 }
 
 void FChunk::DestroyBlock(const Vector3i& Position)
 {
-	mBlocks[BlockIndex(Position)].Type = FBlock::None;
+	mBlocks[BlockIndex(Position)].BlockType = FBlock::None;
 }
 
 void FChunk::GreedyMesh()
@@ -350,7 +356,7 @@ void FChunk::GreedyMesh()
 				{
 					for (i = 0; i < CHUNK_SIZE;)
 					{
-						if (Mask[n].Block.Type != FBlock::None)
+						if (Mask[n].Block.BlockType != FBlock::None)
 						{
 							// Compute the width
 							for (Width = 1; i + Width < CHUNK_SIZE && IsMeshable(Mask[n + Width], Mask[n]); Width++){}
@@ -404,7 +410,7 @@ void FChunk::GreedyMesh()
 							{
 								for (k = 0; k < Width; k++)
 								{
-									Mask[n + k + Length * CHUNK_SIZE].Block.Type = FBlock::None;
+									Mask[n + k + Length * CHUNK_SIZE].Block.BlockType = FBlock::None;
 								}
 							}
 
@@ -447,34 +453,34 @@ void FChunk::CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector
 	if (SideMask == 0x1F)
 	{
 		Temp[u] -= 1; Temp[v] += 1;
-		Sides[0] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[0] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[u] += 1;
-		Sides[1] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[1] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[u] += 1;
-		Sides[2] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[2] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[v] -= 1;
-		Sides[4] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[4] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[u] -= 2;
-		Sides[3] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[3] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[v] -= 1;
-		Sides[5] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[5] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[u] += 1;
-		Sides[6] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[6] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 
 		Temp[u] += 1;
-		Sides[7] = mBlocks[BlockIndex(Temp)].Type != FBlock::None;
+		Sides[7] = mBlocks[BlockIndex(Temp)].BlockType != FBlock::None;
 	}
 }
 
 bool FChunk::IsMeshable(const MaskInfo& Lhs, const MaskInfo& Rhs) const
 {
-	if (Lhs.Block != Rhs.Block || Lhs.Block.Type == FBlock::None || Rhs.Block.Type == FBlock::None)
+	if (Lhs.Block != Rhs.Block || Lhs.Block.BlockType == FBlock::None || Rhs.Block.BlockType == FBlock::None)
 		return false;
 
 	int32_t BaseAO = Lhs.AOFactors.x;
@@ -552,17 +558,17 @@ void FChunk::AddQuad(	const Vector3f BottomLeft,
 	// We need to rearrange the order that the quad is constructed based on AO factors for each vertex. This prevents anisotropy.
 	if (ComputedAOFactors.w + ComputedAOFactors.y > ComputedAOFactors.x + ComputedAOFactors.z)
 	{
-		VerticesOut.insert(VerticesOut.end(), { { Vector4f{ BottomLeft, ComputedAOFactors.y }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ BottomRight, ComputedAOFactors.z }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ TopRight, ComputedAOFactors.w }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ TopLeft, ComputedAOFactors.x }, Normal, FBlock::Colors[FaceInfo.Block.Type] } });
+		VerticesOut.insert(VerticesOut.end(), { { Vector4f{ BottomLeft, ComputedAOFactors.y }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ BottomRight, ComputedAOFactors.z }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ TopRight, ComputedAOFactors.w }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ TopLeft, ComputedAOFactors.x }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] } });
 	}
 	else
 	{
-		VerticesOut.insert(VerticesOut.end(), { { Vector4f{ TopLeft, ComputedAOFactors.x }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ BottomLeft, ComputedAOFactors.y }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ BottomRight, ComputedAOFactors.z }, Normal, FBlock::Colors[FaceInfo.Block.Type] },
-												{ Vector4f{ TopRight, ComputedAOFactors.w }, Normal, FBlock::Colors[FaceInfo.Block.Type] } });
+		VerticesOut.insert(VerticesOut.end(), { { Vector4f{ TopLeft, ComputedAOFactors.x }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ BottomLeft, ComputedAOFactors.y }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ BottomRight, ComputedAOFactors.z }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] },
+												{ Vector4f{ TopRight, ComputedAOFactors.w }, Normal, FBlock::Colors[FaceInfo.Block.BlockType] } });
 	}
 
 	// Add adjusted indices.

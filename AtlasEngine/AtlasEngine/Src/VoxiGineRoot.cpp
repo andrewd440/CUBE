@@ -80,7 +80,7 @@ void FVoxiGineRoot::Start()
 	const Vector3f CameraPosition = Vector3f{ 250.0f, 260.0f, 220.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
 
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 440.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 340.0f });
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
@@ -90,7 +90,7 @@ void FVoxiGineRoot::Start()
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00004f);
+	FogPostProcess->SetDensity(0.000075f);
 
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 	Renderer.EnablePostProcess(0);
@@ -160,7 +160,6 @@ void FVoxiGineRoot::GameLoop()
 	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
 	// Game Loop
-	float lag = 0.0f;
 	while (mGameWindow.isOpen())
 	{	
 		mChunkManager->Update();
