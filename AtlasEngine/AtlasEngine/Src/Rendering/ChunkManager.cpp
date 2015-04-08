@@ -9,7 +9,7 @@
 #include "SFML\Window\Context.hpp"
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
-static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 12;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
@@ -29,8 +29,6 @@ FChunkManager::FChunkManager()
 	, mIsLoadListRefreshing()
 	, mMustShutdown()
 	, mLastCameraChunk()
-	, mLastCameraPosition()
-	, mLastCameraDirection()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
 	, mPhysicsSystem(nullptr)
@@ -47,27 +45,21 @@ FChunkManager::~FChunkManager()
 }
 
 void FChunkManager::Shutdown()
-{
-	mMustShutdown.store(true);
+{	
+	mMustShutdown = true;
+	if(mLoaderThread.joinable())
+		mLoaderThread.join();
 
 	// Finish processing chunks and make sure the correct
 	// position are in mChunkPositions
 	SwapChunkBuffers();
-
-	if(mLoaderThread.joinable())
-		mLoaderThread.join();
+	UnloadAllChunks();
 
 	mLoadList = std::queue<Vector3i>();
 	mRebuildList.clear();
 	mRenderList.clear();
 
-	const uint32_t Size = ChunkCount();
-	for (uint32_t i = 0; i < Size; i++)
-	{
-		mChunks[i].ShutDown(*mPhysicsSystem);
-	}
-
-	mMustShutdown.store(false);
+	mMustShutdown = false;
 }
 
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
@@ -86,12 +78,17 @@ void FChunkManager::SetViewDistance(const uint32_t Distance)
 {
 	Shutdown();
 
-	mViewDistance = Distance;
+	const uint32_t Size = ChunkCount();
+	for (uint32_t i = 0; i < Size; i++)
+	{
+		mChunks[i].ShutDown(*mPhysicsSystem);
+	}
 
+	mViewDistance = Distance;
 	const int32_t NewBounds = ChunkCount();
 
 	// Resize data
-	delete [] mChunks;
+	delete[] mChunks;
 	mChunks = new FChunk[NewBounds];
 	mChunkPositions.resize(NewBounds);
 	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
@@ -131,16 +128,8 @@ void FChunkManager::UnloadAllChunks()
 
 void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 {
-	// Get camera data
-	const Vector3f CameraDirection = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 
-	// Update the renderlist if the camera position or direction has changed.
-	if (mLastCameraPosition != CameraPosition || mLastCameraDirection != CameraDirection)
-	{
-		mLastCameraPosition = CameraPosition;
-		UpdateRenderList();
-	}
+	UpdateRenderList();
 
 	// Render everything in the renderlist
 	for (const auto& Index : mRenderList)
@@ -186,39 +175,58 @@ void FChunkManager::SwapChunkBuffers()
 	}
 }
 
+#undef min
+#undef max
 void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 {
-	const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
-	Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-	mChunks[ChunkNumber].SetBlock(Position, Type);
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	{
+		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
-	std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-	if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
-		mRebuildList.push_back(ChunkNumber);
+		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
+		mChunks[ChunkNumber].SetBlock(Position, Type);
+
+		std::lock_guard<std::mutex> Lock(mRebuildListMutex);
+		if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
+			mRebuildList.push_back(ChunkNumber);
+	}
 }
 
 FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 {
-	const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
-	Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-	return mChunks[ChunkNumber].GetBlock(Position);
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	{
+		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+
+		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
+		return mChunks[ChunkNumber].GetBlock(Position);
+	}
+
+	return FBlock::None;
 }
 
 void FChunkManager::DestroyBlock(Vector3i Position)
 {
-	const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
-	Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-	mChunks[ChunkNumber].DestroyBlock(Position);
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	{
+		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
-	std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-	if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
-		mRebuildList.push_back(ChunkNumber);
+		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
+		mChunks[ChunkNumber].DestroyBlock(Position);
+
+		std::lock_guard<std::mutex> Lock(mRebuildListMutex);
+		if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
+			mRebuildList.push_back(ChunkNumber);
+	}
 }
 
 void FChunkManager::SetPhysicsSystem(FPhysicsSystem& Physics)
@@ -233,8 +241,6 @@ void FChunkManager::ChunkLoaderThreadLoop()
 		UpdateRebuildList();
 		UpdateLoadList();
 	}
-
-	UnloadAllChunks();
 }
 
 void FChunkManager::UpdateLoadList()

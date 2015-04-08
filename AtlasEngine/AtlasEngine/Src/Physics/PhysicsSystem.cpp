@@ -20,8 +20,8 @@ FPhysicsSystem::FPhysicsSystem(Atlas::FWorld& World)
 	mDynamicsWorld.setGravity(btVector3{ 0, -10, 0 });
 	mDynamicsWorld.setDebugDrawer(FDebug::Draw::GetInstancePtr());
 
-	AddSubSystem<FRigidBodySystem>(mDynamicsWorld);
-	AddSubSystem<FColliderSystem>(mDynamicsWorld);
+	AddSubSystem<FRigidBodySystem>(*this);
+	AddSubSystem<FColliderSystem>(*this);
 }
 
 
@@ -73,7 +73,7 @@ void FPhysicsSystem::Update()
 	}
 
 	ColliderLock.unlock();
-
+	
 	mDynamicsWorld.stepSimulation(STime::GetDeltaTime());
 }
 
@@ -117,9 +117,9 @@ void FPhysicsSystem::CheckInterest(Atlas::FGameObject& GameObject, Atlas::ICompo
 /////////////////// Rigidbody System //////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FRigidBodySystem::FRigidBodySystem(Atlas::FWorld& World, btDynamicsWorld& DynamicsWorld)
+FRigidBodySystem::FRigidBodySystem(Atlas::FWorld& World, FPhysicsSystem& DynamicsWorld)
 	: ISystem(World)
-	, mDynamicsWorld(DynamicsWorld)
+	, mPhysicsSystem(DynamicsWorld)
 {
 	AddComponentType<Atlas::EComponent::RigidBody>();
 }
@@ -132,7 +132,7 @@ FRigidBodySystem::~FRigidBodySystem()
 void FRigidBodySystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
     FRigidBody* RigidBody = static_cast<FRigidBody*>(&UpdateComponent);
-	mDynamicsWorld.addRigidBody(&RigidBody->Body);
+	mPhysicsSystem.AddRigidBody(RigidBody->Body);
 
 	GameObject; 	// Suppress compiler warning
 }
@@ -140,7 +140,7 @@ void FRigidBodySystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IC
 void FRigidBodySystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
 	FRigidBody* RigidBody = static_cast<FRigidBody*>(&UpdateComponent);
-	mDynamicsWorld.removeRigidBody(&RigidBody->Body);
+	mPhysicsSystem.RemoveRigidBody(RigidBody->Body);
 
 	GameObject; 	// Suppress compiler warning
 }
@@ -149,9 +149,9 @@ void FRigidBodySystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas:
 /////////////////// Collider System ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FColliderSystem::FColliderSystem(Atlas::FWorld& World, btDynamicsWorld& DynamicsWorld)
+FColliderSystem::FColliderSystem(Atlas::FWorld& World, FPhysicsSystem& DynamicsWorld)
 	: ISystem(World)
-	, mDynamicsWorld(DynamicsWorld)
+	, mPhysicsSystem(DynamicsWorld)
 {
 	AddComponentType<Atlas::EComponent::Collider>();
 }
@@ -164,7 +164,7 @@ FColliderSystem::~FColliderSystem()
 void FColliderSystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
 	FCollider* Collider = static_cast<FCollider*>(&UpdateComponent);
-	mDynamicsWorld.addCollisionObject(&Collider->CollisionObject);
+	mPhysicsSystem.RemoveCollider(Collider->CollisionObject);
 
 	GameObject; 	// Suppress compiler warning
 }
@@ -172,7 +172,7 @@ void FColliderSystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::ICo
 void FColliderSystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
 	FCollider* Collider = static_cast<FCollider*>(&UpdateComponent);
-	mDynamicsWorld.removeCollisionObject(&Collider->CollisionObject);
+	mPhysicsSystem.RemoveCollider(Collider->CollisionObject);
 
 	GameObject; 	// Suppress compiler warning
 }

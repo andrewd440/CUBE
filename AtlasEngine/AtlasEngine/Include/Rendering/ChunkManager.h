@@ -161,8 +161,6 @@ private:
 
 	// Rendering data
 	Vector3i mLastCameraChunk;
-	Vector3f mLastCameraPosition;
-	Vector3f mLastCameraDirection;
 	int32_t mWorldSize;
 	int32_t mViewDistance;
 

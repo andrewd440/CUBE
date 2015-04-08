@@ -29,9 +29,6 @@ public:
 	*/
 	void RenderCollisionObjects();
 
-private:
-	friend class FChunk;
-
 	/**
 	* Adds a collision object to the simulation.
 	*/
@@ -92,7 +89,7 @@ private:
 class FRigidBodySystem : public Atlas::ISystem
 {
 public:
-	FRigidBodySystem(Atlas::FWorld& World, btDynamicsWorld& DynamicsWorld);
+	FRigidBodySystem(Atlas::FWorld& World, FPhysicsSystem& DynamicsWorld);
 	~FRigidBodySystem();
 
 	void Update() override {};
@@ -109,7 +106,7 @@ private:
 	void OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
 private:
-	btDynamicsWorld& mDynamicsWorld;
+	FPhysicsSystem& mPhysicsSystem;
 };
 
 
@@ -120,7 +117,7 @@ private:
 class FColliderSystem : public Atlas::ISystem
 {
 public:
-	FColliderSystem(Atlas::FWorld& World, btDynamicsWorld& DynamicsWorld);
+	FColliderSystem(Atlas::FWorld& World, FPhysicsSystem& DynamicsWorld);
 	~FColliderSystem();
 
 	void Update() override {};
@@ -137,5 +134,5 @@ private:
 	void OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 
 private:
-	btDynamicsWorld& mDynamicsWorld;
+	FPhysicsSystem& mPhysicsSystem;
 };

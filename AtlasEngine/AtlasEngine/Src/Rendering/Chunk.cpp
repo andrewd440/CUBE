@@ -47,11 +47,6 @@ FChunk::FChunk()
 	// Set collision data
 	CollisionData& CollisionInfo = *mCollisionData;
 
-	// Set the aabb to the bounds of the chunk
-	const btVector3 Min{ 0, 0, 0 };
-	const btVector3 Max{ (float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE, (float)FChunk::CHUNK_SIZE };
-	CollisionInfo.Mesh.setPremadeAabb(Min, Max);
-
 	// Set collision shape and transform
 	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
 }
@@ -200,7 +195,7 @@ void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 		mCollisionData->Mesh.getIndexedMeshArray().clear();
 		mCollisionData->Mesh.getIndexedMeshArray().push_back(VertexData);
 		mCollisionData->Shape.~btBvhTriangleMeshShape();
-		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, false };
+		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, true };
 
 		if (WasEmpty)
 		{
