@@ -31,6 +31,7 @@
 #include "Components\TimeBombShooter.h"
 #include "Components\BoxShooter.h"
 #include "Rendering\FogPostProcess.h"
+#include "Debugging\GameConsole.h"
 
 const uint32_t WindowWidth = 1920;
 const uint32_t WindowHeight = 1080;
@@ -50,27 +51,56 @@ FVoxiGineRoot::FVoxiGineRoot()
 		exit(EXIT_FAILURE);
 	}
 
-	IFileSystem* FileSystem = new FFileSystem;
-
-	mGameWindow.setMouseCursorVisible(false);
+	SMouseAxis::SetWindow(mGameWindow);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
-	
-	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 
-	// Initialize debug text
+	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
+	
+	AllocateSingletons();
+	LoadEngineSystems();
+}
+
+void FVoxiGineRoot::AllocateSingletons()
+{
+	IFileSystem* FileSystem = new FFileSystem;
 	FDebug::Text* DebugText = new FDebug::Text;
 	FDebug::Draw* DebugDraw = new FDebug::Draw;
 	FDebug::GameConsole*  GameConsole = new FDebug::GameConsole;
+}
 
+void FVoxiGineRoot::LoadEngineSystems()
+{
 	mChunkManager = new FChunkManager;
+
+	// Load all subsystems
+	FSystemManager& SystemManager = mWorld.GetSystemManager();
+	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
+	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
+
+	// Pass console dependencies
+	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
+	Console.SetChunkManager(mChunkManager);
+	Console.SetPhysicsSystem(&Physics);
+	Console.SetRenderSystem(&Renderer);
+
+	mChunkManager->SetPhysicsSystem(Physics);
+	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+	GameObjectManager.SetChunkManager(mChunkManager);
+	
+	// Register all internal components
+	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
+	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
+	GameObjectManager.RegisterComponentType<EComponent::Collider>();
+	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
+	GameObjectManager.RegisterComponentType<EComponent::Mesh>();
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
 {
 	delete mChunkManager;
+	delete FDebug::GameConsole::GetInstancePtr();
 	delete FDebug::Draw::GetInstancePtr();
 	delete FDebug::Text::GetInstancePtr();
-	delete FDebug::GameConsole::GetInstancePtr();
 	delete IFileSystem::GetInstancePtr();
 }
 
@@ -79,41 +109,22 @@ void FVoxiGineRoot::Start()
 	FCamera::Main = &MainCamera;
 	const Vector3f CameraPosition = Vector3f{ 250.0f, 260.0f, 220.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
-
 	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 612.0f });
-
-	// Load all subsystems
-	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
-	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
-
+	
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
 	FogPostProcess->SetDensity(0.00002f);
 
-	Renderer.AddPostProcess(std::move(FogPostProcess));
-	Renderer.EnablePostProcess(0);
+	FSystemManager& SystemManager = mWorld.GetSystemManager();
+	static_cast<FRenderSystem*>(SystemManager.GetSystem(Systems::Render))->AddPostProcess(std::move(FogPostProcess));
+	static_cast<FRenderSystem*>(SystemManager.GetSystem(Systems::Render))->EnablePostProcess(0);
 
-	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
-	Console.SetChunkManager(mChunkManager);
-	Console.SetPhysicsSystem(&Physics);
-	Console.SetRenderSystem(&Renderer);
-
-	mChunkManager->SetPhysicsSystem(Physics);
 	mChunkManager->LoadWorld(L"PrettyWorld");
-
-	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
-	GameObjectManager.SetChunkManager(mChunkManager);
-
-	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
-	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
-	GameObjectManager.RegisterComponentType<EComponent::Collider>();
-	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
-	GameObjectManager.RegisterComponentType<EComponent::Mesh>();
 
 	ConstructScene();
 
+	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 	GameObjectManager.Start();
 	GameLoop();
 }
@@ -162,12 +173,10 @@ void FVoxiGineRoot::GameLoop()
 	// Game Loop
 	while (mGameWindow.isOpen())
 	{	
-		mChunkManager->Update();
 		GameObjectManager.Update();
+		mChunkManager->Update();
 
 		SystemManager.GetSystem(Systems::Physics)->Update();
-		
-		// Render the frame
 		SystemManager.GetSystem(Systems::Render)->Update();
 
 		UpdateTimers();
@@ -180,23 +189,20 @@ void FVoxiGineRoot::ServiceEvents()
 	// Windows events
 	sf::Event Event;
 
-	static bool ResetMouse = true;
+	static bool ResetMouse = false;
 
 	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
+	{
 		ResetMouse = !ResetMouse;
+		SMouseAxis::SetMouseLock(ResetMouse);
+	}
 
 	// Reset button and axes from previous frame
 	SButtonEvent::ResetButtonEvents();
 	SMouseAxis::ResetAxes();
+	SMouseAxis::UpdateDelta();
 	STextEntered::Reset();
 
-	static sf::Vector2i DefaultMouse(SMouseAxis::GetDefaultMousePosition().x, SMouseAxis::GetDefaultMousePosition().y); 
-
-	if (ResetMouse)
-	{
-		SMouseAxis::UpdateDelta(mGameWindow);
-		sf::Mouse::setPosition(DefaultMouse, mGameWindow);
-	}
 		
 	// Service window events
 	while (mGameWindow.pollEvent(Event))

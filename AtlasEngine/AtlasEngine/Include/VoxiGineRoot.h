@@ -2,8 +2,11 @@
 
 #include "Atlas\World.h"
 #include "SFML\Window\Window.hpp"
-#include "Rendering\ChunkManager.h"
-#include "Debugging\GameConsole.h"
+
+class Atlas::FGameObjectManager;
+class FRenderSystem;
+class FPhysicsSystem;
+class FChunkManager;
 
 /**
 * Root/Central class for the game engine
@@ -21,9 +24,15 @@ public:
 
 	void Start();
 
-	void GameLoop();
+	FRenderSystem& GetRenderSystem();
+	FPhysicsSystem& GetPhysicsSystem();
+	Atlas::FGameObjectManager& GetGameObjectManager();
+	FChunkManager& GetChunkManager();
 
 private:
+	void AllocateSingletons();
+	void LoadEngineSystems();
+	void GameLoop();
 	void ServiceEvents();
 	void UpdateTimers();
 	void ConstructScene();

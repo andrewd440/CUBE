@@ -9,7 +9,7 @@
 #include "SFML\Window\Context.hpp"
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
-static const uint32_t DEFAULT_VIEW_DISTANCE = 12;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);

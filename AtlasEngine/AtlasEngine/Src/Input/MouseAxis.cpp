@@ -1,9 +1,14 @@
 #include "..\..\Include\Input\MouseAxis.h"
 #include "..\..\Include\Misc\Assertions.h"
+#include "SFML\Window\Window.hpp"
 
+Vector2i SMouseAxis::mLastMousePosition;
 Vector2i SMouseAxis::mDefaultMousePosition;
 Vector2i SMouseAxis::mMouseDelta;
+sf::Window* SMouseAxis::mWindow = nullptr;
 int32_t SMouseAxis::mWheelDelta = 0;
+bool SMouseAxis::mIsLocked = false;
+
 
 Vector2i SMouseAxis::GetDelta()
 {
@@ -20,8 +25,6 @@ void SMouseAxis::UpdateEvent(const sf::Event& MouseEvent)
 	ASSERT(IsMouseAxisEvent(MouseEvent));
 	switch (MouseEvent.type)
 	{
-	//case sf::Event::MouseMoved:
-	//	break;
 	case sf::Event::MouseWheelMoved:
 		mWheelDelta = MouseEvent.mouseWheel.delta;
 		break;
@@ -30,11 +33,19 @@ void SMouseAxis::UpdateEvent(const sf::Event& MouseEvent)
 	}
 }
 
-void SMouseAxis::UpdateDelta(const sf::Window& Window)
+void SMouseAxis::UpdateDelta()
 {
-	const sf::Vector2i CurrentPosition = sf::Mouse::getPosition(Window);
-	const Vector2i DefaultPosition = mDefaultMousePosition;
-	mMouseDelta = Vector2i(CurrentPosition.x - DefaultPosition.x, CurrentPosition.y - DefaultPosition.y);
+	const sf::Vector2i CurrentPosition = sf::Mouse::getPosition(*mWindow);
+	const Vector2i LastPosition = mLastMousePosition;
+	mMouseDelta = Vector2i(CurrentPosition.x - LastPosition.x, CurrentPosition.y - LastPosition.y);
+	
+	mLastMousePosition = Vector2i{ CurrentPosition.x, CurrentPosition.y };
+
+	if (mIsLocked)
+	{
+		sf::Mouse::setPosition(sf::Vector2i{ mDefaultMousePosition.x, mDefaultMousePosition.y }, *mWindow);
+		mLastMousePosition = mDefaultMousePosition;
+	}
 }
 
 void SMouseAxis::ResetAxes()
@@ -56,4 +67,19 @@ void SMouseAxis::SetDefaultMousePosition(Vector2i Position)
 Vector2i SMouseAxis::GetDefaultMousePosition()
 {
 	return mDefaultMousePosition;
+}
+
+void SMouseAxis::SetMouseLock(bool IsLocked)
+{
+	mIsLocked = IsLocked;
+}
+
+void SMouseAxis::SetMouseVisible(const bool IsVisible)
+{
+	mWindow->setMouseCursorVisible(IsVisible);
+}
+
+void SMouseAxis::SetWindow(sf::Window& Window)
+{
+	mWindow = &Window;
 }
