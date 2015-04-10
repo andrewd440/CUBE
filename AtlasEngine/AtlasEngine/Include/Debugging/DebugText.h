@@ -8,6 +8,7 @@
 #include "Rendering\Mesh.h"
 #include "Math\OrthoMatrix.h"
 #include "Rendering\Uniform.h"
+#include "Memory\MemoryUtil.h"
 
 // Forward declaration
 struct text_buffer_t;
@@ -21,6 +22,9 @@ namespace FDebug
 	class Text : public TSingleton<Text>
 	{
 	public:
+
+		ALIGNED_ALLOC(16);
+
 		/**
 		* Ctor
 		*/

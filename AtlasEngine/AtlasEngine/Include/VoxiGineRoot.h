@@ -24,17 +24,16 @@ public:
 
 	void Start();
 
-	FRenderSystem& GetRenderSystem();
-	FPhysicsSystem& GetPhysicsSystem();
-	Atlas::FGameObjectManager& GetGameObjectManager();
-	FChunkManager& GetChunkManager();
+	FRenderSystem& GetRenderSystem(){ return *mRenderSystem; }
+	FPhysicsSystem& GetPhysicsSystem() { return *mPhysicsSystem; }
+	Atlas::FGameObjectManager& GetGameObjectManager() { return *mGameObjectManager; }
+	FChunkManager& GetChunkManager() { return *mChunkManager; }
 
 private:
 	void AllocateSingletons();
 	void LoadEngineSystems();
 	void GameLoop();
 	void ServiceEvents();
-	void UpdateTimers();
 	void ConstructScene();
 
 private:
@@ -49,8 +48,11 @@ private:
 	};
 
 private:
-	sf::Window mGameWindow;
-	Atlas::FWorld mWorld;
-	FChunkManager* mChunkManager;
+	sf::Window                  mGameWindow;
+	Atlas::FWorld               mWorld;
+	FChunkManager*              mChunkManager;
+	FRenderSystem*              mRenderSystem;
+	FPhysicsSystem*             mPhysicsSystem;
+	Atlas::FGameObjectManager*  mGameObjectManager;
 };
 

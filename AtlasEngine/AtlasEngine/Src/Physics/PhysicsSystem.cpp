@@ -46,6 +46,7 @@ void FPhysicsSystem::Update()
 		else
 		{
 			mDynamicsWorld.removeRigidBody(Record.RigidBody);
+			mDynamicsWorld.getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(Record.RigidBody->getBroadphaseHandle(), mDynamicsWorld.getDispatcher());
 		}
 
 		RigidLock.lock();
@@ -67,6 +68,7 @@ void FPhysicsSystem::Update()
 		else
 		{
 			mDynamicsWorld.removeCollisionObject(Record.Collider);
+			mDynamicsWorld.getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(Record.Collider->getBroadphaseHandle(), mDynamicsWorld.getDispatcher());
 		}
 
 		ColliderLock.lock();

@@ -3,7 +3,7 @@
 #include "Rendering\Mesh.h"
 #include "Rendering\ShaderProgram.h"
 #include "Math\Vector3.h"
-#include "LinearMath\btIDebugDraw.h"
+#include "BulletPhysics\LinearMath\btIDebugDraw.h"
 
 #include <cstdlib>
 #include <vector>

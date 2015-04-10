@@ -230,7 +230,7 @@ inline TVector2<T>& TVector2<T>::operator*=(const U& Scalar)
 
 template <typename T>
 template <typename U>
-TVector2<T>& TVector2<T>::operator/=(const U& Scalar)
+inline TVector2<T>& TVector2<T>::operator/=(const U& Scalar)
 {
 	x /= Scalar;
 	y /= Scalar;
@@ -260,7 +260,7 @@ inline TVector2<T>& TVector2<T>::operator+=(const U& Scalar)
 
 template <typename T>
 template <typename U>
-TVector2<T>& TVector2<T>::operator-=(const U& Scalar)
+inline TVector2<T>& TVector2<T>::operator-=(const U& Scalar)
 {
 	x -= Scalar;
 	y -= Scalar;
@@ -278,7 +278,7 @@ inline TVector2<T>& TVector2<T>::operator-=(const TVector2<T>& rhs)
 }
 
 template <typename T>
-TVector2<T>& TVector2<T>::operator*=(const TVector2<T>& Rhs)
+inline TVector2<T>& TVector2<T>::operator*=(const TVector2<T>& Rhs)
 {
 	x *= rhs.x;
 	y *= rhs.y;
@@ -307,7 +307,7 @@ inline bool TVector2<T>::operator!=(const TVector2<T>& Rhs) const
 }
 
 template <typename T>
-T& TVector2<T>::operator[](uint32_t idx)
+inline T& TVector2<T>::operator[](uint32_t idx)
 {
 	ASSERT(idx >= 0 && idx < 2 && "Vector2 index out of range.");
 	if (idx == 0)
@@ -318,7 +318,7 @@ T& TVector2<T>::operator[](uint32_t idx)
 
 
 template <typename T>
-const T& TVector2<T>::operator[](uint32_t idx) const
+inline const T& TVector2<T>::operator[](uint32_t idx) const
 {
 	ASSERT(idx >= 0 && idx < 2 && "Vector2 index out of range.");
 	if (idx == 0)
@@ -373,7 +373,7 @@ inline const std::string TVector2<T>::ToString() const
 }
 
 template <typename T>
-inline T Dot(const TVector2<T>& lhs, const TVector2<T>& rhs)
+inline T TVector2<T>::Dot(const TVector2<T>& lhs, const TVector2<T>& rhs)
 {
 	return lhs.x * rhs.x + lhs.y * rhs.y;
 }

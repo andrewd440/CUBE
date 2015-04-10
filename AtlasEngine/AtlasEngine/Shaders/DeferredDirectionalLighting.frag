@@ -71,7 +71,7 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 		else
 			Specular = Light.Color * Fragment.Color * pow(NdotH, 4);
 
-		Result += vec4(Diffuse, 0.0) * Fragment.AmbientOcclusion;
+		Result += vec4(Diffuse, 0.0);// * Fragment.AmbientOcclusion;
 	}
 	return Result;
 }

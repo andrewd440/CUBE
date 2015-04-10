@@ -8,8 +8,8 @@
 #include <mutex>
 
 #include "Chunk.h"
-#include "noise\noise.h"
-#include "noise\noiseutils.h"
+#include "LibNoise\noise.h"
+#include "LibNoise\noiseutils.h"
 #include "Singleton.h"
 #include "FileIO\WorldFileSystem.h"
 

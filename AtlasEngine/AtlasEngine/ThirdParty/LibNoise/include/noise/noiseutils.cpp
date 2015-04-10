@@ -22,10 +22,10 @@
 
 #include <fstream>
 
-#include <noise/interp.h>
-#include <noise/mathconsts.h>
+#include <LibNoise/interp.h>
+#include <LibNoise/mathconsts.h>
 
-#include "noiseutils.h"
+#include "../../noiseutils.h"
 
 #pragma warning( disable : 4189)
 

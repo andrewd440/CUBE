@@ -50,6 +50,8 @@ public:
 		mNextFreeBlock = (PoolElement*)(RawMem);
 	}
 
+#undef min
+
 	~FPoolAllocator()
 	{
 		ASSERT(mObjectsConstructed == 0 && "All objects should be back in the pool on destruction.");

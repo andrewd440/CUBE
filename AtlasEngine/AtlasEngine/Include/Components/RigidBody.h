@@ -1,7 +1,7 @@
 #pragma once
 #include "Atlas\Component.h"
-#include "btBulletCollisionCommon.h"
-#include "btBulletDynamicsCommon.h"
+#include "BulletPhysics\btBulletCollisionCommon.h"
+#include "BulletPhysics\btBulletDynamicsCommon.h"
 #include "Math\Vector3.h"
 #include "Atlas\ComponentTypes.h"
 #include "Common.h"

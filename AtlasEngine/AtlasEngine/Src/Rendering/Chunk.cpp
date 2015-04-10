@@ -46,6 +46,7 @@ FChunk::FChunk()
 
 	// Set collision data
 	CollisionData& CollisionInfo = *mCollisionData;
+	CollisionInfo.Mesh.setPremadeAabb(btVector3{ 0, 0, 0 }, btVector3{ 32, 32, 32 });
 
 	// Set collision shape and transform
 	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
@@ -195,7 +196,7 @@ void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 		mCollisionData->Mesh.getIndexedMeshArray().clear();
 		mCollisionData->Mesh.getIndexedMeshArray().push_back(VertexData);
 		mCollisionData->Shape.~btBvhTriangleMeshShape();
-		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, true };
+		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, false };
 
 		if (WasEmpty)
 		{

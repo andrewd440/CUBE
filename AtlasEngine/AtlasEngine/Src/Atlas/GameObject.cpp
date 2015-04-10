@@ -1,5 +1,5 @@
 #include "Atlas\GameObject.h"
-#include "btBulletCollisionCommon.h"
+#include "BulletPhysics\btBulletCollisionCommon.h"
 #include "Atlas\Behavior.h"
 
 namespace Atlas

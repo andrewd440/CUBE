@@ -141,9 +141,6 @@
     <ClInclude Include="Include\ResourceHolder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Math\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -267,9 +264,6 @@
     <ClInclude Include="Include\Components\FlyingCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\tinyobjloader\tiny_obj_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Components\BlockPlacer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -292,6 +286,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Rendering\FogPostProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Rendering\SSAOPostProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -363,9 +363,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\Screen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Math\Transform.cpp">
@@ -476,9 +473,6 @@
     <ClCompile Include="Src\Components\FlyingCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\tinyobjloader\tiny_obj_loader.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Components\BlockPlacer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -495,6 +489,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\FogPostProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\SSAOPostProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

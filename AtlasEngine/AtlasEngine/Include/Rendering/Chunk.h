@@ -8,7 +8,7 @@
 #include "Common.h"
 #include "Block.h"
 #include "Mesh.h"
-#include "btBulletCollisionCommon.h"
+#include "BulletPhysics\btBulletCollisionCommon.h"
 #include "Rendering\GLBindings.h"
 
 /**

@@ -7,9 +7,9 @@
 //#include <vector>
 
 //#include <iostream>
-#include "noise/noise.h"
+#include "LibNoise\noise.h"
 #include "Rendering\WorldGenerator.h"
-
+#include "Math\Vector2.h"
 
 int main()
 {

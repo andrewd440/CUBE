@@ -10,7 +10,7 @@
 #include "Debugging\GameConsole.h"
 #include "Rendering\LightSystems.h"
 #include <GL\glew.h>
-#include "markup.h"
+#include "freetype-gl\markup.h"
 #include "Atlas\World.h"
 #include "Components\MeshComponent.h"
 #include "Rendering\GLBindings.h"

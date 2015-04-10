@@ -81,6 +81,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);Include/;</IncludePath>
     <OutDir>$(SolutionDir)\BuidConfigurations\$(Configuration)\</OutDir>
+    <ExecutablePath>bin/;$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -93,7 +94,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>ThirdParty/SFMT;C:\SFML\include;$(ProjectDir)\Include\;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -103,8 +104,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;sfml-window-d.lib;sfml-system-d.lib;freetype.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;LibNoiseUtils-d.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;LinearMath_debug.lib;TinyObjLoader-d.lib;freetype-gl.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -136,7 +137,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;ThirdParty/SFMT;C:\SFML\include;D:\Users\Andrew\Documents\GitHub\freetype-gl;%(AdditionalIncludeDirectories);$(ProjectDir)\ThirdParty\LibNoise\include;$(ProjectDir)\ThirdParty\BulletPhysics\src;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -149,8 +150,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <Profile>true</Profile>
-      <AdditionalDependencies>libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;sfml-window.lib;sfml-system.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>SFMT/;C:\SFML\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LibNoiseUtils.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;sfml-window.lib;sfml-system.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;TinyObjLoader.lib;freetype-gl.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib\;</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -203,6 +204,7 @@
     <ClInclude Include="Include\Rendering\IRenderPostProcess.h" />
     <ClInclude Include="Include\Rendering\Light.h" />
     <ClInclude Include="Include\Rendering\RenderSystem.h" />
+    <ClInclude Include="Include\Rendering\SSAOPostProcess.h" />
     <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\Rendering\WorldGenerator.h" />
     <ClInclude Include="Include\VoxiGineRoot.h" />
@@ -271,7 +273,6 @@
     <ClInclude Include="Include\Rendering\LightSystems.h" />
     <ClInclude Include="Include\FileIO\RegionFile.h" />
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
-    <ClInclude Include="ThirdParty\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
@@ -313,13 +314,10 @@
     <ClCompile Include="Src\Rendering\GBuffer.cpp" />
     <ClCompile Include="Src\Rendering\Light.cpp" />
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
+    <ClCompile Include="Src\Rendering\SSAOPostProcess.cpp" />
     <ClCompile Include="Src\Rendering\Uniform.cpp" />
     <ClCompile Include="Src\Rendering\WorldGenerator.cpp" />
     <ClCompile Include="Src\STime.cpp" />
-    <ClCompile Include="ThirdParty\LibNoise\include\noise\noiseutils.cpp">
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="ThirdParty\tinyobjloader\tiny_obj_loader.cc" />
     <None Include="Include\Atlas\GameObject.inl" />
     <None Include="Include\Math\Transform.inl" />
     <None Include="Include\Math\Vector.inl" />
@@ -359,20 +357,6 @@
     <None Include="packages.config" />
     <None Include="Shaders\BlinnLighting.frag" />
     <None Include="Shaders\BlinnLighting.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\freetype-gl\Build\freetype-gl.vcxproj">
-      <Project>{f4705548-1560-4bf2-ba01-27c9276db0dd}</Project>
-    </ProjectReference>
-    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\BulletCollision.vcxproj">
-      <Project>{06881b38-235a-cc45-8c79-97ff62204414}</Project>
-    </ProjectReference>
-    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\BulletDynamics.vcxproj">
-      <Project>{cea2e5cf-d896-9145-9c78-2e6b4fe4fb96}</Project>
-    </ProjectReference>
-    <ProjectReference Include="ThirdParty\BulletPhysics\build3\vs2010\LinearMath.vcxproj">
-      <Project>{6700517c-bb93-5e46-acbe-d560e2d0f02f}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

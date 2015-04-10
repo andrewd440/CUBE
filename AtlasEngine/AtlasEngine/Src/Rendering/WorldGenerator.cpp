@@ -1,5 +1,5 @@
 #include "..\..\Include\Rendering\WorldGenerator.h"
-#include "noise\noise.h"
+#include "LibNoise\noise.h"
 #include "Rendering\Chunk.h"
 #include "FileIO\RegionFile.h"
 #include "Math\FMath.h"

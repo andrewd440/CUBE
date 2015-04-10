@@ -1,9 +1,9 @@
 #pragma once
 
-#include "noise\module\module.h"
+#include "LibNoise\module\module.h"
 #include "Math\Vector2.h"
 #include "Math\Vector3.h"
-#include "noise\noiseutils.h"
+#include "LibNoise\noiseutils.h"
 #include "Rendering\Block.h"
 
 #include <vector>

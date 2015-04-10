@@ -4,7 +4,7 @@
 #include <memory>
 #include "ComponentTypes.h"
 #include "Math\Transform.h"
-#include "btBulletCollisionCommon.h"
+#include "BulletPhysics\btBulletCollisionCommon.h"
 #include "Atlas\Behavior.h"
 #include <map>
 #include <typeindex>

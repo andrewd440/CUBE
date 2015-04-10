@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Clock.h"
+
 /**
 * Interface for useful time values.
 */
@@ -8,26 +10,33 @@ class STime
 public:
 	static float GetDeltaTime()
 	{
-		return DeltaTime;
-	}
-
-	static void SetDeltaTime(float Time)
-	{
-		DeltaTime = Time;
+		return mDeltaTime;
 	}
 
 	static float GetFixedUpdate()
 	{
-		return FixedUpdate;
+		return mFixedUpdate;
 	}
 
 	static void SetFixedUpdate(float Time)
 	{
-		FixedUpdate = Time;
+		mFixedUpdate = Time;
 	}
 
+	static FClock& GetGameClock()
+	{
+		return mGameClock;
+	}
+
+	static void StartGameTimer();
+
+	static void UpdateGameTimer();
+
 private:
-	static float DeltaTime;
-	static float FixedUpdate;
+	static FClock mGameClock;
+	static uint64_t mFrameStart;
+	static uint64_t mFrameEnd;
+	static float mDeltaTime;
+	static float mFixedUpdate;
 };
 

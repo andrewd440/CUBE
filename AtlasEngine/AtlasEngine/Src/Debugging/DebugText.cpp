@@ -1,11 +1,11 @@
 #include "Debugging\DebugText.h"
 #include "Math\OrthoMatrix.h"
-#include "freetype-gl.h"
-#include "text-buffer.h"
+#include "freetype-gl\freetype-gl.h"
+#include "freetype-gl\text-buffer.h"
 #include "Rendering\Screen.h"
 #include "ResourceHolder.h"
 #include "SystemResources\SystemFile.h"
-#include "markup.h"
+#include "freetype-gl\markup.h"
 
 namespace FDebug
 {

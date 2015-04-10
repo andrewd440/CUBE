@@ -1,13 +1,18 @@
 #pragma once
 #include "Atlas\System.h"
-#include "btBulletDynamicsCommon.h"
+#include "BulletPhysics\btBulletDynamicsCommon.h"
+#include "Memory\MemoryUtil.h"
 
 #include <queue>
 #include <mutex>
 
+WIN_ALIGN(16)
 class FPhysicsSystem : public Atlas::ISystem
 {
 public:
+
+	ALIGNED_ALLOC(16);
+
 	FPhysicsSystem(Atlas::FWorld& World);
 	~FPhysicsSystem();
 

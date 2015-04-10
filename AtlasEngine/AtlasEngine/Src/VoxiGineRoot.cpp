@@ -32,6 +32,7 @@
 #include "Components\BoxShooter.h"
 #include "Rendering\FogPostProcess.h"
 #include "Debugging\GameConsole.h"
+#include "Rendering\SSAOPostProcess.h"
 
 const uint32_t WindowWidth = 1920;
 const uint32_t WindowHeight = 1080;
@@ -44,6 +45,9 @@ FVoxiGineRoot::FVoxiGineRoot()
 	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24, 8, 2, 4, 3))
 	, mWorld()
 	, mChunkManager(nullptr)
+	, mRenderSystem(nullptr)
+	, mPhysicsSystem(nullptr)
+	, mGameObjectManager(nullptr)
 {
 	if (glewInit())
 	{
@@ -53,7 +57,10 @@ FVoxiGineRoot::FVoxiGineRoot()
 
 	SMouseAxis::SetWindow(mGameWindow);
 	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
-
+	SMouseAxis::SetMouseVisible(false);
+	SMouseAxis::SetMouseLock(true);
+	SMouseAxis::UpdateDelta();
+	SMouseAxis::UpdateDelta();
 	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 	
 	AllocateSingletons();
@@ -74,25 +81,25 @@ void FVoxiGineRoot::LoadEngineSystems()
 
 	// Load all subsystems
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	FRenderSystem& Renderer = SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
-	FPhysicsSystem& Physics = SystemManager.AddSystem<FPhysicsSystem>();
+	mRenderSystem = &SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
+	mPhysicsSystem = &SystemManager.AddSystem<FPhysicsSystem>();
 
 	// Pass console dependencies
 	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
 	Console.SetChunkManager(mChunkManager);
-	Console.SetPhysicsSystem(&Physics);
-	Console.SetRenderSystem(&Renderer);
+	Console.SetPhysicsSystem(mPhysicsSystem);
+	Console.SetRenderSystem(mRenderSystem);
 
-	mChunkManager->SetPhysicsSystem(Physics);
-	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
-	GameObjectManager.SetChunkManager(mChunkManager);
+	mChunkManager->SetPhysicsSystem(*mPhysicsSystem);
+	mGameObjectManager = &mWorld.GetObjectManager();
+	mGameObjectManager->SetChunkManager(mChunkManager);
 	
 	// Register all internal components
-	GameObjectManager.RegisterComponentType<EComponent::DirectionalLight>();
-	GameObjectManager.RegisterComponentType<EComponent::PointLight>();
-	GameObjectManager.RegisterComponentType<EComponent::Collider>();
-	GameObjectManager.RegisterComponentType<EComponent::RigidBody>();
-	GameObjectManager.RegisterComponentType<EComponent::Mesh>();
+	mGameObjectManager->RegisterComponentType<EComponent::DirectionalLight>();
+	mGameObjectManager->RegisterComponentType<EComponent::PointLight>();
+	mGameObjectManager->RegisterComponentType<EComponent::Collider>();
+	mGameObjectManager->RegisterComponentType<EComponent::RigidBody>();
+	mGameObjectManager->RegisterComponentType<EComponent::Mesh>();
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
@@ -107,31 +114,33 @@ FVoxiGineRoot::~FVoxiGineRoot()
 void FVoxiGineRoot::Start()
 {
 	FCamera::Main = &MainCamera;
-	const Vector3f CameraPosition = Vector3f{ 250.0f, 260.0f, 220.0f };
+	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 612.0f });
-	
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 356.0f });
+
+	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
+	mRenderSystem->AddPostProcess(std::move(SSAOPostProcess));
+	mRenderSystem->EnablePostProcess(0);
+
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
 	FogPostProcess->SetDensity(0.00002f);
 
-	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	static_cast<FRenderSystem*>(SystemManager.GetSystem(Systems::Render))->AddPostProcess(std::move(FogPostProcess));
-	static_cast<FRenderSystem*>(SystemManager.GetSystem(Systems::Render))->EnablePostProcess(0);
+	mRenderSystem->AddPostProcess(std::move(FogPostProcess));
+	mRenderSystem->EnablePostProcess(1);
 
 	mChunkManager->LoadWorld(L"PrettyWorld");
 
 	ConstructScene();
-
-	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
-	GameObjectManager.Start();
+	STime::StartGameTimer();
+	mGameObjectManager->Start();
 	GameLoop();
 }
 
 void FVoxiGineRoot::ConstructScene()
 {
-	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
+	FGameObjectManager& GameObjectManager = *mGameObjectManager;
 
 	auto& PlayerController = GameObjectManager.CreateGameObject();
 	PlayerController.AddBehavior<CFlyingCamera>();
@@ -165,21 +174,17 @@ void FVoxiGineRoot::ConstructScene()
 void FVoxiGineRoot::GameLoop()
 {
 	STime::SetFixedUpdate(1.0f / 60.0f);
-	STime::SetDeltaTime(1.0f / 30.0f); // Default delta time with 30fps
-
-	FSystemManager& SystemManager = mWorld.GetSystemManager();
-	FGameObjectManager& GameObjectManager = mWorld.GetObjectManager();
 
 	// Game Loop
 	while (mGameWindow.isOpen())
 	{	
-		GameObjectManager.Update();
+		mGameObjectManager->Update();
 		mChunkManager->Update();
 
-		SystemManager.GetSystem(Systems::Physics)->Update();
-		SystemManager.GetSystem(Systems::Render)->Update();
+		mPhysicsSystem->Update();
+		mRenderSystem->Update();
 
-		UpdateTimers();
+		STime::UpdateGameTimer();
 		ServiceEvents();
 	}
 }
@@ -228,33 +233,4 @@ void FVoxiGineRoot::ServiceEvents()
 			glViewport(0, 0, Event.size.width, Event.size.height);
 		}
 	}
-}
-
-void FVoxiGineRoot::UpdateTimers()
-{
-	static FClock GameTimer;
-	static uint64_t FrameStart = FClock::ReadSystemTimer(), FrameEnd;
-
-	// Manage frame timers
-	FrameEnd = FClock::ReadSystemTimer();
-	uint64_t FrameTime = FrameEnd - FrameStart;
-
-	// Update the game clock with this frame's time and
-	// compute the frame delta time by taking the game timer's time
-	// before and after this update (GameTimer may be time scaled)
-	const uint64_t PreUpdateTimer = GameTimer.GetCycles();
-	GameTimer.Update(FClock::CyclesToSeconds(FrameTime));
-	const uint64_t PostUpdateTimer = GameTimer.GetCycles();
-
-	float DeltaTime = FClock::CyclesToSeconds(PostUpdateTimer - PreUpdateTimer);
-
-	// If large delta time, we were probably in a breakpoint
-	if (DeltaTime > 1.5f)
-	{
-		DeltaTime = 1.0f / 30.0f;
-	}
-
-	// Set delta time for this frame
-	STime::SetDeltaTime(DeltaTime);
-	FrameStart = FrameEnd;
 }
