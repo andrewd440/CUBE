@@ -1,7 +1,7 @@
 #include "Rendering\RenderSystem.h"
 #include "ResourceHolder.h"
 #include "Input\ButtonEvent.h"
-#include "Rendering\ChunkManager.h"
+#include "ChunkSystems\ChunkManager.h"
 #include "Rendering\Camera.h"
 #include "Rendering\Screen.h"
 #include "STime.h"
@@ -14,16 +14,20 @@
 #include "Atlas\World.h"
 #include "Components\MeshComponent.h"
 #include "Rendering\GLBindings.h"
+#include "ChunkSystems\Block.h"
 
 namespace
 {
-	enum TransformBuffer : uint32_t
+	struct TransformBuffer
 	{
-		Model = 0,
-		View = 64,
-		Projection = 128,
-		InvProjection = 192,
-		Size = 256
+		enum : uint32_t
+		{
+			Model = 0,
+			View = 64,
+			Projection = 128,
+			InvProjection = 192,
+			Size = 256
+		};
 	};
 }
 
@@ -32,7 +36,9 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mWindow(GameWindow)
 	, mChunkManager(ChunkManager)
 	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
+	, mBlockInfoBuffer(0)
 	, mDeferredRender()
+	, mChunkRender()
 	, mPostProcesses()
 	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_R32F)
 {
@@ -48,6 +54,13 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
 
 	AddComponentType<Atlas::EComponent::Mesh>();
+
+
+	// Setup shader storage block for block info
+	glGenBuffers(1, &mBlockInfoBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mBlockInfoBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(FBlock::Colors), FBlock::Colors, GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, GLUniformBindings::BlockInfo, mBlockInfoBuffer);
 }
 
 void FRenderSystem::LoadShaders()
@@ -64,6 +77,11 @@ void FRenderSystem::LoadShaders()
 	mDeferredRender.AttachShader(DeferredVert);
 	mDeferredRender.AttachShader(DeferredFrag);
 	mDeferredRender.LinkProgram();
+
+	FShader DeferredChunkVert{ L"Shaders/DeferredChunkRender.vert", GL_VERTEX_SHADER };
+	mChunkRender.AttachShader(DeferredChunkVert);
+	mChunkRender.AttachShader(DeferredFrag);
+	mChunkRender.LinkProgram();
 }
 
 void FRenderSystem::LoadSubSystems()
@@ -170,8 +188,10 @@ void FRenderSystem::RenderGeometry()
 	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
 
 	// Render geometry
-	mChunkManager.Render(*this, GL_TRIANGLES);
+	mChunkRender.Use();
+	mChunkManager.Render(*this);
 
+	mDeferredRender.Use();
 	for (auto& GameObject : GetGameObjects())
 	{
 		auto& Transform = GameObject->Transform;
@@ -187,7 +207,6 @@ void FRenderSystem::ConstructGBuffer()
 
 	// Open G-Buffer for writing and enable deferred render shader.
 	mGBuffer.StartWrite();
-	mDeferredRender.Use();
 
 	// Make sure depth testing is enabled
 	glDisable(GL_BLEND);

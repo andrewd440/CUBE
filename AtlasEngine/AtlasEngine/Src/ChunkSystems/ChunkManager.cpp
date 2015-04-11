@@ -1,4 +1,4 @@
-#include "Rendering\ChunkManager.h"
+#include "ChunkSystems\ChunkManager.h"
 #include "Input\ButtonEvent.h"
 #include "Debugging\ConsoleOutput.h"
 #include "Rendering\GLUtils.h"
@@ -10,8 +10,8 @@
 #include "STime.h"
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
-static const uint32_t DEFAULT_VIEW_DISTANCE = 10;
-static const uint32_t MESH_SWAPS_PER_FRAME = 5;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 12;
+static const uint32_t MESH_SWAPS_PER_FRAME = 15;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
@@ -431,14 +431,14 @@ void FChunkManager::UpdateRenderList()
 	const FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
 	const int32_t ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
 
-	const Vector4i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 1 };
-	const Vector4i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 0 };
+	const Vector3i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE};
+	const Vector3i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth };
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		const Vector4f ChunkCenter{ Vector4i{ mChunkPositions[i], 1 } * ChunkSizeVector + HalfChunkVector};
+		const Vector4f ChunkCenter{ mChunkPositions[i] * ChunkSizeVector + HalfChunkVector, 1.0 };
 
 		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(ChunkCenter, FChunk::CHUNK_SIZE))
 		{

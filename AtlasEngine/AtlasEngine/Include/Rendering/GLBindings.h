@@ -18,6 +18,7 @@ namespace GLUniformBindings
 	enum : uint32_t
 	{
 		TransformBlock = 2,
+		BlockInfo = 3,
 		FogParamBlock = 8,
 		PointLight = 10,
 		DirectionalLight = 11,

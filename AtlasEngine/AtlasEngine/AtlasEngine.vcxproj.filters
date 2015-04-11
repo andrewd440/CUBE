@@ -108,15 +108,6 @@
     <ClInclude Include="Include\Rendering\VertexBufferObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\Block.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Rendering\Chunk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Rendering\ChunkManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Math\SystemMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -237,9 +228,6 @@
     <ClInclude Include="Include\FileIO\RegionFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\WorldGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Components\Collider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -294,6 +282,21 @@
     <ClInclude Include="Include\Rendering\SSAOPostProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\ChunkSystems\Chunk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ChunkSystems\ChunkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ChunkSystems\WorldGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ChunkSystems\Block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ChunkSystems\ChunkMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -342,15 +345,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\VertexBufferObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\Block.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\Chunk.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\ChunkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Math\FMath.cpp">
@@ -446,9 +440,6 @@
     <ClCompile Include="Src\FileIO\GenericFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Rendering\WorldGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Components\Collider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -494,6 +485,21 @@
     <ClCompile Include="Src\Rendering\SSAOPostProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ChunkSystems\Block.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ChunkSystems\Chunk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ChunkSystems\ChunkManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ChunkSystems\WorldGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ChunkSystems\ChunkMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -503,8 +509,6 @@
     <None Include="Include\Rendering\Mesh.inl">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Shaders\BlinnLighting.vert" />
-    <None Include="Shaders\BlinnLighting.frag" />
     <None Include="Include\ResourceHolder.inl">
       <Filter>Header Files</Filter>
     </None>

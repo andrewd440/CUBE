@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "Rendering\Block.h"
+#include "ChunkSystems\Block.h"
 
 class FChunkManager;
 

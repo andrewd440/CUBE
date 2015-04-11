@@ -1,6 +1,6 @@
 #include "Atlas\Behavior.h"
 #include "Atlas\GameObject.h"
-#include "Rendering\ChunkManager.h"
+#include "ChunkSystems\ChunkManager.h"
 
 namespace Atlas
 {

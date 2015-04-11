@@ -7,32 +7,9 @@
 #include "Memory\PoolAllocator.h"
 #include "Common.h"
 #include "Block.h"
-#include "Mesh.h"
 #include "BulletPhysics\btBulletCollisionCommon.h"
 #include "Rendering\GLBindings.h"
-
-/**
-* Voxel vertex { PositionAO, Normal, Color }
-*/
-struct FVoxelVertex
-{
-	Vector4f PositionAO;
-	Vector3f Normal;
-	Vector3f Color;
-};
-
-// Voxel Vertex traits
-template <>
-struct VertexTraits::Attribute_Count < FVoxelVertex >
-{
-	const static uint32_t Count = 3;
-};
-
-const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Position[] = { GLAttributePosition::Position, GLAttributePosition::Normal, GLAttributePosition::Color };
-const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::ElementCount[] = { 4, 3, 3 };
-const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Type[] = { GL_FLOAT, GL_FLOAT, GL_FLOAT };
-const bool VertexTraits::GL_Attribute<FVoxelVertex>::Normalized[] = { GL_FALSE, GL_FALSE, GL_FALSE };
-const uint32_t VertexTraits::GL_Attribute<FVoxelVertex>::Offset[] = { 0, 16, 28 };
+#include "ChunkMesh.h"
 
 class FChunkManager;
 class FPhysicsSystem;
@@ -63,9 +40,9 @@ public:
 	static const int32_t BLOCKS_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
 	// Memory pools
-	static const uint32_t POOL_SIZE = 20000;
+	static const uint32_t POOL_SIZE = 30000;
 	static FPoolAllocator<sizeof(FBlock) * BLOCKS_PER_CHUNK, POOL_SIZE> ChunkAllocator;
-	static FPoolAllocatorType<TMesh<FVoxelVertex>, POOL_SIZE * 2> MeshAllocator;
+	static FPoolAllocatorType<FChunkMesh, POOL_SIZE> MeshAllocator;
 	static FPoolAllocatorType<CollisionData, POOL_SIZE> CollisionAllocator;
 
 public:
@@ -150,34 +127,19 @@ public:
 
 private:
 	// Constants used for constructing quads with correct normals in GreedyMesh()
-	static const uint32_t SOUTH = 0;
-	static const uint32_t NORTH = 1;
-	static const uint32_t EAST = 2;
-	static const uint32_t WEST = 3;
-	static const uint32_t TOP = 4;
-	static const uint32_t BOTTOM = 5;
+	static const uint32_t EAST = 0;
+	static const uint32_t WEST = 1;
+	static const uint32_t TOP = 2;
+	static const uint32_t BOTTOM = 3;
+	static const uint32_t NORTH = 4;
+	static const uint32_t SOUTH = 5;
 
 private:
-	/**
-	* Info used to determine if faces of a voxel can be
-	* mesh together.
-	*/
-	struct MaskInfo
-	{
-		Vector4i AOFactors;
-		FBlock Block;
-	};
-
 	/**
 	* Voxel mesh algorithm to minimize triangle count on chunk meshes.
 	* Algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 	*/
 	void GreedyMesh();
-
-	/**
-	* Determines the status of surround ambient occlusion voxel for a specific voxel.
-	*/
-	void CheckAOSides(bool Sides[8], int32_t u, int32_t v, int32_t d, Vector3i BlockPosition, int32_t DepthOffset) const;
 
 	/**
 	* Adds a quad from 4 vertices based on if the quad is backfaced, the direction of the surface,
@@ -193,57 +155,22 @@ private:
 	* @param VerticesOut - Location to place vertex data.
 	* @param IndicesOut - Location to place index data.
 	*/
-	void AddQuad(	const Vector3f BottomLeft, 
-					const Vector3f TopLeft, 
-					const Vector3f TopRight, 
-					const Vector3f BottomRight,
-					bool IsBackface, 
-					uint32_t Side, 
-					const MaskInfo& FaceInfo,
-					std::vector<FVoxelVertex>& VerticesOut,
+	void AddQuad(	const Vector3ui& BottomLeft, 
+					const Vector3ui& TopLeft, 
+					const Vector3ui& TopRight, 
+					const Vector3ui& BottomRight,
+					const bool IsBackface, 
+					const uint32_t Side, 
+					const FBlock FaceInfo,
+					std::vector<Vector3f>& VerticesOut,
+					std::vector<FChunkMesh::RenderData>& RenderDataOut,
 					std::vector<uint32_t>& IndicesOut);
-
-	/**
-	* Computes ambient occlusion factors for each vertex of a voxel face.
-	* @param Sides - The status of present blocks at surrounding positions.
-	* ---------
-	* | 0 1 2 | // Surrounding blocks are closer than C
-	* | 3 C 4 | // C = Current
-	* | 5 6 7 |
-	* ---------
-	* @return A 4 component vector with AO factors for each vertex. 
-	*         x = top-left, y = bottom-left, z = bottom-right, w = top-right
-	*/
-	Vector4i ComputeBlockFaceAO(bool Sides[8]) const;
-
-	/**
-	* Computes the ambient occlusion factor of a voxel vertex.
-	* ---------
-	* | 0 1 2 | // Surrounding blocks are closer than C
-	* | 3 C 4 | // C = Current
-	* | 5 6 7 |
-	* ---------
-	* Params for calculating top-left vertex of C.
-	* @param Side1 - If a voxel is present at 3.
-	* @param Side2 - If a voxel is present at 1.
-	* @param Corner - If a voxel is present at 0.
-	* @return A value from 0 - 3. 3 means the vertex is not occluded.
-	*/
-	int32_t ComputeBlockVertexAO(bool Side1, bool Side2, bool Corner) const;
-
-	/**
-	* Determines if two voxel faces can be meshed together based on type and
-	* ambient occlusion factors.
-	*/
-	bool IsMeshable(const MaskInfo& Lhs, const MaskInfo& Rhs) const;
-
 
 private:
 	FBlock* mBlocks;
-	TMesh<FVoxelVertex>* mMesh[2];
+	FChunkMesh* mMesh;
 	CollisionData* mCollisionData;
 
 	std::atomic_bool mIsLoaded;
 	std::atomic_bool mIsEmpty;
-	std::atomic_bool mActiveMesh;
 };

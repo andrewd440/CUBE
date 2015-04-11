@@ -3,7 +3,7 @@
 #include "Debugging\DebugText.h"
 #include "Input\TextEntered.h"
 #include "Physics\PhysicsSystem.h"
-#include "Rendering\ChunkManager.h"
+#include "ChunkSystems\ChunkManager.h"
 #include "Rendering\Screen.h"
 
 namespace FDebug

@@ -1,6 +1,6 @@
 #pragma once
-#include "..\..\Include\Rendering\GLUtils.h"
-#include "..\..\Include\Common.h"
+#include "Rendering\GLUtils.h"
+#include "Common.h"
 #include "VertexTraits.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////

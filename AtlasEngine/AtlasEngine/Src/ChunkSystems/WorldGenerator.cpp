@@ -1,6 +1,6 @@
-#include "..\..\Include\Rendering\WorldGenerator.h"
+#include "ChunkSystems\WorldGenerator.h"
 #include "LibNoise\noise.h"
-#include "Rendering\Chunk.h"
+#include "ChunkSystems\Chunk.h"
 #include "FileIO\RegionFile.h"
 #include "Math\FMath.h"
 #include "SystemResources\SystemFile.h"

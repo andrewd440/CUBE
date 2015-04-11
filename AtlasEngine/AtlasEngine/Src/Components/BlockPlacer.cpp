@@ -30,7 +30,7 @@ void CBlockPlacer::Update()
 		Vector3f CamForward = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward * mPlacerRange;
 		Vector3f CamPosition = FCamera::Main->Transform.GetWorldPosition() + CamForward;
 		CamPosition = Vector3f{ std::floor(CamPosition.x) + 0.5f, std::floor(CamPosition.y) + 0.5f, std::floor(CamPosition.z) + 0.5f };
-		FDebug::Draw::GetInstance().DrawBox(CamPosition, Vector3f{ 1, 1, 1 }, FBlock::Colors[mActiveType]);
+		//FDebug::Draw::GetInstance().DrawBox(CamPosition, Vector3f{ 1, 1, 1 }, FBlock::Colors[mActiveType]);
 	}
 
 	FCamera& MainCamera = *FCamera::Main;

@@ -5,7 +5,6 @@ struct FragmentData_t
 	vec3 Color;
 	vec3 Normal;
 	vec3 ViewCoord;
-	float AmbientOcclusion;
 	uint MaterialID;
 };
 
@@ -71,7 +70,7 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 		else
 			Specular = Light.Color * Fragment.Color * pow(NdotH, 4) * Attenuation;
 		
-		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
+		Result += vec4(Diffuse + Specular, 0.0);;
 	}
 	return Result;
 }

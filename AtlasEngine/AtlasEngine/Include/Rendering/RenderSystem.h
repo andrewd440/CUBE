@@ -119,7 +119,9 @@ private:
 	sf::Window& mWindow;
 	FChunkManager& mChunkManager;
 	EZGL::FUniformBlock mTransformBuffer;
+	GLuint mBlockInfoBuffer;
 	FShaderProgram mDeferredRender;
+	FShaderProgram mChunkRender;
 	GBuffer mGBuffer;
 	PostProcessContainer mPostProcesses;
 	FBox mViewAABB;

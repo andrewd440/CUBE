@@ -3,7 +3,7 @@
 #include "STime.h"
 #include "Input\ButtonEvent.h"
 #include "Input\MouseAxis.h"
-#include "Rendering\ChunkManager.h"
+#include "ChunkSystems\ChunkManager.h"
 #include "Atlas\GameObject.h"
 #include "Components\MeshComponent.h"
 

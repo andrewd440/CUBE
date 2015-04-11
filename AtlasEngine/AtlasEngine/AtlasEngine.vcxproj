@@ -184,6 +184,7 @@
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
     <ClInclude Include="Include\Atlas\Behavior.h" />
+    <ClInclude Include="Include\ChunkSystems\ChunkMesh.h" />
     <ClInclude Include="Include\Components\BlockPlacer.h" />
     <ClInclude Include="Include\Components\BoxShooter.h" />
     <ClInclude Include="Include\Components\Collider.h" />
@@ -206,7 +207,7 @@
     <ClInclude Include="Include\Rendering\RenderSystem.h" />
     <ClInclude Include="Include\Rendering\SSAOPostProcess.h" />
     <ClInclude Include="Include\Rendering\Uniform.h" />
-    <ClInclude Include="Include\Rendering\WorldGenerator.h" />
+    <ClInclude Include="Include\ChunkSystems\WorldGenerator.h" />
     <ClInclude Include="Include\VoxiGineRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
     <ClInclude Include="Include\Atlas\Component.h" />
@@ -239,9 +240,9 @@
     <ClInclude Include="Include\Math\OrthoMatrix.h" />
     <ClInclude Include="Include\Math\PerspectiveMatrix.h" />
     <ClInclude Include="Include\Math\SystemMath.h" />
-    <ClInclude Include="Include\Rendering\Block.h" />
-    <ClInclude Include="Include\Rendering\Chunk.h" />
-    <ClInclude Include="Include\Rendering\ChunkManager.h" />
+    <ClInclude Include="Include\ChunkSystems\Block.h" />
+    <ClInclude Include="Include\ChunkSystems\Chunk.h" />
+    <ClInclude Include="Include\ChunkSystems\ChunkManager.h" />
     <ClInclude Include="Include\Rendering\GLUtils.h" />
     <ClInclude Include="Include\Rendering\Screen.h" />
     <ClInclude Include="Include\Rendering\VertexTraits.h" />
@@ -277,6 +278,7 @@
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Atlas\Behavior.cpp" />
+    <ClCompile Include="Src\ChunkSystems\ChunkMesh.cpp" />
     <ClCompile Include="Src\Components\BlockPlacer.cpp" />
     <ClCompile Include="Src\Components\BoxShooter.cpp" />
     <ClCompile Include="Src\Components\Collider.cpp" />
@@ -316,7 +318,7 @@
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Src\Rendering\SSAOPostProcess.cpp" />
     <ClCompile Include="Src\Rendering\Uniform.cpp" />
-    <ClCompile Include="Src\Rendering\WorldGenerator.cpp" />
+    <ClCompile Include="Src\ChunkSystems\WorldGenerator.cpp" />
     <ClCompile Include="Src\STime.cpp" />
     <None Include="Include\Atlas\GameObject.inl" />
     <None Include="Include\Math\Transform.inl" />
@@ -336,9 +338,9 @@
     <ClCompile Include="Src\Memory\MemoryUtil.cpp" />
     <ClCompile Include="Src\Memory\PoolAllocator.cpp" />
     <ClCompile Include="Src\Memory\StackAllocator.cpp" />
-    <ClCompile Include="Src\Rendering\Block.cpp" />
-    <ClCompile Include="Src\Rendering\Chunk.cpp" />
-    <ClCompile Include="Src\Rendering\ChunkManager.cpp" />
+    <ClCompile Include="Src\ChunkSystems\Block.cpp" />
+    <ClCompile Include="Src\ChunkSystems\Chunk.cpp" />
+    <ClCompile Include="Src\ChunkSystems\ChunkManager.cpp" />
     <ClCompile Include="Src\Rendering\GLUtils.cpp" />
     <ClCompile Include="Src\Rendering\Mesh.cpp" />
     <ClCompile Include="Src\Rendering\Screen.cpp" />
@@ -355,8 +357,6 @@
       <FileType>Document</FileType>
     </None>
     <None Include="packages.config" />
-    <None Include="Shaders\BlinnLighting.frag" />
-    <None Include="Shaders\BlinnLighting.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,7 +8,7 @@
 
 //#include <iostream>
 #include "LibNoise\noise.h"
-#include "Rendering\WorldGenerator.h"
+#include "ChunkSystems\WorldGenerator.h"
 #include "Math\Vector2.h"
 
 int main()

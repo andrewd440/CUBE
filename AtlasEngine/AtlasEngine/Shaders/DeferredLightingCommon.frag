@@ -1,7 +1,6 @@
 #version 430 core
 
 layout (binding = 0) uniform usampler2D GBuffer0;
-layout (binding = 1) uniform sampler2D GBuffer1;
 layout (binding = 2) uniform sampler2D DepthTexture;
 
 struct FragmentData_t
@@ -9,7 +8,6 @@ struct FragmentData_t
 	vec3 Color;
 	vec3 Normal;
 	vec3 ViewCoord;
-	float AmbientOcclusion;
 	uint MaterialID;
 };
 
@@ -33,7 +31,6 @@ vec3 GetViewPosition(ivec2 ScreenCoord)
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 {
 	uvec4 Data0 = texelFetch(GBuffer0, ivec2(ScreenCoord), 0);
-	vec4 Data1 = texelFetch(GBuffer1, ivec2(ScreenCoord), 0);
 
 	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
 	Fragment.Color = vec3(unpackHalf2x16(Data0.x), ColorZNormX.x);
@@ -41,5 +38,4 @@ void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 	Fragment.MaterialID = Data0.w;
 
 	Fragment.ViewCoord = GetViewPosition(ScreenCoord);
-	Fragment.AmbientOcclusion = float(Data1.x);
 }

@@ -10,7 +10,7 @@ struct FBlock
 {
 public:
 	static const float BLOCK_SIZE; // Width of each voxel
-	static const Vector3f Colors[]; // Color for each voxel type
+	static const Vector4f Colors[4]; // Color for each voxel type
 
 	// Each type of voxel
 	enum Type : uint8_t
