@@ -116,7 +116,7 @@ void FVoxiGineRoot::Start()
 	FCamera::Main = &MainCamera;
 	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
 	MainCamera.Transform.SetPosition(CameraPosition);
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 556.0f });
+	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 456.0f });
 
 	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
 	mRenderSystem->AddPostProcess(std::move(SSAOPostProcess));
@@ -125,7 +125,7 @@ void FVoxiGineRoot::Start()
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00001f);
+	FogPostProcess->SetDensity(0.00002f);
 
 	mRenderSystem->AddPostProcess(std::move(FogPostProcess));
 	mRenderSystem->EnablePostProcess(1);

@@ -468,8 +468,27 @@ inline TVector3<T>::TVector3(const U X, const U Y, const U Z)
 	: x((T)X), y((T)Y), z((T)Z){}
 
 template <typename T>
+inline TVector3<T>::TVector3(T X, T Y, T Z)
+	: x(X), y(Y), z(Z) {}
+
+template <typename T>
+template <typename U>
+inline TVector3<T>::TVector3(const TVector4<U>& Other)
+	: x((T)Other.x), y((T)Other.y), z((T)Other.z) {}
+
+template <typename T>
 template <typename U>
 inline TVector3<T>& TVector3<T>::operator=(const TVector3<U>& Other)
+{
+	x = (T)Other.x;
+	y = (T)Other.y;
+	z = (T)Other.z;
+	return *this;
+}
+
+template <typename T>
+template <typename U>
+inline TVector3<T>& TVector3<T>::operator=(const TVector4<U>& Other)
 {
 	x = (T)Other.x;
 	y = (T)Other.y;
@@ -567,16 +586,6 @@ TVector3<T>& TVector3<T>::operator+=(const U Scalar)
 
 	return *this;
 }
-
-
-/////////////////////////////////////////////////////
-//////////// Inlined Member Functions ///////////////
-/////////////////////////////////////////////////////
-
-template <typename T>
-inline TVector3<T>::TVector3(T X, T Y, T Z)
-	: x(X), y(Y), z(Z) {}
-
 
 template <typename T>
 inline bool TVector3<T>::operator==(const TVector3<T>& Rhs) const

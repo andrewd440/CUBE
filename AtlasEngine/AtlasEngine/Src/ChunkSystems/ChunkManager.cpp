@@ -10,8 +10,8 @@
 #include "STime.h"
 
 const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
-static const uint32_t DEFAULT_VIEW_DISTANCE = 12;
-static const uint32_t MESH_SWAPS_PER_FRAME = 15;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 10;
+static const uint32_t MESH_SWAPS_PER_FRAME = 20;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
@@ -19,16 +19,15 @@ static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DE
 FChunkManager::FChunkManager()
 	: mFileSystem()
 	, mChunks(nullptr)
-	, mChunkPositions(DEFAULT_CHUNK_SIZE)
+	, mChunkPositions()
 	, mRenderList()
 	, mLoadList()
 	, mRebuildList()
 	, mBufferSwapQueue()
 	, mLoaderThread()
 	, mRebuildListMutex()
-	, mLoadListMutex()
 	, mBufferSwapMutex()
-	, mIsLoadListRefreshing()
+	, mNeedsToRefreshVisibleList()
 	, mMustShutdown()
 	, mLastCameraChunk()
 	, mWorldSize(0)
@@ -36,7 +35,8 @@ FChunkManager::FChunkManager()
 	, mPhysicsSystem(nullptr)
 {
 	mChunks = new FChunk[DEFAULT_CHUNK_SIZE];
-	mIsLoadListRefreshing = false;
+	mChunkPositions = new Vector4i[DEFAULT_CHUNK_SIZE];
+	mNeedsToRefreshVisibleList = false;
 	mMustShutdown = false;
 }
 
@@ -44,6 +44,7 @@ FChunkManager::~FChunkManager()
 {
 	Shutdown();
 	delete[] mChunks;
+	delete[] mChunkPositions;
 }
 
 void FChunkManager::Shutdown()
@@ -67,12 +68,17 @@ void FChunkManager::Shutdown()
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
 	Shutdown();
-	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
+
+	for (uint32_t i = 0; i < ChunkCount(); i++)
+	{
+		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
+	}
 
 	mFileSystem.SetWorld(WorldName);
 
 	mWorldSize = mFileSystem.GetWorldSize();
 
+	mNeedsToRefreshVisibleList = true;
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
@@ -91,11 +97,16 @@ void FChunkManager::SetViewDistance(const uint32_t Distance)
 
 	// Resize data
 	delete[] mChunks;
+	delete[] mChunkPositions;
 	mChunks = new FChunk[NewBounds];
-	mChunkPositions.resize(NewBounds);
-	std::fill(mChunkPositions.begin(), mChunkPositions.end(), Vector3i{ -1, -1, -1 });
+	mChunkPositions = new Vector4i[NewBounds];
+	
+	for (uint32_t i = 0; i < ChunkCount(); i++)
+	{
+		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
+	}
 
-	UpdateVisibleList();
+	mNeedsToRefreshVisibleList = true;
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
@@ -130,12 +141,12 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 	UpdateRenderList();
 
 	// Render everything in the renderlist
-	const Vector3i ToWorldPosition{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE };
+	const Vector4i ToWorldPosition{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 0 };
 	for (const auto& Index : mRenderList)
 	{
 		if (mChunks[Index].IsLoaded())
 		{
-			const Vector3i Position = mChunkPositions[Index] * ToWorldPosition;
+			const Vector4i Position = mChunkPositions[Index] * ToWorldPosition;
 			Renderer.SetModelTransform(FTransform{ Position });
 			mChunks[Index].Render(RenderMode);
 		}
@@ -152,7 +163,7 @@ void FChunkManager::Update()
 	if (mLastCameraChunk != CameraChunk)
 	{
 		mLastCameraChunk = CameraChunk;
-		UpdateVisibleList();
+		mNeedsToRefreshVisibleList = true;
 	}
 
 	SwapChunkBuffers();
@@ -160,17 +171,24 @@ void FChunkManager::Update()
 
 void FChunkManager::SwapChunkBuffers()
 {
-	std::lock_guard<std::mutex> Lock(mBufferSwapMutex);
-	while (!mBufferSwapQueue.empty())
+	std::unique_lock<std::mutex> Lock(mBufferSwapMutex, std::try_to_lock);
+
+	if (Lock.owns_lock())
 	{
-		const Vector3i ChunkPosition = mBufferSwapQueue.front();
-		mBufferSwapQueue.pop_front();
+		int32_t SwapCount = MESH_SWAPS_PER_FRAME;
 
-		const uint32_t Index = ChunkIndex(ChunkPosition);
+		while (SwapCount > 0 && !mBufferSwapQueue.empty())
+		{
+			const Vector3i ChunkPosition = mBufferSwapQueue.front();
+			mBufferSwapQueue.pop_front();
 
-		mChunks[Index].SwapMeshBuffer(*mPhysicsSystem);
+			const uint32_t Index = ChunkIndex(ChunkPosition);
 
-		mChunkPositions[Index] = ChunkPosition;
+			mChunks[Index].SwapMeshBuffer(*mPhysicsSystem);
+
+			mChunkPositions[Index] = Vector4i{ ChunkPosition, 1 };
+			SwapCount--;
+		}
 	}
 }
 
@@ -237,9 +255,14 @@ void FChunkManager::ChunkLoaderThreadLoop()
 {
 	while (!mMustShutdown)
 	{
-		UpdateRebuildList();
-		if (!mIsLoadListRefreshing)
+		while (!mMustShutdown && !mNeedsToRefreshVisibleList)
+		{
+			UpdateRebuildList();
 			UpdateLoadList();
+		}
+
+		mNeedsToRefreshVisibleList = false;
+		UpdateVisibleList();
 	}
 }
 
@@ -247,19 +270,14 @@ void FChunkManager::UpdateLoadList()
 {
 	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_FRAME;
 
-	std::unique_lock<std::mutex> LoadLock(mLoadListMutex);
 	std::unique_lock<std::mutex> BufferSwapLock(mBufferSwapMutex, std::defer_lock);
 	while (!mLoadList.empty() && LoadsLeft > 0)
 	{
 		// Buffer for all chunk data
 		std::vector<uint8_t> ChunkData;
 
-		if (mIsLoadListRefreshing)
-			return;
-
 		Vector3i ChunkPosition = mLoadList.front();
 		mLoadList.pop();
-		LoadLock.unlock();
 
 		const uint32_t Index = ChunkIndex(ChunkPosition);
 
@@ -304,7 +322,6 @@ void FChunkManager::UpdateLoadList()
 		BufferSwapLock.unlock();
 
 		LoadsLeft--;
-		LoadLock.lock();
 	}
 }
 
@@ -320,9 +337,8 @@ void FChunkManager::UpdateRebuildList()
 		RebuildLock.unlock();
 
 		const Vector3i ChunkPosition = mChunkPositions[ChunkIndex];
-		if (ChunkPosition != Vector3i{ -1, -1, -1 })
+		if (ChunkPosition.y != -1)
 		{
-
 			// Check if its already in the swap list and remove if it is.
 			BufferSwapLock.lock();
 			auto InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
@@ -349,9 +365,6 @@ void FChunkManager::UpdateVisibleList()
 	const int32_t ChunkBounds = 2 * mViewDistance + 1;
 
 	// Clear previous load and visibile list when moving across chunks.
-	mIsLoadListRefreshing.store(true);
-
-	std::lock_guard<std::mutex> LoadLock(mLoadListMutex);
 	mLoadList = std::queue<Vector3i>();
 
 	// Add all chunks in the visible range to the visible list.
@@ -370,7 +383,7 @@ void FChunkManager::UpdateVisibleList()
 				if (zPosition >= mWorldSize || zPosition < 0)
 					continue;
 
-				const Vector3i ChunkPosition{ xPosition, CameraChunkOffset.y, zPosition };
+				const Vector4i ChunkPosition{ xPosition, CameraChunkOffset.y, zPosition, 1 };
 				const int32_t VisibleChunkIndex = ChunkIndex(ChunkPosition);
 
 				// If this visible chunk is not loaded, load it.
@@ -406,7 +419,7 @@ void FChunkManager::UpdateVisibleList()
 					if (zPosition >= mWorldSize || zPosition < 0)
 						continue;
 
-					const Vector3i ChunkPosition{ xPosition, yPosition, zPosition };
+					const Vector4i ChunkPosition{ xPosition, yPosition, zPosition, 1 };
 					const int32_t VisibleChunkIndex = ChunkIndex(ChunkPosition);
 
 					// If this visible chunk is not loaded, load it.
@@ -418,8 +431,6 @@ void FChunkManager::UpdateVisibleList()
 			}
 		}
 	}
-
-	mIsLoadListRefreshing.store(false);
 }
 
 void FChunkManager::UpdateRenderList()
@@ -431,16 +442,18 @@ void FChunkManager::UpdateRenderList()
 	const FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
 	const int32_t ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
 
-	const Vector3i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE};
-	const Vector3i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth };
+	const Vector4i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 0};
+	const Vector4i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 1};
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		const Vector4f ChunkCenter{ mChunkPositions[i] * ChunkSizeVector + HalfChunkVector, 1.0 };
+		const Vector4i ChunkCenter{ mChunkPositions[i] * ChunkSizeVector + HalfChunkVector };
+		Vector4f CenterFloats;
+		Vector4IntToFloat(&ChunkCenter.x, &CenterFloats.x);
 
-		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(ChunkCenter, FChunk::CHUNK_SIZE))
+		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(CenterFloats, FChunk::CHUNK_SIZE))
 		{
 			mRenderList.push_back(i);
 		}

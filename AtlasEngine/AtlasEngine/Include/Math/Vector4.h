@@ -10,6 +10,7 @@
 
 #include "..\Common.h"
 #include "Vector3.h"
+#include "Memory\MemoryUtil.h"
 
 template <typename T>
 /**
@@ -18,6 +19,8 @@ template <typename T>
 class WIN_ALIGN(16) TVector4
 {
 public:
+	ALIGNED_ALLOC(16)
+
 	/**
 	* Constructs vector with x, y, z, w components.
 	* @param X - value of X component

@@ -19,7 +19,7 @@ public:
 	* @param InternalFormat1 - The format of the first texture target.
 	* @param InternalFormat2 - The format of the second texture target.
  	*/
-	GBuffer(const Vector2ui& TexResolution, const GLenum InternalFormat1, const GLenum InternalFormat2);
+	GBuffer(const Vector2ui& TexResolution, const GLenum InternalFormat1);
 	~GBuffer();
 
 	/**
@@ -47,7 +47,7 @@ public:
 
 private:
 	GLuint mFrameBuffer;
-	GLuint mTextureIDs[3];
+	GLuint mTextureIDs[2];
 	Vector2ui mResolution;
 };
 

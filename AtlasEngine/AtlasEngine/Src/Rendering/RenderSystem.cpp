@@ -40,7 +40,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mDeferredRender()
 	, mChunkRender()
 	, mPostProcesses()
-	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI, GL_R32F)
+	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI)
 {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

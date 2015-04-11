@@ -145,16 +145,15 @@ private:
 private:
 	FWorldFileSystem      mFileSystem;
 	FChunk*               mChunks;        // All world chunks
-	std::vector<Vector3i> mChunkPositions;
+	Vector4i*             mChunkPositions;
 	std::vector<uint32_t> mRenderList;    // Index list of chunks to render
 	std::queue<Vector3i>  mLoadList;      // Index list of chunks to be loaded
 	std::deque<uint32_t>  mRebuildList;   // Index list of chunks to be rebuilt
 	std::deque<Vector3i>  mBufferSwapQueue;
 	std::thread           mLoaderThread;
 	std::mutex            mRebuildListMutex;
-	std::mutex            mLoadListMutex;
 	std::mutex            mBufferSwapMutex;
-	std::atomic_bool      mIsLoadListRefreshing;
+	std::atomic_bool      mNeedsToRefreshVisibleList;
 	std::atomic_bool      mMustShutdown;
 
 	

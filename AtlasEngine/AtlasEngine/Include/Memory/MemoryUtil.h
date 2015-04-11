@@ -5,6 +5,8 @@
 #define ALIGNED_ALLOC(Alignment) \
 	void* operator new(size_t Size) { return FMemory::AllocateAligned(Size, (Alignment)); }  \
 	void operator delete(void* Data) { FMemory::FreeAligned(Data); } \
+	void* operator new[](size_t Size) { return FMemory::AllocateAligned(Size, (Alignment)); }  \
+	void operator delete[](void* Data) { FMemory::FreeAligned(Data); } \
 
 /**
 * Namespace for utility memory-based operations.

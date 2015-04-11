@@ -7,6 +7,9 @@
 #include "Common.h"
 
 template <typename T>
+class TVector4;
+
+template <typename T>
 /**
 * Class of manipulating a vector with 3 components.
 */
@@ -43,6 +46,9 @@ public:
 	*/
 	TVector3(const TVector3<T>& Other) = default;
 
+	template <typename U>
+	TVector3(const TVector4<U>& Other);
+
 	/**
 	* Default copy assignment.
 	*/
@@ -50,6 +56,9 @@ public:
 
 	template <typename U>
 	TVector3<T>(const TVector3<U>& Other);
+
+	template <typename U>
+	TVector3<T>& operator=(const TVector4<U>& Other);
 
 	template <typename U>
 	TVector3<T>& operator=(const TVector3<U>& Other);
