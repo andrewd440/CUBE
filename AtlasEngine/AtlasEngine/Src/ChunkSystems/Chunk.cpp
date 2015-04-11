@@ -43,10 +43,10 @@ FChunk::FChunk()
 
 	// Set collision data
 	CollisionData& CollisionInfo = *mCollisionData;
-	CollisionInfo.Mesh.setPremadeAabb(btVector3{ 0, 0, 0 }, btVector3{ 32, 32, 32 });
 
 	// Set collision shape and transform
-	CollisionInfo.Object.setCollisionShape(&CollisionInfo.Shape);
+	auto& CollisionMesh = CollisionInfo.Mesh[CollisionInfo.ActiveMesh];
+	CollisionInfo.Object.setCollisionShape(&CollisionMesh.Shape);
 }
 
 FChunk::~FChunk()
@@ -159,40 +159,23 @@ void FChunk::Render(const GLenum RenderMode)
 
 void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 {
-	bool WasEmpty = (mMesh->GetIndexCount() == 0);
+	bool WasEmpty = (mMesh->GetIndexCount(FChunkMesh::FrontBuffer{}) == 0);
 	mMesh->SwapBuffer();
 	mMesh->ClearBackBuffer();
-	mIsEmpty = (mMesh->GetIndexCount() == 0);
+	mIsEmpty = (mMesh->GetIndexCount(FChunkMesh::FrontBuffer{}) == 0);
+
+	// Set to new collision shape
+	mCollisionData->ActiveMesh = !mCollisionData->ActiveMesh;
+	auto& CollisionMesh = mCollisionData->Mesh[mCollisionData->ActiveMesh];
+	mCollisionData->Object.setCollisionShape(&CollisionMesh.Shape);
 
 	// Update collision info
-	if (!mIsEmpty)
+	if (!mIsEmpty && WasEmpty)
 	{
-		// Set vertex properties for collision mesh
-		const int32_t IndexStride = 3 * sizeof(uint32_t);
-		const int32_t VertexStride = sizeof(Vector3f);
-
-		// Build final collision mesh
-		btIndexedMesh VertexData;
-		VertexData.m_triangleIndexStride = IndexStride;
-		VertexData.m_numTriangles = (int)mMesh->GetIndexCount() / 3;;
-		VertexData.m_numVertices = (int)mMesh->GetVertexCount();
-		VertexData.m_triangleIndexBase = (const unsigned char*)mMesh->GetIndexData();
-		VertexData.m_vertexBase = (const unsigned char*)mMesh->GetVertexData();
-		VertexData.m_vertexStride = VertexStride;
-
-		// Reconstruct the collision shape with updated data
-		mCollisionData->Mesh.getIndexedMeshArray().clear();
-		mCollisionData->Mesh.getIndexedMeshArray().push_back(VertexData);
-		mCollisionData->Shape.~btBvhTriangleMeshShape();
-		new (&mCollisionData->Shape) btBvhTriangleMeshShape{ &mCollisionData->Mesh, false };
-
-		if (WasEmpty)
-		{
-			// Previous mesh was empty
-			PhysicsSystem.AddCollider(mCollisionData->Object);
-		}
+		// Previous mesh was empty
+		PhysicsSystem.AddCollider(mCollisionData->Object);
 	}
-	else if (!WasEmpty)
+	else if (!WasEmpty && mIsEmpty)
 	{
 		// Previous mesh was not empty but this one is
 		PhysicsSystem.RemoveCollider(mCollisionData->Object);
@@ -202,6 +185,32 @@ void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 void FChunk::RebuildMesh()
 {
 	GreedyMesh();
+
+	int32_t VertexCount = (int)mMesh->GetVertexCount(FChunkMesh::BackBuffer{});
+
+	if (VertexCount != 0)
+	{
+		// Build collision data
+		// Set vertex properties for collision mesh
+		const int32_t IndexStride = 3 * sizeof(uint32_t);
+		const int32_t VertexStride = sizeof(Vector3f);
+
+		// Build final collision mesh
+		btIndexedMesh VertexData;
+		VertexData.m_triangleIndexStride = IndexStride;
+		VertexData.m_numTriangles = (int)mMesh->GetIndexCount(FChunkMesh::BackBuffer{}) / 3;;
+		VertexData.m_numVertices = VertexCount;
+		VertexData.m_triangleIndexBase = (const unsigned char*)mMesh->GetIndexData(FChunkMesh::BackBuffer{});
+		VertexData.m_vertexBase = (const unsigned char*)mMesh->GetVertexData(FChunkMesh::BackBuffer{});
+		VertexData.m_vertexStride = VertexStride;
+
+		// Reconstruct the collision shape with updated data
+		auto& CollisionMesh = mCollisionData->Mesh[!mCollisionData->ActiveMesh];
+		CollisionMesh.Mesh.getIndexedMeshArray().clear();
+		CollisionMesh.Mesh.getIndexedMeshArray().push_back(VertexData);
+		CollisionMesh.Shape.~btBvhTriangleMeshShape();
+		new (&CollisionMesh.Shape) btBvhTriangleMeshShape{ &CollisionMesh.Mesh, false };
+	}
 }
 
 void FChunk::SetBlock(const Vector3i& Position, FBlock::Type BlockType)

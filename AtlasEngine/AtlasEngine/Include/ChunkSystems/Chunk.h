@@ -24,14 +24,23 @@ private:
 	WIN_ALIGN(16)
 	struct CollisionData
 	{
+		struct MeshData
+		{
+			MeshData()
+				: Mesh()
+				, Shape(&Mesh, false, false)
+			{}
+			btTriangleIndexVertexArray Mesh;
+			btBvhTriangleMeshShape     Shape;
+		};
+
 		CollisionData()
-			: Mesh()
-			, Shape(&Mesh, false, false)
-			, Object()
+			: Object()
+			, ActiveMesh(false)
 		{}
-		btTriangleIndexVertexArray Mesh;
-		btBvhTriangleMeshShape     Shape;
-		btCollisionObject          Object;
+		MeshData            Mesh[2];
+		btCollisionObject   Object;
+		bool                ActiveMesh;
 	};
 
 public:
