@@ -200,15 +200,20 @@ void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 
 	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
 	{
-		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
-		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-		mChunks[ChunkNumber].SetBlock(Position, Type);
+		int32_t Index = ChunkIndex(ChunkPosition);
 
-		std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-		if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
-			mRebuildList.push_back(ChunkNumber);
+		// Only set if the right chunk is loaded
+		if (ChunkPosition == mChunkPositions[Index])
+		{
+			mChunks[Index].SetBlock(Position, Type);
+
+			std::lock_guard<std::mutex> Lock(mRebuildListMutex);
+			if (std::find(mRebuildList.begin(), mRebuildList.end(), Index) == mRebuildList.end())
+				mRebuildList.push_back(Index);
+		}
 	}
 }
 
@@ -218,11 +223,16 @@ FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 
 	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
 	{
-		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
-		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-		return mChunks[ChunkNumber].GetBlock(Position);
+		int32_t Index = ChunkIndex(ChunkPosition);
+
+		// Only get if the right chunk is loaded
+		if (ChunkPosition == mChunkPositions[Index])
+		{
+			return mChunks[Index].GetBlock(Position);
+		}
 	}
 
 	return FBlock::None;
@@ -234,15 +244,20 @@ void FChunkManager::DestroyBlock(Vector3i Position)
 
 	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
 	{
-		const Vector3i ChunkPosition = Position / FChunk::CHUNK_SIZE;
+		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
-		int32_t ChunkNumber = ChunkIndex(ChunkPosition);
-		mChunks[ChunkNumber].DestroyBlock(Position);
+		int32_t Index = ChunkIndex(ChunkPosition);
 
-		std::lock_guard<std::mutex> Lock(mRebuildListMutex);
-		if (std::find(mRebuildList.begin(), mRebuildList.end(), ChunkNumber) == mRebuildList.end())
-			mRebuildList.push_back(ChunkNumber);
+		// Only destroy if the right chunk is loaded
+		if (ChunkPosition == mChunkPositions[Index])
+		{
+			mChunks[Index].DestroyBlock(Position);
+
+			std::lock_guard<std::mutex> Lock(mRebuildListMutex);
+			if (std::find(mRebuildList.begin(), mRebuildList.end(), Index) == mRebuildList.end())
+				mRebuildList.push_back(Index);
+		}
 	}
 }
 
