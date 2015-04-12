@@ -29,7 +29,7 @@
 int main()
 {
 	const Vector2ui Resolution{ 1920, 1080 };
-	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
+	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Fullscreen };
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
 	SMouseAxis::SetMouseVisible(false);
@@ -42,6 +42,8 @@ int main()
 
 	auto& Renderer = Root.GetRenderSystem();
 	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
+	SSAOPostProcess->SetMaxDistance(2.0f);
+	SSAOPostProcess->SetSampleRadius(Vector2f{ 20.0f, 20.0f } / Vector2f{ Resolution });
 	Renderer.AddPostProcess(std::move(SSAOPostProcess));
 
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };

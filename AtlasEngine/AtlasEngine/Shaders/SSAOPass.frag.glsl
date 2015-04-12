@@ -18,6 +18,11 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 InvProjection;		//      16                  192         256
 } Transforms;
 
+layout(std140, binding = 4) uniform ResolutionBlock
+{
+	uvec2 Resolution;
+};
+
 const int SampleCount = 8;
 const vec2 Poisson16[] = vec2[](    // These are the Poisson Disk Samples
                                 vec2( -0.94201624,  -0.39906216 ),
@@ -38,33 +43,18 @@ const vec2 Poisson16[] = vec2[](    // These are the Poisson Disk Samples
                                 vec2(  0.14383161,  -0.14100790 )
                                );
 
-uniform vec2 FilterRadius = vec2(20.0 / 1920.0, 20.0 / 1080.0);
-uniform float DistanceThreshold = 4.0;
+uniform vec2 SampleRadius;// = vec2(20.0 / 1920.0, 20.0 / 1080.0);
+uniform float MaxDistance;// = 4.0;
 
-vec3 GetViewPosition(ivec2 ScreenCoord)
-{
-	vec2 NDC = ((ScreenCoord * 2.0) / vec2(1920, 1080)) - 1.0;
-	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r * 2.0 - 1.0;
-	vec4 View = Transforms.InvProjection * vec4(NDC, Depth, 1.0);
-	return View.xyz / View.w;
-}
+vec3 GetViewPosition(sampler2D DepthSampler, ivec2 ScreenCoord, vec2 Resolution);
 
 void UnpackSSAOFragment(ivec2 ScreenCoord, out FragmentSSAOData_t Fragment)
 {
-	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
-	Fragment.Position = GetViewPosition(ScreenCoord);
+	Fragment.Position = GetViewPosition(DepthTexture, ScreenCoord, vec2(Resolution));
 
+	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
 	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
 	Fragment.Normal = normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
-}
-
-float LinearizeDepth(float Depth)
-{
-    const float Near = Transforms.Projection[3][2] / (Transforms.Projection[2][2] - 1.0); 
-    const float Far = Transforms.Projection[3][2] / (Transforms.Projection[2][2] + 1.0); 
-
-    float z = Depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * Near) / (Far + Near - z * (Far - Near));	
 }
 
 void main()
@@ -73,20 +63,22 @@ void main()
 	ivec2 FragPosition = ivec2(gl_FragCoord.xy);
 	UnpackSSAOFragment(FragPosition, FragmentData);
 
-	vec2 TexCoord = vec2(FragPosition) / vec2(1920, 1080);
+	vec2 FResolution = vec2(Resolution);
+	vec2 TexCoord = vec2(FragPosition) / FResolution;
+
 	float Occlusion = 1.0;
-	vec2 FilterRadiusFrag = (FilterRadius / FragmentData.Position.z);
+	vec2 SampleRadiusFrag = (SampleRadius / FragmentData.Position.z);
 
 	for(uint i = 0; i < SampleCount; i++)
 	{
-		vec2 SampleTexCoord = TexCoord + (Poisson16[i] * FilterRadiusFrag);
-		vec3 SamplePosition = GetViewPosition(ivec2(SampleTexCoord * vec2(1920, 1080)));
+		vec2 SampleTexCoord = TexCoord + (Poisson16[i] * SampleRadiusFrag);
+		vec3 SamplePosition = GetViewPosition(DepthTexture, ivec2(SampleTexCoord * FResolution), FResolution);
 		vec3 SampleDirection = normalize(SamplePosition - FragmentData.Position);
 
 		float NdotS = max(dot(FragmentData.Normal, SampleDirection), 0.0);
 		float Distance = distance(SamplePosition, FragmentData.Position);
 
-		float a = 1.0 - smoothstep(DistanceThreshold, DistanceThreshold * 2, Distance);
+		float a = 1.0 - smoothstep(MaxDistance, MaxDistance * 2, Distance);
 		
 		Occlusion += a * NdotS;
 	}
