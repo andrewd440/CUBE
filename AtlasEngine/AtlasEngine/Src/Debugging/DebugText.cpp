@@ -6,17 +6,19 @@
 #include "ResourceHolder.h"
 #include "SystemResources\SystemFile.h"
 #include "freetype-gl\markup.h"
+#include "Rendering\RenderSystem.h"
 
 namespace FDebug
 {
 	Text::Text()
 		: TSingleton()
-		, mTextProjection(FOrthoMatrix{ 0, 1920, 1080, 0, -1, 0 })
+		, mTextProjection(FOrthoMatrix{ 0, 0, 0, 0, -1, 0 })
 		, mTextBuffer(nullptr)
 		, mProjectionUniform()
 		, mViewUniform()
 		, mModelUniform()
 	{
+		FRenderSystem::OnResolutionChange.AddListener<Text, &Text::OnResolutionChange>(this);
 		mTextBuffer = text_buffer_new(LCD_FILTERING_ON);
 
 		glUseProgram(mTextBuffer->shader);
@@ -28,6 +30,7 @@ namespace FDebug
 
 	Text::~Text()
 	{
+		FRenderSystem::OnResolutionChange.RemoveListener(this);
 		text_buffer_delete(mTextBuffer);
 	}
 
@@ -48,5 +51,10 @@ namespace FDebug
 
 		text_buffer_render(mTextBuffer);
 		text_buffer_clear(mTextBuffer);
+	}
+
+	void Text::OnResolutionChange(Vector2ui NewResolution)
+	{
+		mTextProjection = FOrthoMatrix{ 0, (float)NewResolution.x, (float)NewResolution.y, 0, -1, 0 };
 	}
 }

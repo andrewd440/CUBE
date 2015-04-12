@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "Singleton.h"
+#include "Utils/Singleton.h"
 
 /**
 * Interface for platform file handles.

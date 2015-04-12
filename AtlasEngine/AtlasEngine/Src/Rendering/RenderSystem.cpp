@@ -52,6 +52,8 @@ namespace
 	}
 }
 
+TEvent<Vector2ui> FRenderSystem::OnResolutionChange;
+
 FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChunkManager& ChunkManager)
 	: ISystem(World)
 	, mWindow(GameWindow)
@@ -204,6 +206,7 @@ void FRenderSystem::SetResolution(const Vector2ui& Resolution)
 	mGBuffer = GBuffer{ Resolution, GL_RGBA32UI };
 
 	mResolutionBlock.SetData(ResolutionBlock::Resolution, Resolution);
+	OnResolutionChange.Invoke(Resolution);
 }
 
 void FRenderSystem::RenderGeometry()

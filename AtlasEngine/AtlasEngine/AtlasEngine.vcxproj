@@ -209,6 +209,7 @@
     <ClInclude Include="Include\Rendering\SSAOPostProcess.h" />
     <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\ChunkSystems\WorldGenerator.h" />
+    <ClInclude Include="Include\Utils\Event.h" />
     <ClInclude Include="Include\VoxiGineRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
     <ClInclude Include="Include\Atlas\Component.h" />
@@ -266,7 +267,7 @@
     <ClInclude Include="Include\Misc\StringUtil.h" />
     <ClInclude Include="Include\Rendering\UniformBlockStandard.h" />
     <ClInclude Include="Include\Rendering\VertexBufferObject.h" />
-    <ClInclude Include="Include\Singleton.h" />
+    <ClInclude Include="Include\Utils\Singleton.h" />
     <ClInclude Include="Include\StringID.h" />
     <ClInclude Include="Include\SystemResources\SystemClock.h" />
     <ClInclude Include="Include\SystemResources\SystemFile.h" />

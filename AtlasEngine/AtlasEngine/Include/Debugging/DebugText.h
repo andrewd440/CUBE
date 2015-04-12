@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Singleton.h"
+#include "Utils/Singleton.h"
 #include "Rendering\ShaderProgram.h"
 #include "Math\Vector2.h"
 #include "Math\Vector3.h"
@@ -46,7 +46,7 @@ namespace FDebug
 		*/
 		void Render();
 
-
+		void OnResolutionChange(Vector2ui NewResolution);
 
 	private:
 		FMatrix4 mTextProjection;

@@ -6,11 +6,16 @@
 #include "Rendering\GBuffer.h"
 #include "Math\Box.h"
 #include "IRenderPostProcess.h"
+#include "Utils\Event.h"
+#include "Math\Vector2.h"
 
 class FChunkManager;
 
 class FRenderSystem : public Atlas::ISystem
 {
+public:
+	static TEvent<Vector2ui> OnResolutionChange;
+
 public:
 	/**
 	* Constructs a rendering system.

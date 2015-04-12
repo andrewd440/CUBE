@@ -24,12 +24,13 @@
 #include "LibNoise\noise.h"
 #include "ChunkSystems\WorldGenerator.h"
 #include "Math\Vector2.h"
+#include "Utils\Event.h"
 
 
 int main()
 {
 	const Vector2ui Resolution{ 1920, 1080 };
-	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Fullscreen };
+	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
 	SMouseAxis::SetMouseVisible(false);
@@ -96,11 +97,6 @@ int main()
 	//Sword.Transform.Rotate(FQuaternion{ 90, 0, -45 });
 
 	Root.Start();
-
-
-
-
-
 
 }
 

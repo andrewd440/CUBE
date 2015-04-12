@@ -1,5 +1,5 @@
 #pragma once
-#include "Singleton.h"
+#include "Utils/Singleton.h"
 #include "Rendering\Mesh.h"
 #include "Rendering\ShaderProgram.h"
 #include "Math\Vector3.h"

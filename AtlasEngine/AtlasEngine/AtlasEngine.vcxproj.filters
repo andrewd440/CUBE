@@ -51,9 +51,6 @@
     <ClInclude Include="Include\Math\Random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Singleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Memory\PoolAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -298,6 +295,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Components\MeshRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Utils\Singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Utils\Event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "Singleton.h"
+#include "Utils/Singleton.h"
 
 template <typename Resource>
 /**

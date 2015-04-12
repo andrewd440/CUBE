@@ -10,7 +10,7 @@
 #include "Chunk.h"
 #include "LibNoise\noise.h"
 #include "LibNoise\noiseutils.h"
-#include "Singleton.h"
+#include "Utils/Singleton.h"
 #include "FileIO\WorldFileSystem.h"
 
 class FPhysicsSystem;
