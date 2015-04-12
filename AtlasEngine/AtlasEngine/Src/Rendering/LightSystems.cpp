@@ -13,9 +13,6 @@
 #include "Rendering\Screen.h"
 #include <limits>
 
-FCamera ILightSystem::LightCamera;
-static const Vector2ui SHADOW_MAP_RESOLUTION = Vector2ui{ 8192, 8192 };
-
 ////////////////////////////////////////////////////////////////////////////////////
 //////////////////////// Directional Light /////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -26,9 +23,11 @@ FDirectionalLightSystem::FDirectionalLightSystem(Atlas::FWorld& World, FRenderSy
 {
 	AddComponentType<Atlas::EComponent::DirectionalLight>();
 
+	FShader FragShader{ L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER };
+
 	mLightShader.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
 	mLightShader.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
-	mLightShader.AttachShader(SShaderHolder::Get("DeferredDirectionalLighting.frag"));
+	mLightShader.AttachShader(FragShader);
 	mLightShader.LinkProgram();
 }
 
@@ -70,9 +69,11 @@ FPointLightSystem::FPointLightSystem(Atlas::FWorld& World, FRenderSystem& Render
 {
 	AddComponentType<Atlas::EComponent::PointLight>();
 
+	FShader FragShader{ L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER };
+
 	mLightShader.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
 	mLightShader.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
-	mLightShader.AttachShader(SShaderHolder::Get("DeferredPointLighting.frag"));
+	mLightShader.AttachShader(FragShader);
 	mLightShader.LinkProgram();
 }
 
@@ -102,10 +103,13 @@ void FPointLightSystem::Update()
 		if (Frustum.IsSphereVisible(LightVolume))
 		{
 			// Set light data
-			Light.Position = Transform.GetWorldPosition();
+			Light.Position = LightViewSpace;
 			Light.Color = LightComponent.Color;
-			Light.MinDistance = LightComponent.MinDistance;
-			Light.MaxDistance = LightComponent.MaxDistance;
+			Light.Constant = LightComponent.Constant;
+			Light.Linear = LightComponent.Linear;
+			Light.Quadratic = LightComponent.Quadratic;
+			Light.Intensity = LightComponent.Intensity;
+		
 
 			// Copy to buffer
 			mUniformBuffer.SetData(0, (uint8_t*)&Light, sizeof(ShaderPointLight));

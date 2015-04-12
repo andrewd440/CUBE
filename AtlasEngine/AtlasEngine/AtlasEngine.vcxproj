@@ -189,7 +189,8 @@
     <ClInclude Include="Include\Components\BoxShooter.h" />
     <ClInclude Include="Include\Components\Collider.h" />
     <ClInclude Include="Include\Components\FlyingCamera.h" />
-    <ClInclude Include="Include\Components\MeshComponent.h" />
+    <ClInclude Include="Include\Components\MeshRenderer.h" />
+    <ClInclude Include="Include\Components\ObjectMesh.h" />
     <ClInclude Include="Include\Components\RigidBody.h" />
     <ClInclude Include="Include\Components\TimeBomb.h" />
     <ClInclude Include="Include\Components\TimeBombShooter.h" />
@@ -283,7 +284,8 @@
     <ClCompile Include="Src\Components\BoxShooter.cpp" />
     <ClCompile Include="Src\Components\Collider.cpp" />
     <ClCompile Include="Src\Components\FlyingCamera.cpp" />
-    <ClCompile Include="Src\Components\MeshComponent.cpp" />
+    <ClCompile Include="Src\Components\MeshRenderer.cpp" />
+    <ClCompile Include="Src\Components\ObjectMesh.cpp" />
     <ClCompile Include="Src\Components\RigidBody.cpp" />
     <ClCompile Include="Src\Components\TimeBomb.cpp" />
     <ClCompile Include="Src\Components\TimeBombShooter.cpp" />

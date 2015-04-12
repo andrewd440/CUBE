@@ -1,5 +1,5 @@
 #pragma once
-#include <unordered_map>
+#include <map>
 #include <cstdint>
 #include <memory>
 
@@ -46,7 +46,7 @@ public:
 	static Resource& Get(const char* Name);
 
 private:
-	static std::unordered_map<uint32_t, std::unique_ptr<Resource>> mResourceMap;
+	static std::map<uint32_t, std::unique_ptr<Resource>> mResourceMap;
 };
 
 class FShader;

@@ -2,7 +2,7 @@
 #include "Input\ButtonEvent.h"
 #include "Rendering\Camera.h"
 #include "Atlas\GameObject.h"
-#include "Components\MeshComponent.h"
+#include "Components\MeshRenderer.h"
 
 CBoxShooter::CBoxShooter()
 {
@@ -28,7 +28,7 @@ void CBoxShooter::Update()
 		Body.Body.setLinearVelocity(btVector3{ Forward.x, Forward.y, Forward.z } *40.0f);
 		Body.BoxCollider.setImplicitShapeDimensions(btVector3{ .5f, .5f, .5f });
 
-		auto& Mesh = Box.AddComponent<Atlas::EComponent::Mesh>();
-		Mesh.LoadModel("Box.obj");
+		auto& Mesh = Box.AddComponent<Atlas::EComponent::MeshRenderer>();
+		Mesh.LinkToMesh("Box");
 	}
 }

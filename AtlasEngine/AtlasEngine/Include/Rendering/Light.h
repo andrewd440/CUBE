@@ -10,7 +10,10 @@ struct FDirectionalLight : public Atlas::IComponent
 
 struct FPointLight : public FDirectionalLight
 {
-	float MinDistance;
+	float Intensity;
+	float Constant;
+	float Linear;
+	float Quadratic;
 	float MaxDistance;
 };
 

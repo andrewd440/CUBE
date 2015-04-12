@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "Rendering\VertexTraits.h"
 #include "SFML\Window\Context.hpp"
-#include "Components\MeshComponent.h"
+#include "Components\MeshRenderer.h"
 #include "tinyobjloader\tiny_obj_loader.h"
 #include <fstream>
 

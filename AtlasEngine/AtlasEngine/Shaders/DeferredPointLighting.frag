@@ -12,10 +12,12 @@ struct FragmentData_t
 struct PointLight_t
 {
     // std140 alignment      Base Align		Aligned Offset		End
-	vec3 Position;         //    16               0              12
+	vec3 ViewPosition;     //    16               0              12
 	vec3 Color;            //    16               16             28
-	float MinDistance;     //     4               28             32            
-	float MaxDistance;     //     4               32             36
+	float Constant;        //     4               28             32   
+	float Linear;          //     4               32             36   
+	float Quadratic;       //     4               36             40     
+	float Intensity;       //     4               40             44
 };
 
 layout(std140, binding = 2) uniform TransformBlock
@@ -42,17 +44,11 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 	if (Fragment.MaterialID != 0)
 	{
 		// Get light direction and distance
-		vec3 L =  (Transforms.View * vec4(Light.Position, 1)).xyz - Fragment.ViewCoord;
+		vec3 L =  Light.ViewPosition - Fragment.ViewCoord;
 		float Distance = length(L);
 		L = normalize(L);
 
-		float Attenuation = 1;
-		if (Distance < Light.MinDistance)
-			Attenuation = 1.0;
-		else
-		{
-			Attenuation = (Light.MaxDistance - Distance) / (Light.MaxDistance - Light.MinDistance);
-		}
+		float Attenuation = Light.Intensity / (Light.Constant + Light.Linear * Distance + Light.Quadratic * Distance * Distance);
 
 		// Normal and reflection vectors
 		vec3 N = normalize(Fragment.Normal);

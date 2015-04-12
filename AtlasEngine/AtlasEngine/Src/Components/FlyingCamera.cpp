@@ -5,12 +5,11 @@
 #include "Input\MouseAxis.h"
 #include "ChunkSystems\ChunkManager.h"
 #include "Atlas\GameObject.h"
-#include "Components\MeshComponent.h"
 
 CFlyingCamera::CFlyingCamera()
 	: FBehavior()
 	, mCamera(nullptr)
-	, mMoveSpeed(15.0f)
+	, mMoveSpeed(10.0f)
 	, mLookSpeed(5.0f)
 {
 }

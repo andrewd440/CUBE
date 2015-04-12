@@ -33,6 +33,11 @@ public:
 	void Update() override;
 
 	/**
+	* Sets the resolution of the rendering display.
+	*/
+	void SetResolution(const Vector2ui& Resolution);
+
+	/**
 	* Sends draw calls to all the currently visible geometry with respect to
  	* the main camera.
 	*/
@@ -42,7 +47,7 @@ public:
 	* Get the current world space coordinates of each of the 8 corners
 	* of the view volume.
 	*/
-	FBox GetViewBounds() const;
+	//FBox GetViewBounds() const;
 
 	/**
 	* Adds a rendering post process technique.
@@ -83,9 +88,14 @@ private:
 	void LightingPass();
 
 	/**
-	* Updates the AABB for the current view volume.
+	* Updates the bounding box for the current view volume.
 	*/
-	void UpdateViewBounds();
+	//void UpdateViewBounds();
+
+	/**
+	* Transfers view and projection data to shaders.
+	*/
+	void TransferViewProjectionData();
 
 private:
 	// Each type of subsystem used by the rendering system
@@ -116,13 +126,17 @@ private:
 	using PostProcessContainer = std::vector<PostProcessRecord>;
 
 private:
-	sf::Window& mWindow;
-	FChunkManager& mChunkManager;
-	EZGL::FUniformBlock mTransformBuffer;
-	GLuint mBlockInfoBuffer;
-	FShaderProgram mDeferredRender;
-	FShaderProgram mChunkRender;
-	GBuffer mGBuffer;
-	PostProcessContainer mPostProcesses;
-	FBox mViewAABB;
+	sf::Window&           mWindow;
+	FChunkManager&        mChunkManager;
+	FShaderProgram        mDeferredRender;
+	FShaderProgram        mChunkRender;
+	GBuffer               mGBuffer;
+	PostProcessContainer  mPostProcesses;
+	//FBox                  mViewAABB;
+
+	// Shader info blocks and buffers
+	EZGL::FUniformBlock   mTransformBlock;
+	EZGL::FUniformBlock   mResolutionBlock;
+	EZGL::FUniformBlock   mProjectionInfoBlock;
+	GLuint                mBlockInfoBuffer;
 };

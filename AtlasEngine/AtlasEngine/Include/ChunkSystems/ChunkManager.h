@@ -22,9 +22,6 @@ class FRenderSystem;
 class FChunkManager
 {
 public:
-	static const int32_t CHUNKS_TO_LOAD_PER_FRAME;
-
-public:
 	FChunkManager();
 	~FChunkManager();
 
@@ -64,10 +61,16 @@ public:
 	/**
 	* Loads a new world from file.
 	* @param WorldName - The name of the world to load.
-	* @brief A folder by the name of the world will be search for in
+	* @brief A folder by the name of the world will be searched for in
 	*        the World folder in the program's root directory.
 	*/
 	void LoadWorld(const wchar_t* WorldName);
+
+	/**
+	* Save the current world to file. If the world is large, this operation may
+	* take some time due to a large amount of data needing to be copied on file.
+	*/
+	void SaveWorld();
 
 	/**
 	* Sets the world view distance. This is in terms
@@ -88,16 +91,21 @@ private:
 	*/
 	void Shutdown();
 
+	/**
+	* The total number of chunks allocated.
+	*/
 	uint32_t ChunkCount() const;
 
 	void ChunkLoaderThreadLoop();
 
+	/**
+	* Processes the buffer swap list for chunks.
+	*/
 	void SwapChunkBuffers();
 
-	// Updates the current unload list
-	void UpdateUnloadList();
-
-	// Updates the current load list
+	/**
+	* Updates the current load list
+	*/
 	void UpdateLoadList();
 
 	/**
@@ -121,6 +129,8 @@ private:
 	* a new world size. Called when a new world is loaded.
 	*/
 	void ResizeWorld();
+
+	void ReallocateChunkData(const int32_t NewViewDistance);
 
 	/**
 	* Unloads all chunks that are currently loaded.
@@ -155,8 +165,6 @@ private:
 	std::mutex            mBufferSwapMutex;
 	std::atomic_bool      mNeedsToRefreshVisibleList;
 	std::atomic_bool      mMustShutdown;
-
-	
 
 	// Rendering data
 	Vector3i mLastCameraChunk;

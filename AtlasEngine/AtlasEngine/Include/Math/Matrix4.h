@@ -10,6 +10,7 @@
 #include "Math\Vector3.h"
 #include "Math\Vector4.h"
 #include "Misc\Assertions.h"
+#include "Memory\MemoryUtil.h"
 
 
 /**
@@ -19,6 +20,8 @@
 WIN_ALIGN(16)
 struct FMatrix4
 {
+	ALIGNED_ALLOC(16)
+
 	enum EAxis : uint8_t
 	{
 		X = 0,

@@ -46,6 +46,8 @@ namespace FDebug
 		*/
 		void Render();
 
+
+
 	private:
 		FMatrix4 mTextProjection;
 		text_buffer_t* mTextBuffer;

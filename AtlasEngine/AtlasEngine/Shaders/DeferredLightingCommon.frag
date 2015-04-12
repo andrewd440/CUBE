@@ -20,10 +20,15 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 InvProjection;		//      16                  192         256
 } Transforms;
 
-vec3 GetViewPosition(ivec2 ScreenCoord)
+layout(std140, binding = 4) uniform ResolutionBlock
 {
-	vec2 NDC = ((ScreenCoord * 2.0) / vec2(1920, 1080)) - 1.0;
-	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r * 2.0 - 1.0;
+	uvec2 Resolution;
+};
+
+vec3 GetViewPosition(sampler2D DepthSampler, ivec2 ScreenCoord, vec2 Resolution)
+{
+	vec2 NDC = ((ScreenCoord * 2.0) / Resolution) - 1.0;
+	float Depth = texelFetch(DepthSampler, ScreenCoord, 0).r * 2.0 - 1.0;
 	vec4 View = Transforms.InvProjection * vec4(NDC, Depth, 1.0);
 	return View.xyz / View.w;
 }
@@ -37,5 +42,5 @@ void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 	Fragment.Normal = normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
 	Fragment.MaterialID = Data0.w;
 
-	Fragment.ViewCoord = GetViewPosition(ScreenCoord);
+	Fragment.ViewCoord = GetViewPosition(DepthTexture, ScreenCoord, vec2(Resolution));
 }

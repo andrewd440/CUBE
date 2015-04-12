@@ -46,4 +46,4 @@ inline Resource& TResourceHolder<Resource>::Get(const char* Name)
 }
 
 template <typename Resource>
-std::unordered_map<uint32_t, std::unique_ptr<Resource>> TResourceHolder<Resource>::mResourceMap;
+std::map<uint32_t, std::unique_ptr<Resource>> TResourceHolder<Resource>::mResourceMap;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <emmintrin.h>
+#include "Memory\MemoryUtil.h"
 
 #define SHUFFLE_PARAM(x, y, z, w) \
 	((x) | ((y) << 2) | ((z) << 4) | ((w) << 6))
@@ -210,6 +211,57 @@ __forceinline void Dot4Product(const int32_t* Vec1, const int32_t* Vec2, int32_t
 	Dot = _mm_hadd_epi32(Dot, Dot);
 
 	*ResultOut = Dot.m128i_i32[0];
+}
+
+template <uint32_t Count>
+/**
+* Computes the dot product for PrimaryVec with each of the SecondaryVecs passed in and adds all the
+* results together and places them in ResultOut.
+*/
+__forceinline void Dot4ProductBatchAdd(const float* PrimaryVec, const float SecondaryVecs[Count][4], float* ResultOut)
+{
+	const register __m128 Primary = LoadVector(PrimaryVec);
+	__m128 Secondaries[Count];
+
+	for (uint32_t i = 0; i < Count; i++)
+	{
+		Secondaries[i] = LoadVector(SecondaryVecs[i]);
+		Secondaries[i] = _mm_mul_ps(Primary, Secondaries[i]);
+	}
+
+	for (uint32_t i = 1; i < Count; i++)
+	{
+		Secondaries[0] = _mm_add_ps(Secondaries[0], Secondaries[i]);
+	}
+
+	__m128 Sum = _mm_hadd_ps(Secondaries[0], Secondaries[0]);
+	Sum = _mm_hadd_ps(Secondaries[0], Secondaries[0]);
+
+	*ResultOut = Sum.m128_f32[0];
+}
+
+template <uint32_t Count>
+/**
+* Computes the dot product for PrimaryVec with each of the SecondaryVecs passed in and places
+* each result in ResultsOut.
+*/
+__forceinline void Dot4ProductBatch(const float* PrimaryVec, const float SecondaryVecs[Count][4], float ResultsOut[Count])
+{
+	const __m128 Primary = LoadVector(PrimaryVec);
+	__m128 Secondaries[Count];
+
+	for (uint32_t i = 0; i < Count; i++)
+	{
+		Secondaries[i] = LoadVector(SecondaryVecs[i]);
+		Secondaries[i] = _mm_mul_ps(Primary, Secondaries[i]);
+	}
+	
+	for (uint32_t i = 0; i < Count; i++)
+	{
+		Secondaries[i] = _mm_hadd_ps(Secondaries[i], Secondaries[i]);
+		Secondaries[i] = _mm_hadd_ps(Secondaries[i], Secondaries[i]);
+		ResultsOut[i] = Secondaries[i].m128_f32[0];
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

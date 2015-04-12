@@ -87,31 +87,43 @@ namespace EZGL
 	};
 
 	template <>
+	inline void FUniformBlock::SetData<float>(const uint32_t DataOffset, const float& Type)
+	{
+		SetData(DataOffset, (uint8_t*)&Type, sizeof(float));
+	}
+
+	template <>
 	inline void FUniformBlock::SetData<FMatrix4>(const uint32_t DataOffset, const FMatrix4& Type)
 	{
-		SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
+		SetData(DataOffset, (uint8_t*)&Type.M[0][0], sizeof(FMatrix4));
 	}
 
 	template <>
 	inline void FUniformBlock::SetData<FPerspectiveMatrix>(const uint32_t DataOffset, const FPerspectiveMatrix& Type)
 	{
-		SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
+		SetData(DataOffset, (uint8_t*)&Type.M[0][0], sizeof(FPerspectiveMatrix));
 	}
 
 	template <>
 	inline void FUniformBlock::SetData<FOrthoMatrix>(const uint32_t DataOffset, const FOrthoMatrix& Type)
 	{
-		SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
+		SetData(DataOffset, (uint8_t*)&Type.M[0][0], sizeof(FOrthoMatrix));
 	}
 
 	template <>
 	inline void FUniformBlock::SetData<LookAtMatrix>(const uint32_t DataOffset, const LookAtMatrix& Type)
 	{
-		SetData(DataOffset, (uint8_t*)&Type.M[0][0], 64);
+		SetData(DataOffset, (uint8_t*)&Type.M[0][0], sizeof(LookAtMatrix));
 	}
 
 	template <>
 	inline void FUniformBlock::SetData<Vector2f>(const uint32_t DataOffset, const Vector2f& Type)
+	{
+		SetData(DataOffset, (uint8_t*)&Type.x, 8);
+	}
+
+	template <>
+	inline void FUniformBlock::SetData<Vector2ui>(const uint32_t DataOffset, const Vector2ui& Type)
 	{
 		SetData(DataOffset, (uint8_t*)&Type.x, 8);
 	}

@@ -2,6 +2,8 @@
 
 #include "Atlas\World.h"
 #include "SFML\Window\Window.hpp"
+#include "Math\Vector2.h"
+#include <cstdint>
 
 class Atlas::FGameObjectManager;
 class FRenderSystem;
@@ -14,7 +16,7 @@ class FChunkManager;
 class FVoxiGineRoot
 {
 public:
-	FVoxiGineRoot();
+	FVoxiGineRoot(const wchar_t* AppName, const Vector2ui Resolution, const uint32_t WindowStyle = sf::Style::Default);
 
 	~FVoxiGineRoot();
 
@@ -34,7 +36,6 @@ private:
 	void LoadEngineSystems();
 	void GameLoop();
 	void ServiceEvents();
-	void ConstructScene();
 
 private:
 	struct Systems

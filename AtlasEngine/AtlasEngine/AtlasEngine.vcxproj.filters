@@ -243,9 +243,6 @@
     <ClInclude Include="Include\Input\TextEntered.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Components\MeshComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Atlas\Behavior.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -295,6 +292,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\ChunkSystems\ChunkMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Components\ObjectMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Components\MeshRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -455,9 +458,6 @@
     <ClCompile Include="Src\Input\TextEntered.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\MeshComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Atlas\Behavior.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -498,6 +498,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\ChunkSystems\ChunkMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Components\ObjectMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Components\MeshRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

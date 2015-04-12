@@ -114,6 +114,11 @@ void FWorldFileSystem::RemoveRegionFileReference(const Vector3i& ChunkPosition)
 	}
 }
 
+void FWorldFileSystem::ClearAllRegionFileReferences()
+{
+	mRegionFiles.clear();
+}
+
 void FWorldFileSystem::GetChunkData(const Vector3i& ChunkPosition, std::vector<uint8_t>& DataOut)
 {
 	const Vector3i RegionID = FRegionFile::ChunkToRegionPosition(ChunkPosition);

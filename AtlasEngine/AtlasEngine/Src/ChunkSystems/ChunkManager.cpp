@@ -9,9 +9,9 @@
 #include "SFML\Window\Context.hpp"
 #include "STime.h"
 
-const int32_t FChunkManager::CHUNKS_TO_LOAD_PER_FRAME = 8;
 static const uint32_t DEFAULT_VIEW_DISTANCE = 10;
-static const uint32_t MESH_SWAPS_PER_FRAME = 20;
+static const uint32_t MESH_SWAPS_PER_FRAME = 25;
+static const int32_t CHUNKS_TO_LOAD_PER_ITERATION = 10;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
@@ -69,6 +69,7 @@ void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
 	Shutdown();
 
+	// Set chunk positions to invalid value
 	for (uint32_t i = 0; i < ChunkCount(); i++)
 	{
 		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
@@ -78,42 +79,52 @@ void FChunkManager::LoadWorld(const wchar_t* WorldName)
 
 	mWorldSize = mFileSystem.GetWorldSize();
 
+	// Activate loader thread
 	mNeedsToRefreshVisibleList = true;
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
+}
+
+void FChunkManager::SaveWorld()
+{
+	mFileSystem.SaveWorld();
 }
 
 void FChunkManager::SetViewDistance(const uint32_t Distance)
 {
 	Shutdown();
+	ReallocateChunkData(Distance);
 
+	mNeedsToRefreshVisibleList = true;
+	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
+}
+
+void FChunkManager::ReallocateChunkData(const int32_t NewViewDistance)
+{
 	const uint32_t Size = ChunkCount();
 	for (uint32_t i = 0; i < Size; i++)
 	{
 		mChunks[i].ShutDown(*mPhysicsSystem);
 	}
 
-	mViewDistance = Distance;
-	const int32_t NewBounds = ChunkCount();
+	mViewDistance = NewViewDistance;
+	const uint32_t NewSize = ChunkCount();
 
 	// Resize data
 	delete[] mChunks;
 	delete[] mChunkPositions;
-	mChunks = new FChunk[NewBounds];
-	mChunkPositions = new Vector4i[NewBounds];
-	
-	for (uint32_t i = 0; i < ChunkCount(); i++)
+	mChunks = new FChunk[NewSize];
+	mChunkPositions = new Vector4i[NewSize];
+
+	for (uint32_t i = 0; i < NewSize; i++)
 	{
 		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
 	}
-
-	mNeedsToRefreshVisibleList = true;
-	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
 
 void FChunkManager::UnloadAllChunks()
 {
-	const uint32_t ChunksSize = ChunkCount();
-	for (uint32_t i = 0; i < ChunksSize; i++)
+	const uint32_t Size = ChunkCount();
+	for (uint32_t i = 0; i < Size; i++)
 	{
 		if (mChunks[i].IsLoaded())
 		{
@@ -129,15 +140,15 @@ void FChunkManager::UnloadAllChunks()
 
 				// Write the data to file
 				mFileSystem.WriteChunkData(UnloadChunkPosition, ChunkData);
-				mFileSystem.RemoveRegionFileReference(UnloadChunkPosition);
 			}
 		}
 	}
+
+	mFileSystem.ClearAllRegionFileReferences();
 }
 
 void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 {
-
 	UpdateRenderList();
 
 	// Render everything in the renderlist
@@ -156,8 +167,7 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 void FChunkManager::Update()
 {
 	// Get the chunk that the camera is currently in.
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
-	const Vector3i CameraChunk = CameraPosition / FChunk::CHUNK_SIZE;
+	const Vector3i CameraChunk = FCamera::Main->Transform.GetWorldPosition() / FChunk::CHUNK_SIZE;
 
 	// Only update visibility list when that camera crosses a chunk boundary
 	if (mLastCameraChunk != CameraChunk)
@@ -176,7 +186,6 @@ void FChunkManager::SwapChunkBuffers()
 	if (Lock.owns_lock())
 	{
 		int32_t SwapCount = MESH_SWAPS_PER_FRAME;
-
 		while (SwapCount > 0 && !mBufferSwapQueue.empty())
 		{
 			const Vector3i ChunkPosition = mBufferSwapQueue.front();
@@ -196,9 +205,9 @@ void FChunkManager::SwapChunkBuffers()
 #undef max
 void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 {
-	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
+	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < BlockWorldSize)
 	{
 		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
@@ -219,9 +228,9 @@ void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 
 FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 {
-	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
+	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < BlockWorldSize)
 	{
 		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
@@ -240,9 +249,9 @@ FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 
 void FChunkManager::DestroyBlock(Vector3i Position)
 {
-	int32_t WorldSize = mWorldSize * FChunk::CHUNK_SIZE;
+	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
-	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < WorldSize)
+	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < BlockWorldSize)
 	{
 		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
 		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
@@ -283,18 +292,32 @@ void FChunkManager::ChunkLoaderThreadLoop()
 
 void FChunkManager::UpdateLoadList()
 {
-	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_FRAME;
+	uint32_t LoadsLeft = CHUNKS_TO_LOAD_PER_ITERATION;
 
 	std::unique_lock<std::mutex> BufferSwapLock(mBufferSwapMutex, std::defer_lock);
+
+	// Buffer for all chunk data
+	std::vector<uint8_t> ChunkData;
 	while (!mLoadList.empty() && LoadsLeft > 0)
 	{
-		// Buffer for all chunk data
-		std::vector<uint8_t> ChunkData;
-
 		Vector3i ChunkPosition = mLoadList.front();
 		mLoadList.pop();
 
 		const uint32_t Index = ChunkIndex(ChunkPosition);
+
+		// Get region position info for unloaded chunk
+		Vector3i UnloadChunkPosition = mChunkPositions[Index];
+
+		// If this chunk is already in the swap list, remove it. This prevents redundant buffer swaps and
+		// tells us which chunk position is really currently loaded within the chunk data.
+		BufferSwapLock.lock();
+		auto InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
+		if (InSwapList != mBufferSwapQueue.end())
+		{
+			UnloadChunkPosition = *InSwapList;
+			mBufferSwapQueue.erase(InSwapList);
+		}
+		BufferSwapLock.unlock();
 
 		///// Unload Chunk ////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////
@@ -302,9 +325,6 @@ void FChunkManager::UpdateLoadList()
 		{
 			// Unload the chunk currently in this index
 			mChunks[Index].Unload(ChunkData);
-
-			// Get region position info for unloaded chunk
-			const Vector3i UnloadChunkPosition = mChunkPositions[Index];
 
 			ASSERT(UnloadChunkPosition.y != -1);
 			// Write the data to file
@@ -316,26 +336,22 @@ void FChunkManager::UpdateLoadList()
 		//////////////////////////////////////////////////////////////////////////////////////
 		
 		// Get info for chunk data within its region
+		ChunkData.clear();
 		mFileSystem.AddRegionFileReference(ChunkPosition);
 		mFileSystem.GetChunkData(ChunkPosition, ChunkData);
 	
 		// Load and build the chunk
 		Vector3i WorldPosition = ChunkPosition * FChunk::CHUNK_SIZE;
-		bool NeedsRebuild = mChunks[Index].Load(ChunkData, WorldPosition);
+		bool DoesntNeedRebuild = mChunks[Index].Load(ChunkData, WorldPosition);
 
-		BufferSwapLock.lock();
-		auto InSwapList = std::find(mBufferSwapQueue.begin(), mBufferSwapQueue.end(), ChunkPosition);
-		if (InSwapList != mBufferSwapQueue.end())
-			mBufferSwapQueue.erase(InSwapList);
-		BufferSwapLock.unlock();
-
-		if (!NeedsRebuild)
+		if (!DoesntNeedRebuild)
 			mChunks[Index].RebuildMesh();
 
 		BufferSwapLock.lock();
 			mBufferSwapQueue.push_back(ChunkPosition);
 		BufferSwapLock.unlock();
 
+		ChunkData.clear();
 		LoadsLeft--;
 	}
 }
@@ -364,7 +380,7 @@ void FChunkManager::UpdateRebuildList()
 			mChunks[ChunkIndex].RebuildMesh();
 
 			BufferSwapLock.lock();
-			mBufferSwapQueue.push_back(mChunkPositions[ChunkIndex]);
+				mBufferSwapQueue.push_back(mChunkPositions[ChunkIndex]);
 			BufferSwapLock.unlock();
 		}
 		RebuildLock.lock();
@@ -377,7 +393,7 @@ void FChunkManager::UpdateVisibleList()
 	Vector3i CameraChunkOffset = mLastCameraChunk - Vector3i{ mViewDistance, 0, mViewDistance };
 
 	// Get the total range of visible area.
-	const int32_t ChunkBounds = 2 * mViewDistance + 1;
+	const int32_t HorizontalBounds = 2 * mViewDistance + 1;
 
 	// Clear previous load and visibile list when moving across chunks.
 	mLoadList = std::queue<Vector3i>();
@@ -386,13 +402,13 @@ void FChunkManager::UpdateVisibleList()
 	// First add the xz plane that the camera is currently on.
 	if (CameraChunkOffset.y < mWorldSize && CameraChunkOffset.y >= 0)
 	{
-		for (int32_t x = 0; x < ChunkBounds; x++)
+		for (int32_t x = 0; x < HorizontalBounds; x++)
 		{
 			const int32_t xPosition = CameraChunkOffset.x + x;
 			if (xPosition >= mWorldSize || xPosition < 0)
 				continue;
 
-			for (int32_t z = 0; z < ChunkBounds; z++)
+			for (int32_t z = 0; z < HorizontalBounds; z++)
 			{
 				const int32_t zPosition = CameraChunkOffset.z + z;
 				if (zPosition >= mWorldSize || zPosition < 0)
@@ -420,14 +436,14 @@ void FChunkManager::UpdateVisibleList()
 			if (yPosition >= mWorldSize || yPosition < 0)
 				continue;
 
-			for (int32_t x = 0; x < ChunkBounds; x++)
+			for (int32_t x = 0; x < HorizontalBounds; x++)
 			{
 				const int32_t xPosition = CameraChunkOffset.x + x;
 
 				if (xPosition >= mWorldSize || xPosition < 0)
 					continue;
 
-				for (int32_t z = 0; z < ChunkBounds; z++)
+				for (int32_t z = 0; z < HorizontalBounds; z++)
 				{
 					const int32_t zPosition = CameraChunkOffset.z + z;
 
@@ -462,6 +478,7 @@ void FChunkManager::UpdateRenderList()
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
+
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
 		const Vector4i ChunkCenter{ mChunkPositions[i] * ChunkSizeVector + HalfChunkVector };

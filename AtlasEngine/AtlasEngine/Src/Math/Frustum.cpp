@@ -5,6 +5,7 @@
 
 bool FFrustum::IsUniformAABBVisible(const Vector4f& CenterPoint, const float BoxWidth) const
 {
+
 	// From Mathematics for 3D Game Programming and Computer Graphics
 	const Vector4f BoxRight = Vector4f{ BoxWidth, 0, 0, 0.0f };
 	const Vector4f BoxUp = Vector4f{ 0, BoxWidth, 0, 0.0f };

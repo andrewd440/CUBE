@@ -11,7 +11,7 @@ namespace FDebug
 {
 	Text::Text()
 		: TSingleton()
-		, mTextProjection(FOrthoMatrix{ 0, (float)SScreen::GetResolution().x, (float)SScreen::GetResolution().y, 0, -1, 0 })
+		, mTextProjection(FOrthoMatrix{ 0, 1920, 1080, 0, -1, 0 })
 		, mTextBuffer(nullptr)
 		, mProjectionUniform()
 		, mViewUniform()

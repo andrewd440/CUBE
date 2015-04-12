@@ -17,8 +17,10 @@ namespace GLUniformBindings
 {
 	enum : uint32_t
 	{
+		ProjectionInfoBlock = 1,
 		TransformBlock = 2,
 		BlockInfo = 3,
+		ResolutionBlock = 4,
 		FogParamBlock = 8,
 		PointLight = 10,
 		DirectionalLight = 11,
@@ -31,7 +33,6 @@ namespace GLTextureBindings
 	enum : uint32_t
 	{
 		GBuffer0 = 0,
-		GBuffer1 = 1,
 		Depth = 2,
 		TextTexture = 3,
 	};

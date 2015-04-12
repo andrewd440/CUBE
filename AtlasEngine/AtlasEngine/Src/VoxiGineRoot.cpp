@@ -25,7 +25,6 @@
 #include "Debugging\DebugDraw.h"
 #include "Debugging\DebugText.h"
 #include "Input\TextEntered.h"
-#include "Components\MeshComponent.h"
 #include "Components\FlyingCamera.h"
 #include "Components\BlockPlacer.h"
 #include "Components\TimeBombShooter.h"
@@ -33,16 +32,14 @@
 #include "Rendering\FogPostProcess.h"
 #include "Debugging\GameConsole.h"
 #include "Rendering\SSAOPostProcess.h"
-
-const uint32_t WindowWidth = 1920;
-const uint32_t WindowHeight = 1080;
-
-static FCamera MainCamera;
+#include "ResourceHolder.h"
+#include "Components\ObjectMesh.h"
+#include "Components\MeshRenderer.h"
 
 using namespace Atlas;
 
-FVoxiGineRoot::FVoxiGineRoot()
-	: mGameWindow(sf::VideoMode{ WindowWidth, WindowHeight }, L"VoxiGine", sf::Style::Default, sf::ContextSettings(24, 8, 2, 4, 3))
+FVoxiGineRoot::FVoxiGineRoot(const wchar_t* AppName, const Vector2ui Resolution, const uint32_t WindowStyle)
+	: mGameWindow(sf::VideoMode{ Resolution.x, Resolution.y }, AppName, WindowStyle, sf::ContextSettings(32, 0, 0, 4, 4))
 	, mWorld()
 	, mChunkManager(nullptr)
 	, mRenderSystem(nullptr)
@@ -56,12 +53,8 @@ FVoxiGineRoot::FVoxiGineRoot()
 	}
 
 	SMouseAxis::SetWindow(mGameWindow);
-	SMouseAxis::SetDefaultMousePosition(Vector2i(WindowWidth / 2, WindowHeight / 2));
-	SMouseAxis::SetMouseVisible(false);
-	SMouseAxis::SetMouseLock(true);
 	SMouseAxis::UpdateDelta();
 	SMouseAxis::UpdateDelta();
-	SScreen::SetResolution(TVector2<uint32_t>(WindowWidth, WindowHeight));
 	
 	AllocateSingletons();
 	LoadEngineSystems();
@@ -99,7 +92,7 @@ void FVoxiGineRoot::LoadEngineSystems()
 	mGameObjectManager->RegisterComponentType<EComponent::PointLight>();
 	mGameObjectManager->RegisterComponentType<EComponent::Collider>();
 	mGameObjectManager->RegisterComponentType<EComponent::RigidBody>();
-	mGameObjectManager->RegisterComponentType<EComponent::Mesh>();
+	mGameObjectManager->RegisterComponentType<EComponent::MeshRenderer>();
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
@@ -113,62 +106,9 @@ FVoxiGineRoot::~FVoxiGineRoot()
 
 void FVoxiGineRoot::Start()
 {
-	FCamera::Main = &MainCamera;
-	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
-	MainCamera.Transform.SetPosition(CameraPosition);
-	MainCamera.SetProjection(FPerspectiveMatrix{ (float)WindowWidth / (float)WindowHeight, 35.0f, 0.1f, 456.0f });
-
-	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
-	mRenderSystem->AddPostProcess(std::move(SSAOPostProcess));
-	mRenderSystem->EnablePostProcess(0);
-
-	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
-	FogPostProcess->SetBounds(0, 1);
-	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00002f);
-
-	mRenderSystem->AddPostProcess(std::move(FogPostProcess));
-	mRenderSystem->EnablePostProcess(1);
-
-	mChunkManager->LoadWorld(L"PrettyWorld");
-
-	ConstructScene();
 	STime::StartGameTimer();
 	mGameObjectManager->Start();
 	GameLoop();
-}
-
-void FVoxiGineRoot::ConstructScene()
-{
-	FGameObjectManager& GameObjectManager = *mGameObjectManager;
-
-	auto& PlayerController = GameObjectManager.CreateGameObject();
-	PlayerController.AddBehavior<CFlyingCamera>();
-	PlayerController.AddBehavior<CBlockPlacer>();
-	PlayerController.AddBehavior<CTimeBombShooter>();
-	//PlayerController.AddBehavior<CBoxShooter>();
-
-	////////////////////////////////////////////////////////////////////////
-	//////// Directional Light /////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////
-	auto& DirectionalLight = GameObjectManager.CreateGameObject();
-	FDirectionalLight& DLight = DirectionalLight.AddComponent<EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.7, .7, .7);
-	DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
-
-	
-	//auto& PointLight = GameObjectManager.CreateGameObject();
-	//PointLight.Transform.SetPosition(Vector3f{ 3 * i, 40, 3 * i });
-	//FPointLight& PLight = PointLight.AddComponent<EComponent::PointLight>();
-	//PLight.Color = Vector3f(0.05f * i, .1f, .5f);
-	//PLight.MinDistance = 1;
-	//PLight.MaxDistance = 10;
-
-	//auto& Sword = GameObjectManager.CreateGameObject();
-	//FMeshComponent& Mesh = Sword.AddComponent<Atlas::EComponent::Mesh>();
-	//Mesh.LoadModel("Sword.obj");
-	//Sword.Transform.SetPosition(Vector3f{ 100.0f, 230.0f, 100.0f });
-	//Sword.Transform.Rotate(FQuaternion{ 90, 0, -45 });
 }
 
 void FVoxiGineRoot::GameLoop()
@@ -231,6 +171,7 @@ void FVoxiGineRoot::ServiceEvents()
 		{
 			// adjust the viewport when the window is resized
 			glViewport(0, 0, Event.size.width, Event.size.height);
+			mRenderSystem->SetResolution(Vector2ui{Event.size.width, Event.size.height});
 		}
 	}
 }

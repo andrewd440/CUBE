@@ -12,13 +12,15 @@
 #include <GL\glew.h>
 #include "freetype-gl\markup.h"
 #include "Atlas\World.h"
-#include "Components\MeshComponent.h"
+#include "Components\ObjectMesh.h"
 #include "Rendering\GLBindings.h"
 #include "ChunkSystems\Block.h"
+#include "Components\MeshRenderer.h"
 
+// Shader buffer blocks info
 namespace
 {
-	struct TransformBuffer
+	namespace TransformBuffer
 	{
 		enum : uint32_t
 		{
@@ -28,20 +30,42 @@ namespace
 			InvProjection = 192,
 			Size = 256
 		};
-	};
+	}
+
+	namespace ProjectionInfoBlock
+	{
+		enum : uint32_t
+		{
+			Near = 0,
+			Far = 4,
+			Size = 8
+		};
+	}
+
+	namespace ResolutionBlock
+	{
+		enum : uint32_t
+		{
+			Resolution = 0,
+			Size = 8
+		};
+	}
 }
 
 FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChunkManager& ChunkManager)
 	: ISystem(World)
 	, mWindow(GameWindow)
 	, mChunkManager(ChunkManager)
-	, mTransformBuffer(GLUniformBindings::TransformBlock, TransformBuffer::Size)
-	, mBlockInfoBuffer(0)
 	, mDeferredRender()
 	, mChunkRender()
+	, mGBuffer(Vector2ui{ GameWindow.getSize().x, GameWindow.getSize().y }, GL_RGBA32UI)
 	, mPostProcesses()
-	, mGBuffer(SScreen::GetResolution(), GL_RGBA32UI)
+	, mTransformBlock(GLUniformBindings::TransformBlock, TransformBuffer::Size)
+	, mResolutionBlock(GLUniformBindings::ResolutionBlock, ResolutionBlock::Size)
+	, mProjectionInfoBlock(GLUniformBindings::ProjectionInfoBlock, ProjectionInfoBlock::Size)
+	, mBlockInfoBuffer(0)
 {
+	SetResolution(Vector2ui{ GameWindow.getSize().x, GameWindow.getSize().y });
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glClearColor(0, 0, 0, 1.0f);
@@ -49,12 +73,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	LoadShaders();
 	LoadSubSystems();
 
-	// Setup transform buffer with default values
-	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
-	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
-
-	AddComponentType<Atlas::EComponent::Mesh>();
-
+	AddComponentType<Atlas::EComponent::MeshRenderer>();
 
 	// Setup shader storage block for block info
 	glGenBuffers(1, &mBlockInfoBuffer);
@@ -67,9 +86,7 @@ void FRenderSystem::LoadShaders()
 {
 	// Load all main rendering shaders
 	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);
-	SShaderHolder::Load("DeferredPointLighting.frag", L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER);
 	SShaderHolder::Load("DeferredLightingCommon.frag", L"Shaders/DeferredLightingCommon.frag", GL_FRAGMENT_SHADER);
-	SShaderHolder::Load("DeferredDirectionalLighting.frag", L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER);	
 	
 	// Load render shaders
 	FShader DeferredVert{ L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER };
@@ -92,7 +109,7 @@ void FRenderSystem::LoadSubSystems()
 
 FRenderSystem::~FRenderSystem()
 {
-
+	glDeleteBuffers(1, &mBlockInfoBuffer);
 }
 
 uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess)
@@ -117,14 +134,14 @@ void FRenderSystem::DisablePostProcess(const uint32_t ID)
 
 void FRenderSystem::SetModelTransform(const FTransform& WorldTransform)
 {
-	mTransformBuffer.SetData(TransformBuffer::Model, WorldTransform.LocalToWorldMatrix());
+	mTransformBlock.SetData(TransformBuffer::Model, WorldTransform.LocalToWorldMatrix());
 }
 
 void FRenderSystem::Update()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	UpdateViewBounds();
+	//UpdateViewBounds();
 	ConstructGBuffer();
 
 	mGBuffer.StartRead();
@@ -134,12 +151,6 @@ void FRenderSystem::Update()
 		if (Record.IsActive)
 			Record.Process->OnPreLightingPass();
 	}
-
-	// No depth testing for lighting and post-processes
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendEquation(GL_FUNC_ADD);
 
 	LightingPass();
 
@@ -151,16 +162,15 @@ void FRenderSystem::Update()
 
 	mGBuffer.EndRead();
 
-	// Render debug draws
-	glDisable(GL_BLEND);
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
-	FDebug::Draw::GetInstance().Render();
+	/////////////////////////////
+	// Debugging text ////////////////////////////
 
 	static const vec4 White{ { 1, 1, 1, 1 } };
 	static const vec4 None{{ 1, 1, 1, 0 }};
 	static markup_t TextMarkup{ "Vera.ttf", 16, 0, 0, 0.0f, 0.0f, 2.0f, White, None, 0, White, 0, White, 0, White, 0 };
 
 	// Debug Print
+	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
 	auto& DebugText = FDebug::Text::GetInstance();
 	wchar_t String[250];
 	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
@@ -174,6 +184,12 @@ void FRenderSystem::Update()
 	swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
 	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 150), TextMarkup);
 
+	///////////////////////////////////////////////
+	///////////////////////////////
+
+	// Render overlayed facilities
+	glDisable(GL_BLEND);
+	FDebug::Draw::GetInstance().Render();
 	FDebug::GameConsole::GetInstance().Render();
 	DebugText.Render();
 
@@ -181,11 +197,18 @@ void FRenderSystem::Update()
 	mWindow.display();
 }
 
+void FRenderSystem::SetResolution(const Vector2ui& Resolution)
+{
+	SScreen::SetResolution(Resolution);
+	mWindow.setSize(sf::Vector2u{ Resolution.x, Resolution.y });
+	mGBuffer = GBuffer{ Resolution, GL_RGBA32UI };
+
+	mResolutionBlock.SetData(ResolutionBlock::Resolution, Resolution);
+}
+
 void FRenderSystem::RenderGeometry()
 {
-	// Send view transform to gpu
-	mTransformBuffer.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
-	mTransformBuffer.SetData(TransformBuffer::Projection, FCamera::Main->GetProjection());
+	TransferViewProjectionData();
 
 	// Render geometry
 	mChunkRender.Use();
@@ -195,16 +218,31 @@ void FRenderSystem::RenderGeometry()
 	for (auto& GameObject : GetGameObjects())
 	{
 		auto& Transform = GameObject->Transform;
-		auto& Mesh = GameObject->GetComponent<Atlas::EComponent::Mesh>();
+		auto& Mesh = GameObject->GetComponent<Atlas::EComponent::MeshRenderer>();
 
 		SetModelTransform(Transform);
-		Mesh.Render();
+		Mesh.Mesh->Mesh.Render();
 	}
+}
+
+void FRenderSystem::TransferViewProjectionData()
+{
+	// Send view data
+	mTransformBlock.SetData(TransformBuffer::View, FCamera::Main->Transform.WorldToLocalMatrix());
+
+	// Send projection data
+	FMatrix4 Projection = FCamera::Main->GetProjection();
+	mTransformBlock.SetData(TransformBuffer::Projection, Projection);
+	mTransformBlock.SetData(TransformBuffer::InvProjection, Projection.GetInverse());
+
+	const float Near = Projection.M[3][2] / (Projection.M[2][2] - 1.0);
+	const float Far = Projection.M[3][2] / (Projection.M[2][2] + 1.0);
+	mProjectionInfoBlock.SetData(ProjectionInfoBlock::Near, Near);
+	mProjectionInfoBlock.SetData(ProjectionInfoBlock::Far, Far);
 }
 
 void FRenderSystem::ConstructGBuffer()
 {
-
 	// Open G-Buffer for writing and enable deferred render shader.
 	mGBuffer.StartWrite();
 
@@ -221,50 +259,52 @@ void FRenderSystem::ConstructGBuffer()
 
 void FRenderSystem::LightingPass()
 {
+	// No depth testing for lighting and post-processes
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
+
 	auto& SubSystems = GetSubSystems();
-
-	// Send inverse project to reconstruct world coord. from depth texture
-	mTransformBuffer.SetData(TransformBuffer::InvProjection, FCamera::Main->GetProjection().GetInverse());
-
 	for (auto& SubSystem : SubSystems)
 		SubSystem->Update();
 }
 
-FBox FRenderSystem::GetViewBounds() const
-{
-	return mViewAABB;
-}
+//FBox FRenderSystem::GetViewBounds() const
+//{
+//	return mViewAABB;
+//}
 
-void FRenderSystem::UpdateViewBounds()
-{
-	mViewAABB = FBox{};
-	const FMatrix4 CameraTransform = FCamera::Main->Transform.LocalToWorldMatrix();
-	const FMatrix4 InvProjection = FCamera::Main->GetProjection().GetInverse();
-
-	// Opengl normalized view volume corners
-	static const Vector4f NormalizedCorners[8] =
-	{
-		Vector4f{ -1, 1, 0, 1 },	// T - L - F
-		Vector4f{ -1, -1, 0, 1 },	// B - L - F
-		Vector4f{ 1, -1, 0, 1 },    // B - R - F
-		Vector4f{ 1, 1, 0, 1 },		// T - R - F
-		Vector4f{ -1, 1, 1, 1 },	// T - L - B
-		Vector4f{ -1, -1, 1, 1 },	// B - L - B
-		Vector4f{ 1, -1, 1, 1 },	// B - R - B
-		Vector4f{ 1, 1, 1, 1 }		// T - R - B
-	};
-
-	for (int32_t i = 0; i < 8; i++)
-	{
-		// Transform each vert by inv projection
-		Vector4f Vec4 = InvProjection.TransformVector(NormalizedCorners[i]);
-
-		// Divide by W component to get correct 3D coordinates in view space
-		Vector3f Point = Vector3f{ Vec4.x, Vec4.y, Vec4.z } / Vec4.w;
-
-		FMath::UpdateBounds(mViewAABB.Min, mViewAABB.Max, Point);
-	}
-
-	// Transform into world space
-	mViewAABB.TransformAABB(CameraTransform);
-}
+//void FRenderSystem::UpdateViewBounds()
+//{
+//	mViewAABB = FBox{};
+//	const FMatrix4 CameraTransform = FCamera::Main->Transform.LocalToWorldMatrix();
+//	const FMatrix4 InvProjection = FCamera::Main->GetProjection().GetInverse();
+//
+//	// Opengl normalized view volume corners
+//	static const Vector4f NormalizedCorners[8] =
+//	{
+//		Vector4f{ -1, 1, 0, 1 },	// T - L - F
+//		Vector4f{ -1, -1, 0, 1 },	// B - L - F
+//		Vector4f{ 1, -1, 0, 1 },    // B - R - F
+//		Vector4f{ 1, 1, 0, 1 },		// T - R - F
+//		Vector4f{ -1, 1, 1, 1 },	// T - L - B
+//		Vector4f{ -1, -1, 1, 1 },	// B - L - B
+//		Vector4f{ 1, -1, 1, 1 },	// B - R - B
+//		Vector4f{ 1, 1, 1, 1 }		// T - R - B
+//	};
+//
+//	for (int32_t i = 0; i < 8; i++)
+//	{
+//		// Transform each vert by inv projection
+//		Vector4f Vec4 = InvProjection.TransformVector(NormalizedCorners[i]);
+//
+//		// Divide by W component to get correct 3D coordinates in view space
+//		Vector3f Point = Vector3f{ Vec4.x, Vec4.y, Vec4.z } / Vec4.w;
+//
+//		FMath::UpdateBounds(mViewAABB.Min, mViewAABB.Max, Point);
+//	}
+//
+//	// Transform into world space
+//	mViewAABB.TransformAABB(CameraTransform);
+//}

@@ -56,6 +56,11 @@ public:
 	void RemoveRegionFileReference(const Vector3i& ChunkPosition);
 
 	/**
+	* Removes all references to all region files and closes each file.
+	*/
+	void ClearAllRegionFileReferences();
+
+	/**
 	* Retrieves data for a chunk within the currently loaded world.
 	* @param ChunkPosition - The chunk space position of the chunk.
 	* @param DataOut - Buffer to place chunk data.

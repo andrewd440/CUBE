@@ -21,6 +21,12 @@ layout(std140, binding = 8) uniform FogParamsBlock
 	vec3  Color;   	 //		16					16			32
 } FogParams; 
 
+layout(std140, binding = 1) uniform ProjectionInfoBlock
+{
+	float Near;
+	float Far;
+} ProjectionInfo;
+
 float LinearizeDepth(float Depth, float Near, float Far)
 {
     float z = Depth * 2.0 - 1.0; // Back to NDC 
@@ -29,10 +35,9 @@ float LinearizeDepth(float Depth, float Near, float Far)
 
 void main()
 {
-    const float Near = Transforms.Projection[3][2] / (Transforms.Projection[2][2] - 1.0); 
-    const float Far = Transforms.Projection[3][2] / (Transforms.Projection[2][2] + 1.0); 
-
-	float Depth = LinearizeDepth(texelFetch(DepthTexture, ivec2(gl_FragCoord.xy), 0).r, Near, Far) * Far;
+	// linearize depth and get world units of depth
+	float Depth = LinearizeDepth(texelFetch(DepthTexture, ivec2(gl_FragCoord.xy), 0).r, ProjectionInfo.Near, ProjectionInfo.Far);
+	Depth *= ProjectionInfo.Far;
 	float FogFactor = clamp(exp(-FogParams.Density * Depth * Depth), FogParams.Min, FogParams.Max);
 
 	gl_FragColor = vec4(FogParams.Color, FogFactor);

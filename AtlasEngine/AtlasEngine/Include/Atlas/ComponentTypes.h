@@ -12,7 +12,7 @@ namespace Atlas
 			DirectionalLight,
 			PointLight,
 			RigidBody,
-			Mesh,
+			MeshRenderer,
 			Collider,
 			Count
 		};

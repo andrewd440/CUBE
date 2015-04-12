@@ -18,10 +18,6 @@ public:
 	}
 
 protected:
-	// Used for shadow mapping
-	static FCamera LightCamera;
-
-protected:
 	FRenderSystem& mRenderSystem;
 	FShaderProgram mLightShader;
 };
@@ -71,8 +67,10 @@ private:
 		Vector3f  Position;
 		uint32_t  Pad0;
 		Vector3f  Color;
-		float     MinDistance;
-		float     MaxDistance;
+		float     Constant;
+		float     Linear;
+		float     Quadratic;
+		float     Intensity;
 	};
 #pragma pack (pop)
 

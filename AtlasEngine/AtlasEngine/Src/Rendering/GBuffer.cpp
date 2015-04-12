@@ -31,6 +31,20 @@ GBuffer::GBuffer(const Vector2ui& TexResolution, const GLenum InternalFormat1)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+GBuffer& GBuffer::operator=(GBuffer&& Other)
+{
+	mFrameBuffer = Other.mFrameBuffer;
+	mTextureIDs[0] = Other.mTextureIDs[0];
+	mTextureIDs[1] = Other.mTextureIDs[1];
+	mResolution = Other.mResolution;
+
+	Other.mFrameBuffer = 0;
+	Other.mTextureIDs[0] = 0;
+	Other.mTextureIDs[1] = 0;
+	Other.mResolution = Vector2ui{ 0, 0 };
+
+	return *this;
+}
 
 GBuffer::~GBuffer()
 {
