@@ -16,6 +16,7 @@
 #include "Rendering\GLBindings.h"
 #include "ChunkSystems\Block.h"
 #include "Components\MeshRenderer.h"
+#include "ChunkSystems\BlockTypes.h"
 
 // Shader buffer blocks info
 namespace
@@ -80,7 +81,7 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	// Setup shader storage block for block info
 	glGenBuffers(1, &mBlockInfoBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mBlockInfoBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(FBlock::Colors), FBlock::Colors, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Vector4f) * FBlockTypes::mBlockTypes.size(), FBlockTypes::mBlockTypes.data(), GL_STATIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, GLUniformBindings::BlockInfo, mBlockInfoBuffer);
 }
 

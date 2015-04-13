@@ -9,12 +9,12 @@ namespace Atlas
 	//	mGameObject->RemoveBehavior<typeid(this)>();
 	//}
 
-	void FBehavior::SetBlock(const Vector3i& Position, const FBlock::Type Block)
+	void FBehavior::SetBlock(const Vector3i& Position, const FBlockTypes::BlockID ID)
 	{
-		mChunkManager->SetBlock(Position, Block);
+		mChunkManager->SetBlock(Position, ID);
 	}
 
-	FBlock::Type FBehavior::GetBlock(const Vector3i& Position)
+	FBlockTypes::BlockID FBehavior::GetBlock(const Vector3i& Position)
 	{
 		return mChunkManager->GetBlock(Position);
 	}

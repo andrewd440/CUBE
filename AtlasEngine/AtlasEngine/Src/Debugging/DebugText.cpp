@@ -12,7 +12,7 @@ namespace FDebug
 {
 	Text::Text()
 		: TSingleton()
-		, mTextProjection(FOrthoMatrix{ 0, 0, 0, 0, -1, 0 })
+		, mTextProjection(FOrthoMatrix{ 0, 1, 0, 1, -1, 0 })
 		, mTextBuffer(nullptr)
 		, mProjectionUniform()
 		, mViewUniform()

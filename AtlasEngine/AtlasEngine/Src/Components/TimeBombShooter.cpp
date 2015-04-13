@@ -43,13 +43,13 @@ void CTimeBombShooter::ShootBomb()
 	auto& Mesh = Box.AddComponent<Atlas::EComponent::MeshRenderer>();
 	Mesh.LinkToMesh("Box");
 
-	auto& Light = Box.AddComponent<Atlas::EComponent::PointLight>();
-	Light.Intensity = 15.0f;
-	Light.Constant = 0.1f;
-	Light.Linear = 0.4f;
-	Light.Quadratic = 0.7f;
-	Light.MaxDistance = 10.0f;
-	Light.Color = Vector3f{ 1, 0, 0 };
+	//auto& Light = Box.AddComponent<Atlas::EComponent::PointLight>();
+	//Light.Intensity = 15.0f;
+	//Light.Constant = 0.1f;
+	//Light.Linear = 0.4f;
+	//Light.Quadratic = 0.7f;
+	//Light.MaxDistance = 10.0f;
+	//Light.Color = Vector3f{ 1, 0, 0 };
 
 	Box.AddBehavior<CTimeBomb>();
 }

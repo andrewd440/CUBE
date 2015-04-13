@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "ChunkSystems\Block.h"
+#include "ChunkSystems\BlockTypes.h"
 
 class FChunkManager;
 
@@ -19,8 +19,8 @@ namespace Atlas
 		virtual void OnCollisionEnter(){};
 		virtual void OnCollisionExit(){};
 
-		void SetBlock(const Vector3i& Position, const FBlock::Type Block);
-		FBlock::Type GetBlock(const Vector3i& Position);
+		void SetBlock(const Vector3i& Position, const FBlockTypes::BlockID ID);
+		FBlockTypes::BlockID GetBlock(const Vector3i& Position);
 		void DestroyBlock(const Vector3i& Position);
 		void LoadWorld(const wchar_t* WorldName);
 

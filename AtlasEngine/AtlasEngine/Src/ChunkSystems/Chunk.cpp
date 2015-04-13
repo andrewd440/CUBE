@@ -82,15 +82,15 @@ bool FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPo
 			for (int32_t z = 0; z < CHUNK_SIZE;)
 			{
 				uint8_t Count = 0;
-				FBlock::Type BlockType = (FBlock::Type)BlockData[TypeIndex];
+				FBlockTypes::BlockID BlockType = (FBlockTypes::BlockID)BlockData[TypeIndex];
 				uint8_t RunLength = BlockData[TypeIndex + 1];
 
 				// If a single block is not None, this number can never be 0 again
-				IsEmpty += (int32_t)BlockType - (int32_t)FBlock::None;
+				IsEmpty += (int32_t)BlockType - (int32_t)FBlock::AIR_BLOCK_ID;
 
 				for (Count = 0; Count < RunLength; Count++)
 				{
-					mBlocks[BaseIndex + z + Count].BlockType = BlockType;
+					mBlocks[BaseIndex + z + Count].ID = BlockType;
 				}
 
 				z += RunLength;
@@ -118,14 +118,14 @@ void FChunk::Unload(std::vector<uint8_t>& BlockDataOut)
 			for (int32_t z = 0; z < CHUNK_SIZE;)
 			{
 				const uint32_t CurrentBlockIndex = BlockIndex(x, y, z);
-				const FBlock::Type CurrentBlock = mBlocks[CurrentBlockIndex].BlockType;
+				const FBlockTypes::BlockID CurrentBlock = mBlocks[CurrentBlockIndex].ID;
 				uint8_t Length = 1;
 
-				FBlock::Type NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].BlockType;
+				FBlockTypes::BlockID NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].ID;
 				while (CurrentBlock == NextBlock && Length + z < CHUNK_SIZE)
 				{
 					Length++;
-					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].BlockType;
+					NextBlock = mBlocks[CurrentBlockIndex + (int32_t)Length].ID;
 				}
 
 				// Append RLE data
@@ -213,19 +213,19 @@ void FChunk::RebuildMesh()
 	}
 }
 
-void FChunk::SetBlock(const Vector3i& Position, FBlock::Type BlockType)
+void FChunk::SetBlock(const Vector3i& Position, FBlockTypes::BlockID ID)
 {
-	mBlocks[BlockIndex(Position)].BlockType = BlockType;
+	mBlocks[BlockIndex(Position)].ID = ID;
 }
 
-FBlock::Type FChunk::GetBlock(const Vector3i& Position) const
+FBlockTypes::BlockID FChunk::GetBlock(const Vector3i& Position) const
 {
-	return mBlocks[BlockIndex(Position)].BlockType;
+	return mBlocks[BlockIndex(Position)].ID;
 }
 
 void FChunk::DestroyBlock(const Vector3i& Position)
 {
-	mBlocks[BlockIndex(Position)].BlockType = FBlock::None;
+	mBlocks[BlockIndex(Position)].ID = FBlock::AIR_BLOCK_ID;
 }
 
 void FChunk::GreedyMesh()
@@ -270,15 +270,15 @@ void FChunk::GreedyMesh()
 
 			if (d == 0)
 			{ 
-				Side = BackFace ? WEST : EAST; 
+				Side = BackFace ? NormalID::West : NormalID::East;
 			}
 			else if (d == 1) 
 			{ 
-				Side = BackFace ? BOTTOM : TOP; 
+				Side = BackFace ? NormalID::Bottom : NormalID::Top;
 			}
 			else if (d == 2) 
 			{ 
-				Side = BackFace ? SOUTH : NORTH; 
+				Side = BackFace ? NormalID::South : NormalID::North;
 			}
 
 			// Move through the dimension from front to back
@@ -292,13 +292,13 @@ void FChunk::GreedyMesh()
 					for (x[u] = 0; x[u] < CHUNK_SIZE; x[u]++)
 					{
 						// Check covering voxel
-						FBlock Voxel1 = (x[d] >= 0) ? mBlocks[BlockIndex(x[0], x[1], x[2])] : FBlock{ FBlock::None };
-						FBlock Voxel2 = (x[d] < CHUNK_SIZE - 1) ? mBlocks[BlockIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2])] : FBlock{ FBlock::None };
+						FBlock Voxel1 = (x[d] >= 0) ? mBlocks[BlockIndex(x[0], x[1], x[2])] : FBlock{ FBlock::AIR_BLOCK_ID };
+						FBlock Voxel2 = (x[d] < CHUNK_SIZE - 1) ? mBlocks[BlockIndex(x[0] + q[0], x[1] + q[1], x[2] + q[2])] : FBlock{ FBlock::AIR_BLOCK_ID };
 
 						// If both voxels are active and the same type, mark the mask with an inactive block, if not
 						// choose the appropriate voxel to mark
 						if (Voxel1 == Voxel2)
-							Mask[n++] = FBlock{ FBlock::None };
+							Mask[n++] = FBlock{ FBlock::AIR_BLOCK_ID };
 						else
 							Mask[n++] = (BackFace) ? Voxel2 : Voxel1;
 					}
@@ -313,7 +313,7 @@ void FChunk::GreedyMesh()
 				{
 					for (i = 0; i < CHUNK_SIZE;)
 					{
-						if (Mask[n].BlockType != FBlock::None)
+						if (Mask[n].ID != FBlock::AIR_BLOCK_ID)
 						{
 							// Compute the width
 							for (Width = 1; i + Width < CHUNK_SIZE && (Mask[n + Width] == Mask[n]); Width++){}
@@ -368,7 +368,7 @@ void FChunk::GreedyMesh()
 							{
 								for (k = 0; k < Width; k++)
 								{
-									Mask[n + k + Length * CHUNK_SIZE].BlockType = FBlock::None;
+									Mask[n + k + Length * CHUNK_SIZE].ID = FBlock::AIR_BLOCK_ID;
 								}
 							}
 
@@ -411,28 +411,28 @@ void FChunk::AddQuad(	const Vector3ui& BottomLeft,
 
 	// Vertex layout w = x6_y6_z6_n3_null3_b8
 	FChunkMesh::RenderData BottomLeftData;
-	BottomLeftData.BlockType = FaceInfo.BlockType;
+	BottomLeftData.BlockType = FaceInfo.ID;
 	BottomLeftData.x = (BottomLeft.x);
 	BottomLeftData.y = (BottomLeft.y);
 	BottomLeftData.z = (BottomLeft.z);
 	BottomLeftData.NormalIndex = (Side);
 
 	FChunkMesh::RenderData BottomRightData;
-	BottomRightData.BlockType = FaceInfo.BlockType;
+	BottomRightData.BlockType = FaceInfo.ID;
 	BottomRightData.x = (BottomRight.x);
 	BottomRightData.y = (BottomRight.y);
 	BottomRightData.z = (BottomRight.z);
 	BottomRightData.NormalIndex = (Side);
 
 	FChunkMesh::RenderData TopLeftData;
-	TopLeftData.BlockType = FaceInfo.BlockType;
+	TopLeftData.BlockType = FaceInfo.ID;
 	TopLeftData.x = (TopLeft.x);
 	TopLeftData.y = (TopLeft.y);
 	TopLeftData.z = (TopLeft.z);
 	TopLeftData.NormalIndex = (Side);
 
 	FChunkMesh::RenderData TopRightData;
-	TopRightData.BlockType = FaceInfo.BlockType;
+	TopRightData.BlockType = FaceInfo.ID;
 	TopRightData.x = (TopRight.x);
 	TopRightData.y = (TopRight.y);
 	TopRightData.z = (TopRight.z);

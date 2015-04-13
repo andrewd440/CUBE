@@ -10,6 +10,7 @@
 #include "BulletPhysics\btBulletCollisionCommon.h"
 #include "Rendering\GLBindings.h"
 #include "ChunkMesh.h"
+#include "BlockTypes.h"
 
 class FChunkManager;
 class FPhysicsSystem;
@@ -38,7 +39,7 @@ private:
 			: Object()
 			, ActiveMesh(false)
 		{}
-		MeshData            Mesh[2];
+		MeshData            Mesh[2]; // Double buffer for collision mesh data
 		btCollisionObject   Object;
 		bool                ActiveMesh;
 	};
@@ -117,12 +118,12 @@ public:
 	/**
 	* Set a block in the chunk at a specific position.
 	*/
-	void SetBlock(const Vector3i& Position, FBlock::Type Type);
+	void SetBlock(const Vector3i& Position, FBlockTypes::BlockID ID);
 
 	/**
 	* Retrieves the type of block in the chunk at a specific position.
 	*/
-	FBlock::Type GetBlock(const Vector3i& Position) const;
+	FBlockTypes::BlockID GetBlock(const Vector3i& Position) const;
 
 	/**
 	* Destroys a block in the chunk at a specific position.
@@ -136,12 +137,18 @@ public:
 
 private:
 	// Constants used for constructing quads with correct normals in GreedyMesh()
-	static const uint32_t EAST = 0;
-	static const uint32_t WEST = 1;
-	static const uint32_t TOP = 2;
-	static const uint32_t BOTTOM = 3;
-	static const uint32_t NORTH = 4;
-	static const uint32_t SOUTH = 5;
+	struct NormalID
+	{
+		enum : uint32_t
+		{
+			East,
+			West,
+			Top,
+			Bottom,
+			North,
+			South
+		};
+	};
 
 private:
 	/**
@@ -170,7 +177,7 @@ private:
 					const Vector3ui& BottomRight,
 					const bool IsBackface, 
 					const uint32_t Side, 
-					const FBlock FaceInfo,
+					const FBlock BlockType,
 					std::vector<Vector3f>& VerticesOut,
 					std::vector<FChunkMesh::RenderData>& RenderDataOut,
 					std::vector<uint32_t>& IndicesOut);

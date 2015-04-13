@@ -184,6 +184,7 @@
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
     <ClInclude Include="Include\Atlas\Behavior.h" />
+    <ClInclude Include="Include\ChunkSystems\BlockTypes.h" />
     <ClInclude Include="Include\ChunkSystems\ChunkMesh.h" />
     <ClInclude Include="Include\Components\BlockPlacer.h" />
     <ClInclude Include="Include\Components\BoxShooter.h" />
@@ -280,6 +281,7 @@
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Atlas\Behavior.cpp" />
+    <ClCompile Include="Src\ChunkSystems\BlockTypes.cpp" />
     <ClCompile Include="Src\ChunkSystems\ChunkMesh.cpp" />
     <ClCompile Include="Src\Components\BlockPlacer.cpp" />
     <ClCompile Include="Src\Components\BoxShooter.cpp" />

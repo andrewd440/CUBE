@@ -22,9 +22,9 @@ FWorldGenerator::~FWorldGenerator()
 
 }
 
-void FWorldGenerator::AddTerrainLevel(const int32_t StartingHeight, const FBlock::Type BlockType)
+void FWorldGenerator::AddTerrainLevel(const int32_t StartingHeight, const FBlockTypes::BlockID ID)
 {
-	mTerrainLevels.push_back(TerrainLevelRecord{ StartingHeight, BlockType });
+	mTerrainLevels.push_back(TerrainLevelRecord{ StartingHeight, ID });
 }
 
 void FWorldGenerator::SetWorldSizeInChunks(const int32_t NewWorldSize)
@@ -130,7 +130,7 @@ uint32_t FWorldGenerator::BuildChunk(const Vector3i& WorldPosition, const utils:
 			return Val.StartingHeight <= WorldY;
 		});
 
-		const FBlock::Type BlockType = (TerrainLevel != mTerrainLevels.end()) ? TerrainLevel->BlockType : FBlock::Dirt;
+		const FBlockTypes::BlockID BlockType = (TerrainLevel != mTerrainLevels.end()) ? TerrainLevel->ID : FBlock::AIR_BLOCK_ID;
 
 		for (int32_t x = 0; x < FChunk::CHUNK_SIZE; x++)
 		{
@@ -150,7 +150,7 @@ uint32_t FWorldGenerator::BuildChunk(const Vector3i& WorldPosition, const utils:
 					xzHeight = FMath::MapValue(SlabValues[WorldZ + Length] + 1, -1.0f, 1.0f, MinHeight, MaxHeight);
 				}
 
-				DataOut.push_back(IsAir ? FBlock::None : BlockType);
+				DataOut.push_back(IsAir ? FBlock::AIR_BLOCK_ID : BlockType);
 				DataOut.push_back(Length);
 				DataSize += 2;
 				z += Length;

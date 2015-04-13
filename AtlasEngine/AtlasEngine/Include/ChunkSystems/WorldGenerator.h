@@ -4,7 +4,7 @@
 #include "Math\Vector2.h"
 #include "Math\Vector3.h"
 #include "LibNoise\noiseutils.h"
-#include "ChunkSystems\Block.h"
+#include "BlockTypes.h"
 
 #include <vector>
 
@@ -25,7 +25,7 @@ public:
 	* This block type will be used for the bounds between it's starting height and the
 	* next terrain level, if added.
 	*/
-	void AddTerrainLevel(const int32_t StartingHeight, const FBlock::Type Type);
+	void AddTerrainLevel(const int32_t StartingHeight, const FBlockTypes::BlockID ID);
 
 	/**
 	* Sets the minimum height, in world coordinates, that the world terrain will
@@ -89,7 +89,7 @@ private:
 	struct TerrainLevelRecord
 	{
 		int32_t StartingHeight;
-		FBlock::Type BlockType;
+		FBlockTypes::BlockID ID;
 	};
 
 private:

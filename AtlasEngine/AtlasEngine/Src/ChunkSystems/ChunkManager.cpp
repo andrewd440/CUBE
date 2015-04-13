@@ -203,7 +203,7 @@ void FChunkManager::SwapChunkBuffers()
 
 #undef min
 #undef max
-void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
+void FChunkManager::SetBlock(Vector3i Position, FBlockTypes::BlockID ID)
 {
 	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
@@ -217,7 +217,7 @@ void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 		// Only set if the right chunk is loaded
 		if (ChunkPosition == mChunkPositions[Index])
 		{
-			mChunks[Index].SetBlock(Position, Type);
+			mChunks[Index].SetBlock(Position, ID);
 
 			std::lock_guard<std::mutex> Lock(mRebuildListMutex);
 			if (std::find(mRebuildList.begin(), mRebuildList.end(), Index) == mRebuildList.end())
@@ -226,7 +226,7 @@ void FChunkManager::SetBlock(Vector3i Position, FBlock::Type Type)
 	}
 }
 
-FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
+FBlockTypes::BlockID FChunkManager::GetBlock(Vector3i Position) const
 {
 	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
@@ -244,7 +244,7 @@ FBlock::Type FChunkManager::GetBlock(Vector3i Position) const
 		}
 	}
 
-	return FBlock::None;
+	return FBlock::AIR_BLOCK_ID;
 }
 
 void FChunkManager::DestroyBlock(Vector3i Position)

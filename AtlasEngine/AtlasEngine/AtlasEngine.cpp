@@ -25,10 +25,33 @@
 #include "ChunkSystems\WorldGenerator.h"
 #include "Math\Vector2.h"
 #include "Utils\Event.h"
+#include "ChunkSystems\BlockTypes.h"
 
 
 int main()
 {
+	const Vector4f BlockColors[4] =
+	{
+		Vector4f{ 0.1f, 0.35f, 0.15f },		// Grass
+		Vector4f{ 0.47f, 0.28f, 0.0f },		// Dirt
+		Vector4f{ 1.0f, 0.98f, 0.98f },		// Snow
+		Vector4f{ 0.59f, 0.086f, 0.043f },	// Brick
+	};
+
+	enum Type : uint8_t
+	{
+		Air,
+		Grass,
+		Dirt,
+		Snow,
+		Brick,
+	};
+
+	FOR(i, 4)
+	{
+		FBlockTypes::AddBlock(i+1, BlockColors[i]);
+	}
+
 	const Vector2ui Resolution{ 1920, 1080 };
 	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
 
@@ -140,10 +163,19 @@ int main()
 //	Generator.SetMaxHeight(280);
 //	Generator.SetMinHeight(180);
 //
-//	Generator.AddTerrainLevel(0, FBlock::Brick);
-//	Generator.AddTerrainLevel(180, FBlock::Grass);
-//	Generator.AddTerrainLevel(250, FBlock::Dirt);
-//	Generator.AddTerrainLevel(280, FBlock::Snow);
+//	enum Type : uint8_t
+//	{
+//		Air,
+//		Grass,
+//		Dirt,
+//		Snow,
+//		Brick,
+//	};
+//
+//	Generator.AddTerrainLevel(0, Brick);
+//	Generator.AddTerrainLevel(180, Grass);
+//	Generator.AddTerrainLevel(250, Dirt);
+//	Generator.AddTerrainLevel(280, Snow);
 //
 //	Generator.Build(finalTerrain, L"PrettyWorld");
 //

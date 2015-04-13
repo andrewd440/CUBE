@@ -1,41 +1,30 @@
 #pragma once
-
-#include "Math\Vector3.h"
 #include <cstdint>
 
+#include "Math\Vector3.h"
+#include "BlockTypes.h"
+
 /**
-* A voxel block.
+* A world voxel.
 */
 struct FBlock
 {
-public:
 	static const float BLOCK_SIZE; // Width of each voxel
-	static const Vector4f Colors[4]; // Color for each voxel type
+	static const uint8_t AIR_BLOCK_ID = 0;
 
-	// Each type of voxel
-	enum Type : uint8_t
-	{
-		Grass,
-		Dirt,
-		Snow,
-		Brick,
-		Count,
-		None
-	};
+	FBlock(const FBlockTypes::BlockID Type = AIR_BLOCK_ID)
+		: ID(Type){}
 
-	FBlock(const Type Type = None)
-		: BlockType(Type){}
-
-	Type BlockType{None};
+	FBlockTypes::BlockID ID{AIR_BLOCK_ID};
 };
 
 
 inline bool operator==(const FBlock& Lhs, const FBlock& Rhs)
 {
-	return Lhs.BlockType == Rhs.BlockType;
+	return Lhs.ID == Rhs.ID;
 }
 
 inline bool operator!=(const FBlock& Lhs, const FBlock& Rhs)
 {
-	return Lhs.BlockType != Rhs.BlockType;
+	return Lhs.ID != Rhs.ID;
 }

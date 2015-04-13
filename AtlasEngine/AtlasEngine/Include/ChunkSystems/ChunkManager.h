@@ -12,6 +12,7 @@
 #include "LibNoise\noiseutils.h"
 #include "Utils/Singleton.h"
 #include "FileIO\WorldFileSystem.h"
+#include "BlockTypes.h"
 
 class FPhysicsSystem;
 class FRenderSystem;
@@ -41,12 +42,12 @@ public:
 	/**
 	* Set a block in the world at a specific position.
 	*/
-	void SetBlock(Vector3i Position, FBlock::Type Type);
+	void SetBlock(Vector3i Position, FBlockTypes::BlockID ID);
 
 	/**
 	* Retrieves the type of block in the world at a specific position.
 	*/
-	FBlock::Type GetBlock(Vector3i Position) const;
+	FBlockTypes::BlockID GetBlock(Vector3i Position) const;
 
 	/**
 	* Destroys a block in the world at a specific position.
