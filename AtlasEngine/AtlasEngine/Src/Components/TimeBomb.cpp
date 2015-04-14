@@ -7,7 +7,7 @@ CTimeBomb::CTimeBomb()
 	: FBehavior()
 	, mLifetime(3.0f)
 	, mTimer(0.0f)
-	, mRadius(10)
+	, mRadius(5)
 	, mHasExploded(false)
 {
 }

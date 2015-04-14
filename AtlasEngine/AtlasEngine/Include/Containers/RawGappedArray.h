@@ -15,9 +15,10 @@
 * all objects that are currently constructed, an active index list is maintained
 * as elements are allocated. The iterator for this allocator grants read access
 * to this active list. As elements are added, the first avaliable slot in the list
-* is used.
+* is used. When more memory is needed for new objects, a new page is created that
+* is the size of the specified pages in Init.
 */
-class FRawGappedArray
+class FTypelessPageArray
 {
 public:
 	// Forward decl
@@ -28,24 +29,24 @@ public:
 	/**
 	* Default Ctor
 	*/
-	FRawGappedArray();
+	FTypelessPageArray();
 
 	/**
 	* Dtor
  	* Free held data.
 	*/
-	~FRawGappedArray();
+	~FTypelessPageArray();
 
 	/**
 	* Initializes this allocator for a specific capacity, respective to element size and alignment
 	* of that element type.
 	* If this is called on an already initialized object, all current data is cleared and reinitialized
 	* according to the new data specs.
-	* @param BlockSize - The requested starting capacity for this allocator.
+	* @param PageSize - The requested starting capacity for each memory page.
 	* @param ElementSize - The size of elements allocated by this allocator.
 	* @param Alignment - The memory alignment for the element type.
 	*/
-	void Init(const uint32_t BlockSize, const uint32_t ElementSize, const uint32_t Alignment = 1);
+	void Init(const uint32_t PageSize, const uint32_t ElementSize, const uint32_t Alignment = 1);
 
 	template <typename T>
 	/**
@@ -53,9 +54,9 @@ public:
 	* If this is called on an already initialized object, all current data is cleared and reinitialized
 	* according to the new data specs.
 	* @tparam T - The element type for this allocator.
-	* @param BlockSize - The requested starting capacity for this allocator.
+	* @param PageSize - The requested starting capacity for each memory page.
 	*/
-	void Init(const uint32_t BlockSize);
+	void Init(const uint32_t PageSize);
 
 	/**
 	* Allocates an element in the first available slot in the container.
@@ -114,7 +115,7 @@ public:
 	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
 	* FGapArrayAllocator::End() iterators.
 	*/
-	void* operator[](const size_t Index) { return mData + Index * mElementSize; };
+	void* operator[](const size_t Index);
 
 	/**
 	* Untyped index into the data container held by the allocator.
@@ -122,7 +123,7 @@ public:
 	* For iteration of allocated objects, use FGapArrayAllocator::Begin() and
 	* FGapArrayAllocator::End() iterators.
 	*/
-	const void* operator[](const size_t Index) const { return mData + Index * mElementSize; };
+	const void* operator[](const size_t Index) const;
 
 	template <typename T>
 	/**
@@ -141,52 +142,63 @@ public:
 	/**
 	* Get the current capacity.
 	*/
-	uint32_t Capacity() const { return mActiveList.capacity(); }
+	uint32_t Capacity() const { return mPageSize * mPages.size(); }
 
 	/**
 	* Get the number of allocated objects.
  	*/
-	uint32_t Size() const { return mActiveList.size(); }
+	uint32_t Size() const { return mActiveCount; }
 
 private:
-	/**
-	* Resizes this allocator. This simply copies all data
-	* to a new location in memory with a larger capacity. This will no
-	* invalidate indeices into this object.
-	*/
-	void Resize(const uint32_t NewSize);
+
+	void AddPage();
+
+	void DeleteAllPages();
+
+	void AssignNextFreePage();
 
 private:
-	uint32_t mElementSize;
-	uint32_t mAlignment;
-	uint8_t* mData;
-	std::vector<uint32_t> mActiveList; // Ordered list of active elements
-	std::priority_queue<uint32_t, std::vector<uint32_t>, std::greater<uint32_t>> mDeadList; // Min-heap of dead elements
+	struct Page
+	{
+		uint8_t* Data;
+		std::vector<uint32_t> ActiveList; // Ordered list of active elements
+		std::priority_queue<uint32_t, std::vector<uint32_t>, std::greater<uint32_t>> DeadList; // Min-heap of dead elements
+	};
 
+	uint32_t          mElementSize;
+	uint32_t          mAlignment;
+	uint32_t          mPageSize;
+	uint32_t          mActiveCount;
+	uint32_t          mNextFreePage;
+	std::vector<Page> mPages;
 
 public:
+	template <typename T>
+	friend class Iterator;
 	template <typename ElementType>
 	class Iterator : public std::iterator<std::forward_iterator_tag, ElementType>
 	{
 	public:
 		Iterator()
-			: mIndex(0)
-			, mActiveList()
-			, mContainer()
+			: mCurrentPage(0)
+			, mIndex(0)
+			, mContainer(nullptr)
 		{
 		}
 
-		Iterator(FRawGappedArray& Array, const std::vector<uint32_t>& ActiveList, const uint32_t StartingIndex = 0)
-			: mIndex(StartingIndex)
-			, mActiveList(ActiveList)
-			, mContainer(Array)
+		Iterator(FTypelessPageArray& Array, const uint32_t CurrentPage, const uint32_t Index)
+			: mCurrentPage(CurrentPage)
+			, mIndex(Index)
+			, mContainer(&Array)
 		{
+			mElementSize = mContainer->mElementSize;
 		}
 
 		Iterator(const Iterator& Other)
-			: mIndex(Other.mIndex)
-			, mActiveList(Other.mActiveList)
+			: mCurrentPage(Other.mCurrentPage)
+			, mIndex(Other.mIndex)
 			, mContainer(Other.mContainer)
+			, mElementSize(Other.mElementSize)
 		{
 		}
 
@@ -194,48 +206,56 @@ public:
 
 		Iterator& operator=(const Iterator& Other)
 		{
+			mCurrentPage = Other.mCurrentPage;
 			mIndex = Other.mIndex;
-			mActiveList = Other.mActiveList;
 			mContainer = Other.mContainer;
+			mElementSize = Other.mElementSize;
 		}
 
 		Iterator& operator++()
 		{
-			mIndex++;
+			if (mIndex >= mContainer->mPages[mCurrentPage].ActiveList.size() - 1)
+			{
+				mIndex = 0;
+				mCurrentPage++;
+			}
+			else
+			{
+				mIndex++;
+			}
+
 			return *this;
 		}
 
 		Iterator operator++(int32_t)
 		{
 			Iterator Pre{ *this };
-			mIndex++;
-			return Pre;
-		}
 
-		Iterator& operator+=(uint32_t Offset)
-		{
-			mIndex += Offset;
-			return *this;
+			++(*this);
+
+			return Pre;
 		}
 
 		ElementType& operator*()
 		{
-			return mContainer.At<ElementType>(mActiveList[mIndex]);
+			const uint32_t PageIndex = mContainer->mPages[mCurrentPage].ActiveList[mIndex];
+			return *reinterpret_cast<ElementType*>(mContainer->mPages[mCurrentPage].Data + (mElementSize * PageIndex));
 		}
 
 		ElementType* operator->()
 		{
-			return &mContainer.At<ElementType>(mActiveList[mIndex]);
+			const uint32_t PageIndex = mContainer->mPages[mCurrentPage].ActiveList[mIndex];
+			return reinterpret_cast<ElementType*>(mContainer->mPages[mCurrentPage].Data + (mElementSize * PageIndex));
 		}
 
 		bool operator==(const Iterator& Other) const
 		{
-			return mIndex == Other.mIndex && mActiveList == Other.mActiveList && &mContainer == &Other.mContainer;
+			return mIndex == Other.mIndex && mCurrentPage == Other.mCurrentPage && mContainer == Other.mContainer;
 		}
 
 		bool operator!=(const Iterator& Other) const
 		{
-			return mIndex != Other.mIndex || mActiveList != Other.mActiveList || &mContainer != &Other.mContainer;
+			return mIndex != Other.mIndex || mCurrentPage != Other.mCurrentPage || mContainer != Other.mContainer;
 		}
 
 		/**
@@ -246,66 +266,94 @@ public:
 			return mIndex;
 		}
 
+		uint32_t GetPage() const
+		{
+			return mCurrentPage;
+		}
+
 	private:
+		uint32_t mElementSize;
+		uint32_t mCurrentPage;
 		uint32_t mIndex;
-		const std::vector<uint32_t>& mActiveList;
-		FRawGappedArray& mContainer;
+		FTypelessPageArray* mContainer;
 	};
 };
 
 
 template <typename T>
-inline void FRawGappedArray::Init(const uint32_t BlockSize)
+inline void FTypelessPageArray::Init(const uint32_t BlockSize)
 {
 	Init(BlockSize, sizeof(T), __alignof(T));
 }
 
 template <typename T>
-inline uint32_t FRawGappedArray::AllocateAndConstruct()
+inline uint32_t FTypelessPageArray::AllocateAndConstruct()
 {
 	uint32_t Index = Allocate();
-	new (mData + Index * mElementSize) T;
+	new (*this[Index]) T;
 	return Index;
 }
 
 template <typename T, typename Param>
-inline uint32_t FRawGappedArray::AllocateAndConstruct(const Param& Arg1)
+inline uint32_t FTypelessPageArray::AllocateAndConstruct(const Param& Arg1)
 {
 	uint32_t Index = Allocate();
-	new (mData + Index * mElementSize) T(Arg1);
+	new (*this[Index]) T(Arg1);
 	return Index;
 }
 
 template <typename T, typename Param>
-inline uint32_t FRawGappedArray::AllocateAndConstruct(Param& Arg1)
+inline uint32_t FTypelessPageArray::AllocateAndConstruct(Param& Arg1)
 {
 	uint32_t Index = Allocate();
-	new (mData + Index * mElementSize) T(Arg1);
+	new (*this[Index]) T(Arg1);
 	return Index;
 }
 
 template <typename T>
-inline T& FRawGappedArray::At(const uint32_t Index)
+inline T& FTypelessPageArray::At(const uint32_t Index)
 {
-	ASSERT(std::find(mActiveList.begin(), mActiveList.end(), Index) != mActiveList.end() && "Trying to access dead element.");
-	return *(reinterpret_cast<T*>(mData + Index * mElementSize));
+#ifndef NDEBUG
+	const uint32_t PageID = Index / mPageSize;
+	const uint32_t ElementID = Index % mPageSize;
+	ASSERT(std::find(mPages[PageID].ActiveList.begin(), mPages[PageID].ActiveList.end(), ElementID) != mPages[PageID].ActiveList.end() && "Trying to access dead element.");
+#endif
+	return *(reinterpret_cast<T*>((*this)[Index]));
 }
 
 template <typename T>
-inline const T& FRawGappedArray::At(const uint32_t Index) const
+inline const T& FTypelessPageArray::At(const uint32_t Index) const
 {
-	ASSERT(std::find(mActiveList.begin(), mActiveList.end(), Index) != mActiveList.end() && "Trying to access dead element.");
-	return *(reinterpret_cast<T*>(mData + Index * mElementSize));
+#ifndef NDEBUG
+	const uint32_t PageID = Index / mPageSize;
+	const uint32_t ElementID = Index % mPageSize;
+	ASSERT(std::find(mPages[PageID].ActiveList.begin(), mPages[PageID].ActiveList.end(), ElementID) != mPages[PageID].ActiveList.end() && "Trying to access dead element.");
+#endif
+	return *(reinterpret_cast<T*>((*this)[Index]));
 }
 
 template <typename T>
-inline FRawGappedArray::Iterator<T> FRawGappedArray::Begin()
+inline FTypelessPageArray::Iterator<T> FTypelessPageArray::Begin()
 {
-	return FRawGappedArray::Iterator<T>(*this, mActiveList, 0);
+	return FTypelessPageArray::Iterator<T>(*this, 0, 0);
 }
 
 template <typename T>
-inline FRawGappedArray::Iterator<T> FRawGappedArray::End()
+inline FTypelessPageArray::Iterator<T> FTypelessPageArray::End()
 {
-	return FRawGappedArray::Iterator<T>(*this, mActiveList, mActiveList.size());
+	return FTypelessPageArray::Iterator<T>(*this, mPages.size(), 0);
+}
+
+inline void* FTypelessPageArray::operator[](const size_t Index) 
+{ 
+	const uint32_t PageID = Index / mPageSize;
+	const uint32_t ElementID = Index % mPageSize;
+	return mPages[PageID].Data + (ElementID * mElementSize);
+}
+
+inline const void* FTypelessPageArray::operator[](const size_t Index) const 
+{ 
+	const uint32_t PageID = Index / mPageSize;
+	const uint32_t ElementID = Index % mPageSize;
+	return mPages[PageID].Data + (ElementID * mElementSize);
 }

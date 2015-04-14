@@ -102,7 +102,7 @@ namespace Atlas
 		* @param Type - The targeted component type
 		* @return A reference to the container of that component type held by this object.
 		*/
-		FRawGappedArray& GetComponentsOfType(const EComponent::Type Type);
+		FTypelessPageArray& GetComponentsOfType(const EComponent::Type Type);
 
 		/**
 		* Retrieves all the components attached to a GameObject.
@@ -139,7 +139,7 @@ namespace Atlas
 		void UpdateComponentSystems(FGameObject& GameObject, IComponent& UpdatedComponent);
 
 	private:
-		static const uint32_t DEFAULT_CONTAINER_SIZE = 500;
+		static const uint32_t DEFAULT_CONTAINER_SIZE = 300;
 
 	private:
 		// The world this manager represents
@@ -148,10 +148,10 @@ namespace Atlas
 		FChunkManager* mChunkManager;
 
 		// Holds all gameobjects
-		FRawGappedArray mGameObjects;
+		FTypelessPageArray mGameObjects;
 
 		// Holds all system based components.
-		FRawGappedArray mSystemComponents[EComponent::Type::Count];
+		FTypelessPageArray mSystemComponents[EComponent::Type::Count];
 
 		// List of gameobjects set to be destroyed
 		std::queue<FGameObject*> mDestroyQueue;

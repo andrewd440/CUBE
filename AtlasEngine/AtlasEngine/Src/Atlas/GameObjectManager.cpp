@@ -76,7 +76,7 @@ namespace Atlas
 		return mGameObjects.At<FGameObject>(GameObjectID);
 	}
 
-	FRawGappedArray& FGameObjectManager::GetComponentsOfType(const EComponent::Type Type)
+	FTypelessPageArray& FGameObjectManager::GetComponentsOfType(const EComponent::Type Type)
 	{
 		return mSystemComponents[Type];
 	}

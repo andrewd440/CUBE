@@ -73,7 +73,7 @@ int main()
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00002f);
+	FogPostProcess->SetDensity(0.00005f);
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
 	Renderer.EnablePostProcess(0);
