@@ -3,25 +3,24 @@
 #include <vector>
 #include <utility>
 
-template <typename Arg>
+template <typename... Args>
 class TEvent
 {
 public:
-	using ArgumentType = Arg;
-	using EventType = void(*)(Arg);
+	using EventType = void(*)(Args...);
 
 private:
-	using ListenerPair = std::pair<void*, void(*)(void*, Arg)>;
+	using ListenerPair = std::pair<void*, void(*)(void*, Args...)>;
 
-	template <typename T, void (T::*Function)(Arg)>
-	static void ListenerStub(void* Instance, Arg Argument)
+	template <typename T, void (T::*Function)(Args...)>
+	static void ListenerStub(void* Instance, Args... Argument)
 	{
-		(static_cast<T*>(Instance)->*Function)(Argument);
+		(static_cast<T*>(Instance)->*Function)(Argument...);
 	}
 
 public:
 	
-	template <typename T, void (T::*Function)(Arg)>
+	template <typename T, void (T::*Function)(Args...)>
 	void AddListener(T* Instance)
 	{
 		ListenerPair Pair{ Instance, &ListenerStub<T, Function> };
@@ -38,10 +37,10 @@ public:
 		}
 	}
 
-	void Invoke(Arg Argument)
+	void Invoke(Args... Argument)
 	{
 		for (auto& Listener : mListeners)
-			Listener.second(Listener.first, Argument);
+			Listener.second(Listener.first, Argument...);
 	}
 
 private:

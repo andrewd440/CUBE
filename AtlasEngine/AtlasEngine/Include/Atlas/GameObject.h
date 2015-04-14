@@ -5,7 +5,6 @@
 #include "ComponentTypes.h"
 #include "Math\Transform.h"
 #include "BulletPhysics\btBulletCollisionCommon.h"
-#include "Atlas\Behavior.h"
 #include <map>
 #include <typeindex>
 
@@ -14,6 +13,7 @@ class FChunkManager;
 namespace Atlas
 {
 	class IComponent;
+	class FBehavior;
 
 	/**
 	* Used to represent any game object. 
@@ -193,8 +193,7 @@ namespace Atlas
 		FChunkManager&                    mChunkManager;
 
 		uint32_t						  mComponents[EComponent::Count]; // Handles for common property components.
-		std::map<std::type_index, 
-			std::unique_ptr<FBehavior>>   mBehaviors;
+		std::map<std::type_index, FBehavior*>   mBehaviors;
 		ID		                          mID;            // Non-unique id for this GO.
 		bool                              mIsActive;      // If not active, this GO's components will not be processed.
 	};

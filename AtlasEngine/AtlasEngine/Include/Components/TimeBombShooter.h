@@ -10,6 +10,8 @@ public:
 	void OnStart() override;
 	void Update() override;
 
+	void OnRedSet(Vector3i Position, FBlockTypes::BlockID ID);
+
 private:
 	void ShootBomb();
 };

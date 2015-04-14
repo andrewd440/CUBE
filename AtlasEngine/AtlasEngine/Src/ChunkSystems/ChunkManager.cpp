@@ -33,6 +33,8 @@ FChunkManager::FChunkManager()
 	, mWorldSize(0)
 	, mViewDistance(DEFAULT_VIEW_DISTANCE)
 	, mPhysicsSystem(nullptr)
+	, mOnBlockDestroy()
+	, mOnBlockSet()
 {
 	mChunks = new FChunk[DEFAULT_CHUNK_SIZE];
 	mChunkPositions = new Vector4i[DEFAULT_CHUNK_SIZE];
@@ -203,21 +205,22 @@ void FChunkManager::SwapChunkBuffers()
 
 #undef min
 #undef max
-void FChunkManager::SetBlock(Vector3i Position, FBlockTypes::BlockID ID)
+void FChunkManager::SetBlock(const Vector3i& Position, FBlockTypes::BlockID ID)
 {
 	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
 	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < BlockWorldSize)
 	{
 		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
-		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+		const Vector3i LocalPosition = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
 		int32_t Index = ChunkIndex(ChunkPosition);
 
 		// Only set if the right chunk is loaded
 		if (ChunkPosition == mChunkPositions[Index])
 		{
-			mChunks[Index].SetBlock(Position, ID);
+			mChunks[Index].SetBlock(LocalPosition, ID);
+			mOnBlockSet.Invoke(Position, ID);
 
 			std::lock_guard<std::mutex> Lock(mRebuildListMutex);
 			if (std::find(mRebuildList.begin(), mRebuildList.end(), Index) == mRebuildList.end())
@@ -247,21 +250,22 @@ FBlockTypes::BlockID FChunkManager::GetBlock(Vector3i Position) const
 	return FBlock::AIR_BLOCK_ID;
 }
 
-void FChunkManager::DestroyBlock(Vector3i Position)
+void FChunkManager::DestroyBlock(const Vector3i& Position)
 {
 	int32_t BlockWorldSize = mWorldSize * FChunk::CHUNK_SIZE;
 
 	if (std::min({ Position.x, Position.y, Position.z }) >= 0 && std::max({ Position.x, Position.y, Position.z }) < BlockWorldSize)
 	{
 		const Vector4i ChunkPosition = Vector4i(Position / FChunk::CHUNK_SIZE, 1);
-		Position = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
+		const Vector3i LocalPosition = Vector3i{ Position.x % FChunk::CHUNK_SIZE, Position.y % FChunk::CHUNK_SIZE, Position.z % FChunk::CHUNK_SIZE };
 
 		int32_t Index = ChunkIndex(ChunkPosition);
 
 		// Only destroy if the right chunk is loaded
 		if (ChunkPosition == mChunkPositions[Index])
 		{
-			mChunks[Index].DestroyBlock(Position);
+			const FBlockTypes::BlockID ID = mChunks[Index].DestroyBlock(LocalPosition);
+			mOnBlockDestroy.Invoke(Position, ID);
 
 			std::lock_guard<std::mutex> Lock(mRebuildListMutex);
 			if (std::find(mRebuildList.begin(), mRebuildList.end(), Index) == mRebuildList.end())

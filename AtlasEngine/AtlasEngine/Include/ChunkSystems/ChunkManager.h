@@ -13,6 +13,7 @@
 #include "Utils/Singleton.h"
 #include "FileIO\WorldFileSystem.h"
 #include "BlockTypes.h"
+#include "Utils\Event.h"
 
 class FPhysicsSystem;
 class FRenderSystem;
@@ -42,7 +43,7 @@ public:
 	/**
 	* Set a block in the world at a specific position.
 	*/
-	void SetBlock(Vector3i Position, FBlockTypes::BlockID ID);
+	void SetBlock(const Vector3i& Position, FBlockTypes::BlockID ID);
 
 	/**
 	* Retrieves the type of block in the world at a specific position.
@@ -52,7 +53,7 @@ public:
 	/**
 	* Destroys a block in the world at a specific position.
 	*/
-	void DestroyBlock(Vector3i Position);
+	void DestroyBlock(const Vector3i& Position);
 
 	/**
 	* Retrieves the size of the world in chunks.
@@ -174,6 +175,14 @@ private:
 
 	// Physics Data
 	FPhysicsSystem* mPhysicsSystem;
+
+public:
+	// Block events
+	using BlockSetEventType = void(*)(Vector3i, FBlockTypes::BlockID);
+	using BlockDestroyEventType = void(*)(Vector3i, FBlockTypes::BlockID);
+
+	TEvent<Vector3i, FBlockTypes::BlockID> mOnBlockDestroy;
+	TEvent<Vector3i, FBlockTypes::BlockID> mOnBlockSet;
 };
 
 

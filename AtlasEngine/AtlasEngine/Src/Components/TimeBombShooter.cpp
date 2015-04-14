@@ -5,6 +5,7 @@
 #include "Components\TimeBomb.h"
 #include "Input\ButtonEvent.h"
 #include "Rendering\Light.h"
+#include "ChunkSystems\ChunkManager.h"
 
 CTimeBombShooter::CTimeBombShooter()
 	: FBehavior()
@@ -14,17 +15,30 @@ CTimeBombShooter::CTimeBombShooter()
 
 CTimeBombShooter::~CTimeBombShooter()
 {
+	RemoveOnBlockDestroyListener(this);
+	RemoveOnBlockSetListener(this);
 }
 
 void CTimeBombShooter::OnStart()
 {
-
+	AddOnBlockSetListener<CTimeBombShooter, &CTimeBombShooter::OnRedSet>(this);
 }
 
 void CTimeBombShooter::Update()
 {
 	if (SButtonEvent::GetKeyDown(sf::Keyboard::Space))
 		ShootBomb();
+}
+
+void CTimeBombShooter::OnRedSet(Vector3i Position, FBlockTypes::BlockID ID)
+{
+	if (ID == 4)
+	{
+		DestroyBlock(Position - Vector3i{ 0, 1, 0 });
+		DestroyBlock(Position + Vector3i{ 0, 1, 0 });
+		DestroyBlock(Position - Vector3i{ 1, 0, 0 });
+		DestroyBlock(Position + Vector3i{ 1, 0, 0 });
+	}
 }
 
 void CTimeBombShooter::ShootBomb()

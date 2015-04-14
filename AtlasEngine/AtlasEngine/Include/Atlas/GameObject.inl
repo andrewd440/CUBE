@@ -120,18 +120,18 @@ namespace Atlas
 	inline Type* FGameObject::AddBehavior()
 	{
 		Type* ComponentPtr = new Type;
-		std::unique_ptr<FBehavior> Component{ ComponentPtr };
 
-		Component->SetGameObject(this);
-		Component->SetChunkManager(&mChunkManager);
+		ComponentPtr->SetGameObject(this);
+		ComponentPtr->SetChunkManager(&mChunkManager);
 
-		mBehaviors[typeid(Type)] = std::move(Component);
+		mBehaviors[typeid(Type)] = ComponentPtr;
 		return ComponentPtr;
 	}
 
 	template <typename Type>
 	inline void FGameObject::RemoveBehavior()
 	{
+		delete mBehaviors[typeid(Type)];
 		mBehaviors.erase(typeid(Type));
 	}
 

@@ -127,8 +127,9 @@ public:
 
 	/**
 	* Destroys a block in the chunk at a specific position.
+	* @return ID of the block that was destroyed.
 	*/
-	void DestroyBlock(const Vector3i& Position);
+	FBlockTypes::BlockID DestroyBlock(const Vector3i& Position);
 
 	/**
 	* Checks if this chunk contains any blocks.

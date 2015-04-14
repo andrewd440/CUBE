@@ -223,9 +223,11 @@ FBlockTypes::BlockID FChunk::GetBlock(const Vector3i& Position) const
 	return mBlocks[BlockIndex(Position)].ID;
 }
 
-void FChunk::DestroyBlock(const Vector3i& Position)
+FBlockTypes::BlockID FChunk::DestroyBlock(const Vector3i& Position)
 {
+	FBlockTypes::BlockID ID = mBlocks[BlockIndex(Position)].ID;
 	mBlocks[BlockIndex(Position)].ID = FBlock::AIR_BLOCK_ID;
+	return ID;
 }
 
 void FChunk::GreedyMesh()

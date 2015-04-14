@@ -62,7 +62,7 @@ int main()
 	FCamera Camera;
 	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
 	Camera.Transform.SetPosition(CameraPosition);
-	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 456.0f });
+	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 356.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
 	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
