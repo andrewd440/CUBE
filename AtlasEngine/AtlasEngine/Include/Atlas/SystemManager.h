@@ -26,6 +26,11 @@ namespace Atlas
 
 		~FSystemManager();
 
+		/**
+		* Initalizes all systems.
+		*/
+		void Start();
+
 		template <typename T>
 		/**
 		* Adds a new System.

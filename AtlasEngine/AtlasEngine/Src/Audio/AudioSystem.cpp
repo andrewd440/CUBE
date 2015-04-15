@@ -74,6 +74,7 @@ void FAudioSystem::Update()
 
 void FAudioSystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
+	GameObject; // remove compiler warning
 	FSoundEmitter& Emitter = *static_cast<FSoundEmitter*>(&UpdateComponent);
 	Emitter.Sound->release();
 }
@@ -110,13 +111,13 @@ void FAudioListenerSystem::Update()
 		const Vector3f UpDirection = Rotation * Vector3f::Up;
 		FMOD_VECTOR FMODUp = { UpDirection.x, UpDirection.y, UpDirection.z };
 
-		FSoundListener& Listener = *static_cast<FSoundListener*>(&Objects[0]->GetComponent<EComponent::SoundListener>());
 		mSystem->set3DListenerAttributes(0, &FMODPosition, &Velocity, &FMODForward, &FMODUp);
 	}
 }
 
 void FAudioListenerSystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
 {
+	GameObject; // remove compiler warning
 	FSoundListener& Listener = *static_cast<FSoundListener*>(&UpdateComponent);
 	mSystem->set3DSettings(Listener.DopplerScale, Listener.DistanceFactor, Listener.RolloffScale);
 }

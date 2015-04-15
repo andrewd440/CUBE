@@ -102,6 +102,8 @@ private:
 	*/
 	void TransferViewProjectionData();
 
+	void Start() override;
+
 private:
 	// Each type of subsystem used by the rendering system
 	struct SubSystems

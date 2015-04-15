@@ -9,4 +9,10 @@ namespace Atlas
 		//, mGroupManager(new FGroupManager(*this))
 	{
 	}
+
+	void FWorld::Start()
+	{
+		mObjectManager.Start();
+		mSystemManager.Start();
+	}
 }

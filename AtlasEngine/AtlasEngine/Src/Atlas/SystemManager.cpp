@@ -20,4 +20,10 @@ namespace Atlas
 		for (auto& System : mSystems)
 			System->CheckInterest(GameObject, UpdateComponent);
 	}
+
+	void FSystemManager::Start()
+	{
+		for (auto& System : mSystems)
+			System->Start();
+	}
 }

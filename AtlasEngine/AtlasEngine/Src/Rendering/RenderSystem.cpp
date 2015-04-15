@@ -77,12 +77,6 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	LoadSubSystems();
 
 	AddComponentType<Atlas::EComponent::MeshRenderer>();
-
-	// Setup shader storage block for block info
-	glGenBuffers(1, &mBlockInfoBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mBlockInfoBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Vector4f) * FBlockTypes::mBlockTypes.size(), FBlockTypes::mBlockTypes.data(), GL_STATIC_DRAW);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, GLUniformBindings::BlockInfo, mBlockInfoBuffer);
 }
 
 void FRenderSystem::LoadShaders()
@@ -113,6 +107,15 @@ void FRenderSystem::LoadSubSystems()
 FRenderSystem::~FRenderSystem()
 {
 	glDeleteBuffers(1, &mBlockInfoBuffer);
+}
+
+void FRenderSystem::Start()
+{
+	// Setup shader storage block for block info
+	glGenBuffers(1, &mBlockInfoBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mBlockInfoBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Vector4f) * FBlockTypes::mBlockTypes.size(), FBlockTypes::mBlockTypes.data(), GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, GLUniformBindings::BlockInfo, mBlockInfoBuffer);
 }
 
 uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess)

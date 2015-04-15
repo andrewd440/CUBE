@@ -34,6 +34,13 @@ using namespace Atlas;
 
 int main()
 {
+	const Vector2ui Resolution{ 1920, 1080 };
+	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
+
+	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
+	SMouseAxis::SetMouseVisible(false);
+	SMouseAxis::SetMouseLock(true);
+
 	const Vector4f BlockColors[4] =
 	{
 		Vector4f{ 0.1f, 0.35f, 0.15f },		// Grass
@@ -55,13 +62,6 @@ int main()
 	{
 		FBlockTypes::AddBlock(i+1, BlockColors[i]);
 	}
-
-	const Vector2ui Resolution{ 1920, 1080 };
-	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
-
-	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
-	SMouseAxis::SetMouseVisible(false);
-	SMouseAxis::SetMouseLock(true);
 
 	FCamera Camera;
 	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };

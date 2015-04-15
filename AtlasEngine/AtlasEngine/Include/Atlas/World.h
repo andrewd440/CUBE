@@ -11,6 +11,7 @@ namespace Atlas
 	public:
 
 		FWorld();
+		void Start();
 		FGameObjectManager& GetObjectManager() { return mObjectManager; }
 		FSystemManager&     GetSystemManager() { return mSystemManager; }
 		//FGroupManager&      GetGroupManager() { return mGroupManager; }

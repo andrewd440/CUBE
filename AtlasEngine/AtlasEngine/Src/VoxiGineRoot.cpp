@@ -107,7 +107,7 @@ FVoxiGineRoot::~FVoxiGineRoot()
 void FVoxiGineRoot::Start()
 {
 	STime::StartGameTimer();
-	mGameObjectManager->Start();
+	mWorld.Start();
 	GameLoop();
 }
 

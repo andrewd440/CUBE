@@ -99,6 +99,11 @@ namespace Atlas
 		friend class FGameObjectManager;
 
 		/**
+		* Initializes the system.
+		*/
+		virtual void Start(){}
+
+		/**
 		* Removes a GameObject from the System.
 		* @params GameObject - The GameObject to be removed
 		*/
