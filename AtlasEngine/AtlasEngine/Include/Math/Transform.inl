@@ -38,12 +38,12 @@ inline FTransform& FTransform::operator=(const FTransform& Other)
 	return *this;
 }
 
-inline void FTransform::SetPosition(const Vector3f& NewPosition)
+inline void FTransform::SetLocalPosition(const Vector3f& NewPosition)
 {
 	mTranslation = NewPosition;
 }
 
-inline Vector3f FTransform::GetPosition() const
+inline Vector3f FTransform::GetLocalPosition() const
 {
 	return mTranslation;
 }
@@ -96,7 +96,7 @@ inline FTransform* FTransform::GetParent() const
 inline bool operator==(const FTransform& Lhs, const FTransform& Rhs)
 {
 	return Lhs.GetParent()	== Rhs.GetParent() &&
-		Lhs.GetPosition()	== Rhs.GetPosition() &&
+		Lhs.GetLocalPosition() == Rhs.GetLocalPosition() &&
 		Lhs.GetRotation()	== Rhs.GetRotation() &&
 		Lhs.GetScale()		== Rhs.GetScale();
 }
@@ -104,7 +104,7 @@ inline bool operator==(const FTransform& Lhs, const FTransform& Rhs)
 inline bool operator!=(const FTransform& Lhs, const FTransform& Rhs)
 {
 	return Lhs.GetParent() != Rhs.GetParent() ||
-		Lhs.GetPosition() != Rhs.GetPosition() ||
+		Lhs.GetLocalPosition() != Rhs.GetLocalPosition() ||
 		Lhs.GetRotation() != Rhs.GetRotation() ||
 		Lhs.GetScale() != Rhs.GetScale();
 }

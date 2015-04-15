@@ -3,6 +3,7 @@
 #include "Rendering\Camera.h"
 #include "Atlas\GameObject.h"
 #include "Components\MeshRenderer.h"
+#include "Components\SoundEmitter.h"
 
 CBoxShooter::CBoxShooter()
 {
@@ -20,7 +21,7 @@ void CBoxShooter::Update()
 		FCamera& Camera = *FCamera::Main;
 
 		auto& Box = CreateGameObject();
-		Box.Transform.SetPosition(Camera.Transform.GetPosition() + Vector3f::Up * 2.0f);
+		Box.Transform.SetLocalPosition(Camera.Transform.GetWorldPosition() + Vector3f::Up * 2.0f);
 		Box.Transform.SetScale(Vector3f{ .5f, .5f, .5f });
 
 		auto& Body = Box.AddComponent<Atlas::EComponent::RigidBody>();

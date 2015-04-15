@@ -306,6 +306,15 @@
     <ClInclude Include="Include\ChunkSystems\BlockTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Audio\AudioSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Components\SoundListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Components\SoundEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp">
@@ -513,6 +522,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\ChunkSystems\BlockTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Audio\AudioSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

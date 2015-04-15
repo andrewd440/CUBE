@@ -52,12 +52,12 @@ public:
 	/**
 	* Set the position of this tranform.
 	*/
-	void SetPosition(const Vector3f& NewPosition);
+	void SetLocalPosition(const Vector3f& NewPosition);
 
 	/**
 	* Get the position of this transform.
 	*/
-	Vector3f GetPosition() const;
+	Vector3f GetLocalPosition() const;
 
 	/**
 	* Get the world position of this transform.

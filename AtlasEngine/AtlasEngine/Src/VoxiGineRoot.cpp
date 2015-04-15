@@ -22,19 +22,16 @@
 #include "Components\Collider.h"
 #include "Components\RigidBody.h"
 #include "Physics\PhysicsSystem.h"
+#include "Audio\AudioSystem.h"
 #include "Debugging\DebugDraw.h"
 #include "Debugging\DebugText.h"
 #include "Input\TextEntered.h"
-#include "Components\FlyingCamera.h"
-#include "Components\BlockPlacer.h"
-#include "Components\TimeBombShooter.h"
-#include "Components\BoxShooter.h"
-#include "Rendering\FogPostProcess.h"
 #include "Debugging\GameConsole.h"
-#include "Rendering\SSAOPostProcess.h"
 #include "ResourceHolder.h"
 #include "Components\ObjectMesh.h"
 #include "Components\MeshRenderer.h"
+#include "Components\SoundEmitter.h"
+#include "Components\SoundListener.h"
 
 using namespace Atlas;
 
@@ -76,6 +73,7 @@ void FVoxiGineRoot::LoadEngineSystems()
 	FSystemManager& SystemManager = mWorld.GetSystemManager();
 	mRenderSystem = &SystemManager.AddSystem<FRenderSystem>(mGameWindow, *mChunkManager);
 	mPhysicsSystem = &SystemManager.AddSystem<FPhysicsSystem>();
+	mAudioSystem = &SystemManager.AddSystem<FAudioSystem>();
 
 	// Pass console dependencies
 	FDebug::GameConsole& Console = FDebug::GameConsole::GetInstance();
@@ -93,6 +91,8 @@ void FVoxiGineRoot::LoadEngineSystems()
 	mGameObjectManager->RegisterComponentType<EComponent::Collider>();
 	mGameObjectManager->RegisterComponentType<EComponent::RigidBody>();
 	mGameObjectManager->RegisterComponentType<EComponent::MeshRenderer>();
+	mGameObjectManager->RegisterComponentType<EComponent::SoundEmitter>();
+	mGameObjectManager->RegisterComponentType<EComponent::SoundListener>();
 }
 
 FVoxiGineRoot::~FVoxiGineRoot()
@@ -122,6 +122,7 @@ void FVoxiGineRoot::GameLoop()
 		mChunkManager->Update();
 
 		mPhysicsSystem->Update();
+		mAudioSystem->Update();
 		mRenderSystem->Update();
 
 		STime::UpdateGameTimer();
@@ -133,14 +134,6 @@ void FVoxiGineRoot::ServiceEvents()
 {
 	// Windows events
 	sf::Event Event;
-
-	static bool ResetMouse = false;
-
-	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
-	{
-		ResetMouse = !ResetMouse;
-		SMouseAxis::SetMouseLock(ResetMouse);
-	}
 
 	// Reset button and axes from previous frame
 	SButtonEvent::ResetButtonEvents();

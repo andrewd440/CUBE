@@ -26,6 +26,14 @@ void CFlyingCamera::OnStart()
 
 void CFlyingCamera::Update()
 {
+	static bool ResetMouse = false;
+
+	if (SButtonEvent::GetKeyDown(sf::Keyboard::L))
+	{
+		ResetMouse = !ResetMouse;
+		SMouseAxis::SetMouseLock(ResetMouse);
+	}
+
 	float ZMovement = 0, XMovement = 0, YMovement = 0;
 	float MoveSpeed = (mMoveSpeed * STime::GetDeltaTime()) * ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ? 2.0f : 1.0f);
 

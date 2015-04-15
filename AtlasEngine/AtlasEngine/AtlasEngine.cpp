@@ -17,6 +17,8 @@
 #include "Components\TimeBombShooter.h"
 #include "Rendering\Light.h"
 #include "Atlas\ComponentTypes.h"
+#include "Components\SoundListener.h"
+#include "Components\SoundEmitter.h"
 
 
 #include "FileIO\RegionFile.h"
@@ -26,7 +28,9 @@
 #include "Math\Vector2.h"
 #include "Utils\Event.h"
 #include "ChunkSystems\BlockTypes.h"
+#include "Components\MeshRenderer.h"
 
+using namespace Atlas;
 
 int main()
 {
@@ -61,7 +65,7 @@ int main()
 
 	FCamera Camera;
 	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
-	Camera.Transform.SetPosition(CameraPosition);
+	Camera.Transform.SetLocalPosition(CameraPosition);
 	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 356.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
@@ -86,10 +90,12 @@ int main()
 	auto& GameObjectManager = Root.GetGameObjectManager();
 
 	auto& PlayerController = GameObjectManager.CreateGameObject();
+	PlayerController.Transform.SetParent(&Camera.Transform);
 	PlayerController.AddBehavior<CFlyingCamera>();
 	PlayerController.AddBehavior<CBlockPlacer>();
-	PlayerController.AddBehavior<CTimeBombShooter>();
-	//PlayerController.AddBehavior<CBoxShooter>();
+	//PlayerController.AddBehavior<CTimeBombShooter>();
+	PlayerController.AddBehavior<CBoxShooter>();
+	PlayerController.AddComponent<EComponent::SoundListener>();
 
 	////////////////////////////////////////////////////////////////////////
 	//////// Directional Light /////////////////////////////////////////////
@@ -103,6 +109,10 @@ int main()
 	auto& BoxMesh = SMeshHolder::Get("Box");
 	BoxMesh.Mesh.LoadModel("Box.obj");
 
+	SMeshHolder::Load("Sword");
+	auto& SwordMesh = SMeshHolder::Get("Sword");
+	SwordMesh.Mesh.LoadModel("Sword.obj");
+
 	//auto& PointLight = GameObjectManager.CreateGameObject();
 	//PointLight.Transform.SetPosition(Vector3f{ 260.0f, 245.0f, 260.0f });
 	//FPointLight& PLight = PointLight.AddComponent<Atlas::EComponent::PointLight>();
@@ -113,11 +123,10 @@ int main()
 	//PLight.Intensity = 1000.0f;
 	//PLight.MaxDistance = 100;
 
-	//auto& Sword = GameObjectManager.CreateGameObject();
-	//FMeshComponent& Mesh = Sword.AddComponent<Atlas::EComponent::Mesh>();
-	//Mesh.LoadModel("Sword.obj");
-	//Sword.Transform.SetPosition(Vector3f{ 100.0f, 230.0f, 100.0f });
-	//Sword.Transform.Rotate(FQuaternion{ 90, 0, -45 });
+	auto& Sword = GameObjectManager.CreateGameObject();
+	Sword.AddComponent<Atlas::EComponent::MeshRenderer>().LinkToMesh("Sword");
+	Sword.Transform.SetLocalPosition(Vector3f{ 300.0f, 270.0f, 300.0f });
+	Sword.Transform.Rotate(FQuaternion{ 90, 90, -45 });
 
 	Root.Start();
 

@@ -9,6 +9,7 @@ class Atlas::FGameObjectManager;
 class FRenderSystem;
 class FPhysicsSystem;
 class FChunkManager;
+class FAudioSystem;
 
 /**
 * Root/Central class for the game engine
@@ -44,6 +45,7 @@ private:
 		{
 			Render,
 			Physics,
+			Audio,
 			Count
 		};
 	};
@@ -54,6 +56,7 @@ private:
 	FChunkManager*              mChunkManager;
 	FRenderSystem*              mRenderSystem;
 	FPhysicsSystem*             mPhysicsSystem;
+	FAudioSystem*               mAudioSystem;
 	Atlas::FGameObjectManager*  mGameObjectManager;
 };
 

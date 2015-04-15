@@ -14,6 +14,8 @@ namespace Atlas
 			RigidBody,
 			MeshRenderer,
 			Collider,
+			SoundListener,
+			SoundEmitter,
 			Count
 		};
 	};

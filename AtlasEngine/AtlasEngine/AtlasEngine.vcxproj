@@ -105,7 +105,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>lib\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;LibNoiseUtils-d.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;LinearMath_debug.lib;TinyObjLoader-d.lib;freetype-gl.lib</AdditionalDependencies>
+      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;LibNoiseUtils-d.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;LinearMath_debug.lib;TinyObjLoader-d.lib;freetype-gl.lib;fmodL_vc.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -150,7 +150,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <Profile>true</Profile>
-      <AdditionalDependencies>LibNoiseUtils.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;sfml-window.lib;sfml-system.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;TinyObjLoader.lib;freetype-gl.lib</AdditionalDependencies>
+      <AdditionalDependencies>LibNoiseUtils.lib;libnoise.lib;opengl32.lib;Shlwapi.lib;glew32.lib;Shell32.lib;freetype.lib;sfml-window.lib;sfml-system.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;TinyObjLoader.lib;freetype-gl.lib;fmod_vc.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib\;</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -184,6 +184,7 @@
     <ClInclude Include="Atlas\include\GroupManager.h" />
     <ClInclude Include="Atlas\include\Utilities.h" />
     <ClInclude Include="Include\Atlas\Behavior.h" />
+    <ClInclude Include="Include\Audio\AudioSystem.h" />
     <ClInclude Include="Include\ChunkSystems\BlockTypes.h" />
     <ClInclude Include="Include\ChunkSystems\ChunkMesh.h" />
     <ClInclude Include="Include\Components\BlockPlacer.h" />
@@ -193,6 +194,8 @@
     <ClInclude Include="Include\Components\MeshRenderer.h" />
     <ClInclude Include="Include\Components\ObjectMesh.h" />
     <ClInclude Include="Include\Components\RigidBody.h" />
+    <ClInclude Include="Include\Components\SoundEmitter.h" />
+    <ClInclude Include="Include\Components\SoundListener.h" />
     <ClInclude Include="Include\Components\TimeBomb.h" />
     <ClInclude Include="Include\Components\TimeBombShooter.h" />
     <ClInclude Include="Include\Debugging\GameConsole.h" />
@@ -281,6 +284,7 @@
   <ItemGroup>
     <ClCompile Include="AtlasEngine.cpp" />
     <ClCompile Include="Src\Atlas\Behavior.cpp" />
+    <ClCompile Include="Src\Audio\AudioSystem.cpp" />
     <ClCompile Include="Src\ChunkSystems\BlockTypes.cpp" />
     <ClCompile Include="Src\ChunkSystems\ChunkMesh.cpp" />
     <ClCompile Include="Src\Components\BlockPlacer.cpp" />
