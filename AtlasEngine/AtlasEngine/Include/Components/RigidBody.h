@@ -14,16 +14,16 @@ WIN_ALIGN(16)
 struct FRigidBody : public Atlas::IComponent
 {
 	FRigidBody(btMotionState* MotionState = nullptr)
-		: BoxCollider(btVector3{0.5f, 0.5f, 0.5f})
-		, Body(1.0f, MotionState, &BoxCollider)
+		: CapsuleCollider(.5f, 2)
+		, Body(1.0f, MotionState, &CapsuleCollider)
 	{
 		btVector3 Inertia;
-		BoxCollider.calculateLocalInertia(1.0f, Inertia);
+		CapsuleCollider.calculateLocalInertia(1.0f, Inertia);
 		Inertia = btVector3{ 1, 1, 1 } / Inertia;
 		Body.setInvInertiaDiagLocal(Inertia);
 	}
 
-	btBoxShape    BoxCollider;
+	btCapsuleShape  CapsuleCollider;
 	btRigidBody   Body;
 };
 

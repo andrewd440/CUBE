@@ -4,6 +4,7 @@
 #include "Debugging\DebugDraw.h"
 #include "ChunkSystems\Block.h"
 #include "ChunkSystems\BlockTypes.h"
+#include "Debugging\DebugText.h"
 
 CBlockPlacer::CBlockPlacer()
 	: FBehavior()
@@ -55,6 +56,6 @@ void CBlockPlacer::ChangeType()
 {
 	mActiveType++;
 
-	if (mActiveType == FBlock::AIR_BLOCK_ID)
+	if (mActiveType == 6)
 		mActiveType = 0;
 }

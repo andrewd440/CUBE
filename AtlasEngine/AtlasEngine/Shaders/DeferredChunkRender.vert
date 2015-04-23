@@ -18,10 +18,7 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 InvProjection;     //      16                  192         256
 } Transforms;
 
-layout(std430, binding = 3) buffer BlockInfoBlock
-{
-	vec4 BlockColors[];
-};
+layout(binding = 4) uniform sampler1D BlockColors;
 
 const vec3 BlockNormals[6] =
 {
@@ -36,7 +33,7 @@ const vec3 BlockNormals[6] =
 void main()
 {
 	// Unpack color
-	vs_out.Color = BlockColors[x6_y6_z6_n3_null3_b8 & 0xFF].xyz;
+	vs_out.Color = texelFetch(BlockColors, int(x6_y6_z6_n3_null3_b8 & 0xFF), 0).xyz;
 
 	// Unpack normal and lookup with table
 	vec3 WorldNormal = BlockNormals[(x6_y6_z6_n3_null3_b8 & 0x3800) >> 11];

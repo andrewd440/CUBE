@@ -54,8 +54,14 @@ void FAudioSystem::Update()
 
 		if (Emitter.Filename.size() > 0)
 		{
-			Emitter.Sound->release();
-			mSystem->createSound(Emitter.Filename.data(), FMOD_3D, nullptr, &Emitter.Sound);
+			if (Emitter.Sound)
+				Emitter.Sound->release();
+
+			FMOD_MODE Mode = FMOD_3D;
+			if (Emitter.Looping)
+				Mode |= FMOD_LOOP_NORMAL;
+
+			mSystem->createSound(Emitter.Filename.data(), Mode, nullptr, &Emitter.Sound);
 			Emitter.Filename.resize(0);
 		}
 
@@ -77,6 +83,14 @@ void FAudioSystem::OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::ICo
 	GameObject; // remove compiler warning
 	FSoundEmitter& Emitter = *static_cast<FSoundEmitter*>(&UpdateComponent);
 	Emitter.Sound->release();
+}
+
+void FAudioSystem::OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent)
+{
+	GameObject; // remove compiler warning
+	FSoundEmitter& Emitter = *static_cast<FSoundEmitter*>(&UpdateComponent);
+	Emitter.Channel = nullptr;
+	Emitter.Sound = nullptr;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

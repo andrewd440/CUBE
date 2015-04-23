@@ -111,11 +111,15 @@ FRenderSystem::~FRenderSystem()
 
 void FRenderSystem::Start()
 {
-	// Setup shader storage block for block info
-	glGenBuffers(1, &mBlockInfoBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mBlockInfoBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Vector4f) * FBlockTypes::mBlockTypes.size(), FBlockTypes::mBlockTypes.data(), GL_STATIC_DRAW);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, GLUniformBindings::BlockInfo, mBlockInfoBuffer);
+	// Setup texture for block info
+	glActiveTexture(GL_TEXTURE0 + GLTextureBindings::BlockInfo);
+	glGenTextures(1, &mBlockInfoBuffer);
+	glBindTexture(GL_TEXTURE_1D, mBlockInfoBuffer);
+	glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA32F, FBlockTypes::mBlockTypes.size());
+	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, FBlockTypes::mBlockTypes.size(), GL_RGBA, GL_FLOAT, FBlockTypes::mBlockTypes.data());
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glActiveTexture(GL_TEXTURE0);
 }
 
 uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess)
@@ -182,6 +186,9 @@ void FRenderSystem::Update()
 	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
 	swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
 	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 50), TextMarkup);
+
+	swprintf_s(String, L"+");
+	DebugText.AddText(std::wstring{ String }, SScreen::GetResolution() / 2, TextMarkup);
 
 	swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
 	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 100), TextMarkup);

@@ -20,24 +20,27 @@ bool SButtonEvent::AddButtonEvent(const sf::Event& ButtonEvent)
 	// Ensure that only button events are passed to this function.
 	ASSERT(IsButtonEvent(ButtonEvent));
 
-	switch (ButtonEvent.type)
+	if (ButtonEvent.key.code != sf::Keyboard::Unknown)
 	{
-	case sf::Event::KeyPressed:
-		mKeyDowns[ButtonEvent.key.code] = true;
-		return true;
-		break;
-	case sf::Event::KeyReleased:
-		mKeyUps[ButtonEvent.key.code] = true;
-		return true;
-		break;
-	case sf::Event::MouseButtonPressed:
-		mMouseDowns[ButtonEvent.key.code] = true;
-		return true;
-		break;
-	case sf::Event::MouseButtonReleased:
-		mMouseUps[ButtonEvent.key.code] = true;
-		return true;
-		break;
+		switch (ButtonEvent.type)
+		{
+		case sf::Event::KeyPressed:
+			mKeyDowns[ButtonEvent.key.code] = true;
+			return true;
+			break;
+		case sf::Event::KeyReleased:
+			mKeyUps[ButtonEvent.key.code] = true;
+			return true;
+			break;
+		case sf::Event::MouseButtonPressed:
+			mMouseDowns[ButtonEvent.key.code] = true;
+			return true;
+			break;
+		case sf::Event::MouseButtonReleased:
+			mMouseUps[ButtonEvent.key.code] = true;
+			return true;
+			break;
+		}
 	}
 
 	return false;

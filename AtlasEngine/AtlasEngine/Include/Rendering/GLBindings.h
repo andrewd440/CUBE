@@ -19,7 +19,6 @@ namespace GLUniformBindings
 	{
 		ProjectionInfoBlock = 1,
 		TransformBlock = 2,
-		BlockInfo = 3,
 		ResolutionBlock = 4,
 		FogParamBlock = 8,
 		PointLight = 10,
@@ -35,5 +34,6 @@ namespace GLTextureBindings
 		GBuffer0 = 0,
 		Depth = 2,
 		TextTexture = 3,
+		BlockInfo = 4,
 	};
 }

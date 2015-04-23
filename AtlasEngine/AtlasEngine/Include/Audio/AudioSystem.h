@@ -17,7 +17,7 @@ public:
 
 private:
 	void OnGameObjectRemove(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
-
+	void OnGameObjectAdd(Atlas::FGameObject& GameObject, Atlas::IComponent& UpdateComponent) override;
 private:
 	FMOD::System* mSystem;
 	FAudioListenerSystem* mListenerSubSystem;

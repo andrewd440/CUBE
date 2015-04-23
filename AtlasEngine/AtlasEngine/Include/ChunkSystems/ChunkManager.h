@@ -86,6 +86,8 @@ public:
 	void SetPhysicsSystem(FPhysicsSystem& Physics);
 
 private:
+	void InitializeWorld();
+
 	/**
 	* Saves all current world data and closes
 	* needed services. This should be called before closing the

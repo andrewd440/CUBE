@@ -83,6 +83,11 @@ namespace Atlas
 		void LoadWorld(const wchar_t* WorldName);
 
 		/**
+		* Saves the currently loaded world.
+		*/
+		void SaveWorld();
+
+		/**
 		* Gets the gameobject this component is attached to.
 		*/
 		FGameObject* GetGameObject() { return mGameObject; }
@@ -154,6 +159,10 @@ namespace Atlas
 		mChunkManager->LoadWorld(WorldName);
 	}
 
+	inline void FBehavior::SaveWorld()
+	{
+		mChunkManager->SaveWorld();
+	}
 
 	inline FGameObject& FBehavior::CreateGameObject()
 	{

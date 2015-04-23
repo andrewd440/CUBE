@@ -36,7 +36,7 @@ FChunkMesh::FChunkMesh()
 
 FChunkMesh::~FChunkMesh()
 {
-	glDeleteBuffers(2, mBuffers);
+	glDeleteBuffers(3, mBuffers);
 	glDeleteVertexArrays(1, &mVertexArray);
 }
 

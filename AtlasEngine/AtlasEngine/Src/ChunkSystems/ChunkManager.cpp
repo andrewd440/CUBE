@@ -9,9 +9,9 @@
 #include "SFML\Window\Context.hpp"
 #include "STime.h"
 
-static const uint32_t DEFAULT_VIEW_DISTANCE = 10;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
 static const uint32_t MESH_SWAPS_PER_FRAME = 25;
-static const int32_t CHUNKS_TO_LOAD_PER_ITERATION = 10;
+static const int32_t CHUNKS_TO_LOAD_PER_ITERATION = 8;
 
 // Height is half width
 static const uint32_t DEFAULT_CHUNK_SIZE = (2 * DEFAULT_VIEW_DISTANCE + 1) * (DEFAULT_VIEW_DISTANCE + 1) * (2 * DEFAULT_VIEW_DISTANCE + 1);
@@ -70,25 +70,17 @@ void FChunkManager::Shutdown()
 void FChunkManager::LoadWorld(const wchar_t* WorldName)
 {
 	Shutdown();
-
-	// Set chunk positions to invalid value
-	for (uint32_t i = 0; i < ChunkCount(); i++)
-	{
-		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
-	}
-
 	mFileSystem.SetWorld(WorldName);
 
 	mWorldSize = mFileSystem.GetWorldSize();
-
-	// Activate loader thread
-	mNeedsToRefreshVisibleList = true;
-	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
+	InitializeWorld();
 }
 
 void FChunkManager::SaveWorld()
 {
+	Shutdown();
 	mFileSystem.SaveWorld();
+	InitializeWorld();
 }
 
 void FChunkManager::SetViewDistance(const uint32_t Distance)
@@ -96,6 +88,18 @@ void FChunkManager::SetViewDistance(const uint32_t Distance)
 	Shutdown();
 	ReallocateChunkData(Distance);
 
+	InitializeWorld();
+}
+
+void FChunkManager::InitializeWorld()
+{
+	// Set chunk positions to invalid value
+	for (uint32_t i = 0; i < ChunkCount(); i++)
+	{
+		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
+	}
+
+	// Activate loader thread
 	mNeedsToRefreshVisibleList = true;
 	mLoaderThread = std::thread(&FChunkManager::ChunkLoaderThreadLoop, this);
 }
@@ -116,11 +120,6 @@ void FChunkManager::ReallocateChunkData(const int32_t NewViewDistance)
 	delete[] mChunkPositions;
 	mChunks = new FChunk[NewSize];
 	mChunkPositions = new Vector4i[NewSize];
-
-	for (uint32_t i = 0; i < NewSize; i++)
-	{
-		mChunkPositions[i] = Vector4i{ -1, -1, -1 };
-	}
 }
 
 void FChunkManager::UnloadAllChunks()

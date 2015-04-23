@@ -128,7 +128,7 @@ private:
 		enum
 		{
 			Vertex,
-			Index,
+			Index
 		};
 	};
 

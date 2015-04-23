@@ -1,7 +1,6 @@
 #version 430 core
 
 layout (binding = 0) uniform usampler2D GBuffer0;
-layout (binding = 1) uniform sampler2D GBuffer1;
 layout (binding = 2) uniform sampler2D DepthTexture;
 
 struct FragmentData_t
@@ -64,11 +63,11 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 
 		vec3 Diffuse = Light.Color * Fragment.Color * NdotL;
 
-		vec3 Specular;
-		if(NdotL < 0.0)
-			Specular = vec3(0,0,0);
-		else
-			Specular = Light.Color * Fragment.Color * pow(NdotH, 4);
+		//vec3 Specular;
+		//if(NdotL < 0.0)
+		//	Specular = vec3(0,0,0);
+		//else
+		//	Specular = Light.Color * Fragment.Color * pow(NdotH, 4);
 
 		Result += vec4(Diffuse, 0.0);
 	}

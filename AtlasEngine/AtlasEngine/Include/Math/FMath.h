@@ -24,6 +24,17 @@ namespace FMath
 	}
 
 	/**
+	* Linearly interpolate between two values.
+	* @param From Starting position
+	* @param To End position
+	* @param Value within the two position
+	*/
+	inline float Lerp(const float From, const float To, const float Value)
+	{
+		return ((1 - Value) * From) + (Value * To);
+	}
+
+	/**
 	* Checks the bounds of a vector against current min and max bounds.
 	* The min and max bounds are updated if the new point is outside the current
 	* bounds.

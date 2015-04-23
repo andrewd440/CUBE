@@ -36,7 +36,7 @@
 using namespace Atlas;
 
 FVoxiGineRoot::FVoxiGineRoot(const wchar_t* AppName, const Vector2ui Resolution, const uint32_t WindowStyle)
-	: mGameWindow(sf::VideoMode{ Resolution.x, Resolution.y }, AppName, WindowStyle, sf::ContextSettings(32, 0, 0, 4, 4))
+	: mGameWindow(sf::VideoMode{ Resolution.x, Resolution.y }, AppName, WindowStyle, sf::ContextSettings(32, 0, 0, 4, 3))
 	, mWorld()
 	, mChunkManager(nullptr)
 	, mRenderSystem(nullptr)

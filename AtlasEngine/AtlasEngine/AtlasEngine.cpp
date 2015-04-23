@@ -34,19 +34,20 @@ using namespace Atlas;
 
 int main()
 {
-	const Vector2ui Resolution{ 1920, 1080 };
+	const Vector2ui Resolution{ 1280, 720 };
 	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
 	SMouseAxis::SetMouseVisible(false);
 	SMouseAxis::SetMouseLock(true);
 
-	const Vector4f BlockColors[4] =
+	const Vector4f BlockColors[5] =
 	{
 		Vector4f{ 0.1f, 0.35f, 0.15f },		// Grass
 		Vector4f{ 0.47f, 0.28f, 0.0f },		// Dirt
 		Vector4f{ 1.0f, 0.98f, 0.98f },		// Snow
-		Vector4f{ 0.59f, 0.086f, 0.043f },	// Brick
+		Vector4f{ 0.59f, 0.086f, 0.043f },	// DarkBrick
+		Vector4f{0.69f, 0.086f, 0.43f}		// LightBrick
 	};
 
 	enum Type : uint8_t
@@ -55,16 +56,17 @@ int main()
 		Grass,
 		Dirt,
 		Snow,
-		Brick,
+		DarkBrick,
+		LightBrick
 	};
 
-	FOR(i, 4)
+	FOR(i, 5)
 	{
 		FBlockTypes::AddBlock(i+1, BlockColors[i]);
 	}
 
 	FCamera Camera;
-	const Vector3f CameraPosition = Vector3f{ 260.0f, 260.0f, 260.0f };
+	const Vector3f CameraPosition = Vector3f{ 260.0f, 220.0f, 260.0f };
 	Camera.Transform.SetLocalPosition(CameraPosition);
 	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 356.0f });
 
@@ -84,7 +86,7 @@ int main()
 	Renderer.EnablePostProcess(1);
 
 	auto& ChunkManager = Root.GetChunkManager();
-	ChunkManager.LoadWorld(L"PrettyWorld");
+	ChunkManager.LoadWorld(L"ShortPrettyWorld");
 
 
 	auto& GameObjectManager = Root.GetGameObjectManager();
@@ -94,7 +96,7 @@ int main()
 	PlayerController.AddBehavior<CFlyingCamera>();
 	PlayerController.AddBehavior<CBlockPlacer>();
 	//PlayerController.AddBehavior<CTimeBombShooter>();
-	PlayerController.AddBehavior<CBoxShooter>();
+	//PlayerController.AddBehavior<CBoxShooter>();
 	PlayerController.AddComponent<EComponent::SoundListener>();
 
 	////////////////////////////////////////////////////////////////////////
@@ -158,7 +160,7 @@ int main()
 //	terrainSelector.SetSourceModule(0, flatTerrain);
 //	terrainSelector.SetSourceModule(1, mountainTerrain);
 //	terrainSelector.SetControlModule(terrainType);
-//	terrainSelector.SetBounds(0.0, 1000.0);
+//	terrainSelector.SetBounds(0.0, 600.0);
 //	terrainSelector.SetEdgeFalloff(0.275);
 //
 //	module::Turbulence finalTerrain;
@@ -169,7 +171,7 @@ int main()
 //	FWorldGenerator Generator;
 //	Generator.SetBounds(Vector2f{ 1.0f, 1.0f }, Vector2f{ 10.0f, 10.0f });
 //	Generator.SetWorldSizeInChunks(32);
-//	Generator.SetMaxHeight(280);
+//	Generator.SetMaxHeight(230);
 //	Generator.SetMinHeight(180);
 //
 //	enum Type : uint8_t
@@ -183,13 +185,13 @@ int main()
 //
 //	Generator.AddTerrainLevel(0, Brick);
 //	Generator.AddTerrainLevel(180, Grass);
-//	Generator.AddTerrainLevel(250, Dirt);
-//	Generator.AddTerrainLevel(280, Snow);
+//	Generator.AddTerrainLevel(220, Dirt);
+//	Generator.AddTerrainLevel(250, Snow);
 //
-//	Generator.Build(finalTerrain, L"PrettyWorld");
+//	Generator.Build(finalTerrain, L"ShortPrettyWorld");
 //
 //	delete FileSys;
 //
 //	return 0;
 //}
-
+//
