@@ -4,7 +4,7 @@ struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
-	vec3 WorldCoord;
+	vec3 ViewCoord;
 	uint MaterialID;
 };
 

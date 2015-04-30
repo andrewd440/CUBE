@@ -45,7 +45,7 @@ private:
 #pragma pack (pop)
 
 private:
-	EZGL::FUniformBlock mLightUniformBuffer;
+	FUniformBlock mLightUniformBuffer;
 };
 
 class FPointLightSystem : public ILightSystem
@@ -75,7 +75,7 @@ private:
 #pragma pack (pop)
 
 private:
-	EZGL::FUniformBlock mUniformBuffer;
+	FUniformBlock mUniformBuffer;
 };
 
 //class FSpotLightSystem : public Atlas::ISystem
@@ -107,5 +107,5 @@ private:
 //
 //private:
 //	FShaderProgram mLightShader;
-//	EZGL::FUniformBlock mUniformBuffer;
+//	FUniformBlock mUniformBuffer;
 //};

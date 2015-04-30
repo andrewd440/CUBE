@@ -25,7 +25,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -209,13 +209,14 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="Include\Math\Sphere.h" />
     <ClInclude Include="Include\Physics\PhysicsSystem.h" />
     <ClInclude Include="Include\Rendering\DepthRenderTarget.h" />
-    <ClInclude Include="Include\Rendering\FogPostProcess.h" />
+    <ClInclude Include="Include\Rendering\ImageEffects\FogPostProcess.h" />
     <ClInclude Include="Include\Rendering\GBuffer.h" />
     <ClInclude Include="Include\Rendering\GLBindings.h" />
-    <ClInclude Include="Include\Rendering\IRenderPostProcess.h" />
+    <ClInclude Include="Include\Rendering\ImageEffects\EdgeDetection.h" />
+    <ClInclude Include="Include\Rendering\ImageEffects\IImageEffect.h" />
     <ClInclude Include="Include\Rendering\Light.h" />
     <ClInclude Include="Include\Rendering\RenderSystem.h" />
-    <ClInclude Include="Include\Rendering\SSAOPostProcess.h" />
+    <ClInclude Include="Include\Rendering\ImageEffects\SSAOPostProcess.h" />
     <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\ChunkSystems\WorldGenerator.h" />
     <ClInclude Include="Include\Utils\Event.h" />
@@ -310,7 +311,8 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClCompile Include="Src\Math\Sphere.cpp" />
     <ClCompile Include="Src\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="Src\Rendering\DepthRenderTarget.cpp" />
-    <ClCompile Include="Src\Rendering\FogPostProcess.cpp" />
+    <ClCompile Include="Src\Rendering\ImageEffects\FogPostProcess.cpp" />
+    <ClCompile Include="Src\Rendering\ImageEffects\EdgeDetection.cpp" />
     <ClCompile Include="Src\Rendering\LightSystems.cpp" />
     <ClCompile Include="Src\Atlas\Component.cpp" />
     <ClCompile Include="Src\Atlas\ComponentHandle.cpp" />
@@ -330,7 +332,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClCompile Include="Src\Rendering\GBuffer.cpp" />
     <ClCompile Include="Src\Rendering\Light.cpp" />
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
-    <ClCompile Include="Src\Rendering\SSAOPostProcess.cpp" />
+    <ClCompile Include="Src\Rendering\ImageEffects\SSAOPostProcess.cpp" />
     <ClCompile Include="Src\Rendering\Uniform.cpp" />
     <ClCompile Include="Src\ChunkSystems\WorldGenerator.cpp" />
     <ClCompile Include="Src\STime.cpp" />

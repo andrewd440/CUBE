@@ -12,7 +12,9 @@ layout(std140, binding = 2) uniform TransformBlock
 	mat4 Model;				//		16					0			64
 	mat4 View;				//		16					64			128
 	mat4 Projection;		//		16					128			192
+	mat4 InvProjection;     //      16                  192         256
 } Transforms;
+
 
 out vec4 fColor;
 

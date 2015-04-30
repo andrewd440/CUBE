@@ -51,9 +51,9 @@ namespace FDebug
 	private:
 		FMatrix4 mTextProjection;
 		text_buffer_t* mTextBuffer;
-		EZGL::FUniform mProjectionUniform;
-		EZGL::FUniform mViewUniform;
-		EZGL::FUniform mModelUniform;
+		FUniform mProjectionUniform;
+		FUniform mViewUniform;
+		FUniform mModelUniform;
 	};
 
 

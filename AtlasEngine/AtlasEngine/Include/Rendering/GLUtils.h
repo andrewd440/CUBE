@@ -2,11 +2,34 @@
 
 #include <GL\glew.h>
 #include <cstdint>
+#include <cstdlib>
+#include <iostream>
 
 #define BUFFER_OFFSET(offset) ((void *)(offset))
 
+#ifdef _DEBUG
+#define GL_CHECK(Stmt) \
+		(Stmt);\
+		GLUtils::ErrorCheck(#Stmt, __FILE__, __LINE__);\
+		
+#else
+#define GL_CHECK(Stmt) (Stmt)
+#endif
+
 namespace GLUtils
 {
+	/**
+	* Checks for any OpenGL error from the last
+	* api call. If an error is produced, a message is printed
+	* and the application exited.
+	*/
+	inline void ErrorCheck(const char* Stmt, const char* Filename, const uint32_t Line)
+	{
+		GLenum Error = glGetError();
+		printf_s("OpenGL error %08x produced\nOperation: %s\nLine: %u\nFile: %s\n", Error, Stmt, Line, Filename);
+		abort();
+	}
+
 	/** 
 	* Helper function to convert GLSL types to storage sizes 
 	* From The Red Book 4.3

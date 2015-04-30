@@ -48,6 +48,10 @@ namespace FDebug
 		mViewUniform.SetMatrix(1, GL_FALSE, &Identity);
 		mModelUniform.SetMatrix(1, GL_FALSE, &Identity);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glBlendEquation(GL_FUNC_ADD);
+
 		text_buffer_render(mTextBuffer);
 		text_buffer_clear(mTextBuffer);
 	}

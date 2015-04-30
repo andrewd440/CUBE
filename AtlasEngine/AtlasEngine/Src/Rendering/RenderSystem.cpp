@@ -17,6 +17,7 @@
 #include "ChunkSystems\Block.h"
 #include "Components\MeshRenderer.h"
 #include "ChunkSystems\BlockTypes.h"
+#include "Rendering\GLUtils.h"
 
 // Shader buffer blocks info
 namespace
@@ -122,7 +123,7 @@ void FRenderSystem::Start()
 	glActiveTexture(GL_TEXTURE0);
 }
 
-uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess)
+uint32_t FRenderSystem::AddPostProcess(std::unique_ptr<IImageEffect> PostProcess)
 {
 	uint32_t ID = mPostProcesses.size();
 
@@ -184,7 +185,7 @@ void FRenderSystem::Update()
 	auto& DebugText = FDebug::Text::GetInstance();
 	wchar_t String[250];
 	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
-	swprintf_s(String, L"FPS: %.2f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
+	swprintf_s(String, L"FPS: %.0f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
 	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 50), TextMarkup);
 
 	swprintf_s(String, L"+");

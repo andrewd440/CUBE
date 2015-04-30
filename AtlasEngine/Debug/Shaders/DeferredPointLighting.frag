@@ -4,8 +4,7 @@ struct FragmentData_t
 {
 	vec3 Color;
 	vec3 Normal;
-	vec3 WorldCoord;
-	float AmbientOcclusion;
+	vec3 ViewCoord;
 	uint MaterialID;
 };
 
@@ -13,11 +12,22 @@ struct FragmentData_t
 struct PointLight_t
 {
     // std140 alignment      Base Align		Aligned Offset		End
-	vec3 Position;         //    16               0              12
+	vec3 ViewPosition;     //    16               0              12
 	vec3 Color;            //    16               16             28
-	float MinDistance;     //     4               28             32            
-	float MaxDistance;     //     4               32             36
+	float Constant;        //     4               28             32   
+	float Linear;          //     4               32             36   
+	float Quadratic;       //     4               36             40     
+	float Intensity;       //     4               40             44
 };
+
+layout(std140, binding = 2) uniform TransformBlock
+{
+// Member					Base Align		Aligned Offset		End
+	mat4 Model;				//		16					0			64
+	mat4 View;				//		16					64			128
+	mat4 Projection;		//		16					128			192
+	mat4 InvProjection;     //      16                  192         256
+} Transforms;
 
 layout(std140, binding = 10) uniform PointLightBlock
 {
@@ -34,34 +44,30 @@ vec4 ApplyLighting(FragmentData_t Fragment, PointLight_t Light)
 	if (Fragment.MaterialID != 0)
 	{
 		// Get light direction and distance
-		vec3 LightDirection =  Light.Position - Fragment.WorldCoord;
-		float Distance = length(LightDirection);
-		LightDirection = normalize(LightDirection);
+		vec3 L =  Light.ViewPosition - Fragment.ViewCoord;
+		float Distance = length(L);
+		L = normalize(L);
 
-		float Attenuation = 1;
-		if (Distance < Light.MinDistance)
-			Attenuation = 1.0;
-		else
-		{
-			Attenuation = (Light.MaxDistance - Distance) / (Light.MaxDistance - Light.MinDistance);
-		}
+		float Attenuation = Light.Intensity / (Light.Constant + Light.Linear * Distance + Light.Quadratic * Distance * Distance);
 
 		// Normal and reflection vectors
 		vec3 N = normalize(Fragment.Normal);
-		vec3 R = reflect(LightDirection, N);
+		vec3 H = normalize(L - Fragment.ViewCoord);
 
 		// Calc lighting
-		float NdotR = max(0.0, dot(N, R));
-		float NdotL = max(0.0, dot(N, LightDirection));
+		float NdotH = max(0.0, dot(N, H));
+		float NdotL = max(0.0, dot(N, L));
 
-		vec3 Diffuse = Light.Color * Fragment.Color * Attenuation;
-		vec3 Specular = Light.Color * pow(NdotR, 12) * Attenuation;
-		if(dot(N, LightDirection) < 0.0)
+		vec3 Diffuse = Light.Color * Fragment.Color * NdotL * Attenuation;
+
+		vec3 Specular;
+		if(NdotL < 0.0)
 			Specular = vec3(0,0,0);
+		else
+			Specular = Light.Color * Fragment.Color * pow(NdotH, 4) * Attenuation;
 		
-		Result += vec4(Diffuse + Specular, 0.0) * Fragment.AmbientOcclusion;
+		Result += vec4(Diffuse + Specular, 0.0);;
 	}
-
 	return Result;
 }
 

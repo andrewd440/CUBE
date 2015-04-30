@@ -5,7 +5,7 @@
 #include "Rendering\ShaderProgram.h"
 #include "Rendering\GBuffer.h"
 #include "Math\Box.h"
-#include "IRenderPostProcess.h"
+#include "ImageEffects\IImageEffect.h"
 #include "Utils\Event.h"
 #include "Math\Vector2.h"
 
@@ -58,7 +58,7 @@ public:
 	* Adds a rendering post process technique.
 	* @return The id of the postprocess.
 	*/
-	uint32_t AddPostProcess(std::unique_ptr<IRenderPostProcess> PostProcess);
+	uint32_t AddPostProcess(std::unique_ptr<IImageEffect> PostProcess);
 
 	/**
 	* Enables a rendering post process that was previously added.
@@ -119,7 +119,7 @@ private:
 private:
 	struct PostProcessRecord
 	{
-		PostProcessRecord(std::unique_ptr<IRenderPostProcess> PostProcess)
+		PostProcessRecord(std::unique_ptr<IImageEffect> PostProcess)
 			: Process(std::move(PostProcess))
 			, IsActive(false)
 		{}
@@ -127,7 +127,7 @@ private:
 			: Process(std::move(Other.Process))
 			, IsActive(Other.IsActive)
 		{}
-		std::unique_ptr<IRenderPostProcess> Process;
+		std::unique_ptr<IImageEffect> Process;
 		bool IsActive;
 	};
 	using PostProcessContainer = std::vector<PostProcessRecord>;
@@ -142,8 +142,8 @@ private:
 	//FBox                  mViewAABB;
 
 	// Shader info blocks and buffers
-	EZGL::FUniformBlock   mTransformBlock;
-	EZGL::FUniformBlock   mResolutionBlock;
-	EZGL::FUniformBlock   mProjectionInfoBlock;
+	FUniformBlock   mTransformBlock;
+	FUniformBlock   mResolutionBlock;
+	FUniformBlock   mProjectionInfoBlock;
 	GLuint                mBlockInfoBuffer;
 };

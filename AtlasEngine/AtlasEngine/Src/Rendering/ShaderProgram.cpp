@@ -89,6 +89,7 @@ void FShader::CheckShaderErrors(GLuint Shader) const
 
 FShaderProgram::FShaderProgram()
 	:mID(glCreateProgram())
+	, mUniforms()
 {
 
 }
@@ -154,3 +155,18 @@ void FShaderProgram::CheckProgramErrors()
 	FDebug::PrintF(&LogInfo[0]);
 }
 #endif
+
+FUniform& FShaderProgram::GetUniform(const char* Name)
+{
+	auto Found = mUniforms.find(Name);
+	if (Found != mUniforms.end())
+	{
+		return Found->second;
+	}
+	else
+	{
+		Use();
+		mUniforms[Name].Bind(mID, Name);
+		return mUniforms[Name];
+	}
+}

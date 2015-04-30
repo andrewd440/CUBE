@@ -3,6 +3,9 @@
 #include <GL\glew.h>
 #include <GL\GL.h>
 #include <vector>
+#include <map>
+
+#include "Rendering\Uniform.h"
 
 /**
 * Class for creating an OpenGL shader object.
@@ -111,8 +114,36 @@ public:
 	* shader program.
 	*/
 	void Use() { glUseProgram(mID); }
+	
+	template <typename T>
+	/**
+	* Sets data to the currently bound uniform variable.
+	* Non primitive datatypes must specilize this template
+	* function.
+	* @param Data - The data to set.
+	*/
+	void SetUniform(const char* Name, T Data);
+
+	template <typename T>
+	/**
+	* Sets a vector to the currently bound uniform variable.
+	* @param Count - The number of sets of data.
+	* @param Data - The data to set.
+	*/
+	void SetVector(const char* Name, GLsizei Count, const T* Data);
+
+	template <typename T>
+	/**
+	* Sets a matrix to the currently bound uniform variable.
+	* @param Count - The number of sets of data.
+	* @param Transpose - If this matrix should be transposed.
+	* @param Data - The data to set.
+	*/
+	void SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data);
 
 private:
+
+	FUniform& GetUniform(const char* Name);
 
 #ifndef NDEBUG
 	/**
@@ -124,5 +155,29 @@ private:
 
 private:
 	GLuint mID; // ID for the GL program.
+	std::map<std::string, FUniform> mUniforms;
 };
 
+template <typename T>
+inline void FShaderProgram::SetUniform(const char* Name, T Data)
+{
+	FUniform& Uniform = GetUniform(Name);
+	Use();
+	Uniform.SetUniform(Data);
+}
+
+template <typename T>
+inline void FShaderProgram::SetVector(const char* Name, GLsizei Count, const T* Data)
+{
+	FUniform& Uniform = GetUniform(Name);
+	Use();
+	Uniform.SetVector(Count, Data);
+}
+
+template <typename T>
+inline void FShaderProgram::SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data)
+{
+	FUniform& Uniform = GetUniform(Name);
+	Use();
+	Uniform.SetMatrix(Count, Transpose, Data);
+}

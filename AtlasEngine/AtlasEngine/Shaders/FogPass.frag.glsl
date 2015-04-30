@@ -21,24 +21,19 @@ layout(std140, binding = 8) uniform FogParamsBlock
 	vec3  Color;   	 //		16					16			32
 } FogParams; 
 
-layout(std140, binding = 1) uniform ProjectionInfoBlock
+layout(std140, binding = 4) uniform ResolutionBlock
 {
-	float Near;
-	float Far;
-} ProjectionInfo;
+	uvec2 Resolution;
+};
 
-float LinearizeDepth(float Depth, float Near, float Far)
-{
-    float z = Depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * Near) / (Far + Near - z * (Far - Near));	
-}
+vec3 GetViewPosition(sampler2D DepthSampler, ivec2 ScreenCoord, vec2 Resolution);
 
 void main()
 {
 	// linearize depth and get world units of depth
-	float Depth = LinearizeDepth(texelFetch(DepthTexture, ivec2(gl_FragCoord.xy), 0).r, ProjectionInfo.Near, ProjectionInfo.Far);
-	Depth *= ProjectionInfo.Far;
-	float FogFactor = clamp(exp(-FogParams.Density * Depth * Depth), FogParams.Min, FogParams.Max);
+	vec3 Position = GetViewPosition(DepthTexture, ivec2(gl_FragCoord.xy), vec2(Resolution));
+	float DistanceSquared = Position.x * Position.x + Position.y * Position.y + Position.z * Position.z; // No sqrt since using exp fog
+	float FogFactor = clamp(exp(-FogParams.Density * DistanceSquared), FogParams.Min, FogParams.Max);
 
 	gl_FragColor = vec4(FogParams.Color, FogFactor);
 }

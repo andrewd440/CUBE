@@ -6,8 +6,9 @@
 #include "Rendering\Camera.h"
 #include "Math\PerspectiveMatrix.h"
 #include "Rendering\RenderSystem.h"
-#include "Rendering\FogPostProcess.h"
-#include "Rendering\SSAOPostProcess.h"
+#include "Rendering\ImageEffects\FogPostProcess.h"
+#include "Rendering\ImageEffects\SSAOPostProcess.h"
+#include "Rendering\ImageEffects\EdgeDetection.h"
 #include "ChunkSystems\ChunkManager.h"
 #include "Components\BlockPlacer.h"
 #include "Components\BoxShooter.h"
@@ -34,7 +35,7 @@ using namespace Atlas;
 
 int main()
 {
-	const Vector2ui Resolution{ 1280, 720 };
+	const Vector2ui Resolution{ 1920, 1080 };
 	FVoxiGineRoot Root{ L"VoxiGine", Resolution, sf::Style::Default };
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
@@ -71,6 +72,9 @@ int main()
 	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 356.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
+	std::unique_ptr<FEdgeDetection> EdgeDetection{ new FEdgeDetection{} };
+	Renderer.AddPostProcess(std::move(EdgeDetection));
+
 	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
 	SSAOPostProcess->SetMaxDistance(2.0f);
 	SSAOPostProcess->SetSampleRadius(Vector2f{ 20.0f, 20.0f } / Vector2f{ Resolution });
@@ -82,8 +86,9 @@ int main()
 	FogPostProcess->SetDensity(0.00005f);
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
-	Renderer.EnablePostProcess(0);
+	//Renderer.EnablePostProcess(0);
 	Renderer.EnablePostProcess(1);
+	Renderer.EnablePostProcess(2);
 
 	auto& ChunkManager = Root.GetChunkManager();
 	ChunkManager.LoadWorld(L"ShortPrettyWorld");
