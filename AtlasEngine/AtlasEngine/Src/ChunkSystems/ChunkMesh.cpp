@@ -12,11 +12,8 @@ FChunkMesh::FChunkMesh()
 
 	// Setup vertex and index data with dummy object
 	// to prevent nullptr references
-	mRenderData[0] = VertexRenderDataPtr{ new VertexRenderData{} };
-	mRenderData[1] = VertexRenderDataPtr{ new VertexRenderData{} };
-
-	mVertices[0] = VertexPositionDataPtr{ new VertexPositionData{} };
-	mVertices[1] = VertexPositionDataPtr{ new VertexPositionData{} };
+	mVertices[0] = VertexDataPtr{ new VertexData{} };
+	mVertices[1] = VertexDataPtr{ new VertexData{} };
 
 	mIndices[0] = IndexDataPtr{ new IndexData{} };
 	mIndices[1] = IndexDataPtr{ new IndexData{} };
@@ -26,8 +23,10 @@ FChunkMesh::FChunkMesh()
 
 	glBindVertexArray(mVertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, mBuffers[Buffer::Vertex]);
-			glVertexAttribIPointer(GLAttributePosition::Position, 1, GL_UNSIGNED_INT, 0, BUFFER_OFFSET(0));
+			glVertexAttribPointer(GLAttributePosition::Position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(0));
 			glEnableVertexAttribArray(GLAttributePosition::Position);
+			glVertexAttribIPointer(GLAttributePosition::ChunkData, 1, GL_UNSIGNED_INT, sizeof(Vertex), BUFFER_OFFSET(offsetof(struct Vertex, BlockType)));
+			glEnableVertexAttribArray(GLAttributePosition::ChunkData);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[Buffer::Index]);
 	glBindVertexArray(0);
 
@@ -36,21 +35,16 @@ FChunkMesh::FChunkMesh()
 
 FChunkMesh::~FChunkMesh()
 {
-	glDeleteBuffers(3, mBuffers);
+	glDeleteBuffers(2, mBuffers);
 	glDeleteVertexArrays(1, &mVertexArray);
 }
 
-void FChunkMesh::AddVertexPositions(VertexPositionDataPtr Vertices)
+void FChunkMesh::AddVertexData(VertexDataPtr VertexData)
 {
-	mVertices[!mActiveBuffer] = std::move(Vertices);
+	mVertices[!mActiveBuffer] = std::move(VertexData);
 }
 
-void FChunkMesh::AddRenderData(VertexRenderDataPtr RenderVertices)
-{
-	mRenderData[!mActiveBuffer] = std::move(RenderVertices);
-}
-
-void FChunkMesh::AddIndices(IndexDataPtr Indices)
+void FChunkMesh::AddIndexData(IndexDataPtr Indices)
 {
 	mIndices[!mActiveBuffer] = std::move(Indices);
 }
@@ -64,7 +58,7 @@ void FChunkMesh::Render(GLenum RenderMode)
 void FChunkMesh::SwapBuffer()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mBuffers[Buffer::Vertex]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(RenderData) * mRenderData[!mActiveBuffer]->size(), mRenderData[!mActiveBuffer]->data(), BufferUsageMode);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices[!mActiveBuffer]->size(), mVertices[!mActiveBuffer]->data(), BufferUsageMode);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[Buffer::Index]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * mIndices[!mActiveBuffer]->size(), mIndices[!mActiveBuffer]->data(), BufferUsageMode);
@@ -74,7 +68,6 @@ void FChunkMesh::SwapBuffer()
 
 void FChunkMesh::ClearBackBuffer()
 {
-	mRenderData[!mActiveBuffer] = VertexRenderDataPtr{ new VertexRenderData{} };
-	mVertices[!mActiveBuffer]   = VertexPositionDataPtr{ new VertexPositionData{} };
+	mVertices[!mActiveBuffer]   = VertexDataPtr{ new VertexData{} };
 	mIndices[!mActiveBuffer]    = IndexDataPtr{ new IndexData{} };
 }

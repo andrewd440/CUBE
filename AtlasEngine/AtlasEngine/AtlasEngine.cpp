@@ -69,7 +69,7 @@ int main()
 	FCamera Camera;
 	const Vector3f CameraPosition = Vector3f{ 260.0f, 220.0f, 260.0f };
 	Camera.Transform.SetLocalPosition(CameraPosition);
-	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 356.0f });
+	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 580.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
 	std::unique_ptr<FEdgeDetection> EdgeDetection{ new FEdgeDetection{} };
@@ -83,7 +83,7 @@ int main()
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
 	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00005f);
+	FogPostProcess->SetDensity(0.00001f);
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
 	//Renderer.EnablePostProcess(0);

@@ -10,6 +10,7 @@ namespace GLAttributePosition
 		Normal = 1,
 		Color = 2,
 		UV = 3,
+		ChunkData = 4,
 	};
 }
 

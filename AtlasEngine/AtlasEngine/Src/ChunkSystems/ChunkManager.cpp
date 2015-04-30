@@ -9,7 +9,7 @@
 #include "SFML\Window\Context.hpp"
 #include "STime.h"
 
-static const uint32_t DEFAULT_VIEW_DISTANCE = 8;
+static const uint32_t DEFAULT_VIEW_DISTANCE = 14;
 static const uint32_t MESH_SWAPS_PER_FRAME = 25;
 static const int32_t CHUNKS_TO_LOAD_PER_ITERATION = 8;
 
@@ -153,13 +153,10 @@ void FChunkManager::Render(FRenderSystem& Renderer, const GLenum RenderMode)
 	UpdateRenderList();
 
 	// Render everything in the renderlist
-	const Vector4i ToWorldPosition{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 0 };
 	for (const auto& Index : mRenderList)
 	{
 		if (mChunks[Index].IsLoaded())
 		{
-			const Vector4i Position = mChunkPositions[Index] * ToWorldPosition;
-			Renderer.SetModelTransform(FTransform{ Position });
 			mChunks[Index].Render(RenderMode);
 		}
 	}
@@ -345,10 +342,10 @@ void FChunkManager::UpdateLoadList()
 	
 		// Load and build the chunk
 		Vector3i WorldPosition = ChunkPosition * FChunk::CHUNK_SIZE;
-		bool DoesntNeedRebuild = mChunks[Index].Load(ChunkData, WorldPosition);
+		bool DoesntNeedRebuild = mChunks[Index].Load(ChunkData);
 
 		if (!DoesntNeedRebuild)
-			mChunks[Index].RebuildMesh();
+			mChunks[Index].RebuildMesh(WorldPosition);
 
 		BufferSwapLock.lock();
 			mBufferSwapQueue.push_back(ChunkPosition);
@@ -380,7 +377,7 @@ void FChunkManager::UpdateRebuildList()
 				mBufferSwapQueue.erase(InSwapList);
 			BufferSwapLock.unlock();
 
-			mChunks[ChunkIndex].RebuildMesh();
+			mChunks[ChunkIndex].RebuildMesh(ChunkPosition * FChunk::CHUNK_SIZE);
 
 			BufferSwapLock.lock();
 				mBufferSwapQueue.push_back(mChunkPositions[ChunkIndex]);

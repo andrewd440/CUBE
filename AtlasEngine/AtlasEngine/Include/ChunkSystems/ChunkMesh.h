@@ -23,24 +23,18 @@ public:
 	/**
 	* Compressed rendering data for a chunk vertex.
 	*/
-	struct RenderData
+	struct Vertex
 	{
-		uint32_t BlockType : 8;
-		uint32_t pad : 3;
-		uint32_t NormalIndex : 3;
-		uint32_t z : 6;
-		uint32_t y : 6;
-		uint32_t x : 6;
+		Vector3f Position;
+		uint8_t  BlockType;
+		uint8_t  NormalID;
 	};
 
 public:
 	static GLuint BufferUsageMode;
 
-	using VertexPositionData = std::vector<Vector3f>;
-	using VertexPositionDataPtr = std::unique_ptr<VertexPositionData>;
-
-	using VertexRenderData = std::vector<RenderData>;
-	using VertexRenderDataPtr = std::unique_ptr<VertexRenderData>;
+	using VertexData = std::vector<Vertex>;
+	using VertexDataPtr = std::unique_ptr<VertexData>;
 
 	using IndexData = std::vector<uint32_t>;
 	using IndexDataPtr = std::unique_ptr<IndexData>;
@@ -53,18 +47,12 @@ public:
 	* Add vertex data to the active buffer. This is uncompressed vertex
 	* position data to be used this physics.
 	*/
-	void AddVertexPositions(VertexPositionDataPtr Vertices);
-
-	/**
-	* Add compressed vertex data to the active buffer that will be used
-	* for rendering.
-	*/
-	void AddRenderData(VertexRenderDataPtr RenderVertices);
+	void AddVertexData(VertexDataPtr Vertices);
 
 	/**
 	* Add index data to the active buffer.
 	*/
-	void AddIndices(IndexDataPtr Indices);
+	void AddIndexData(IndexDataPtr Indices);
 
 	/**
 	* Render this mesh using the active buffer.
@@ -85,12 +73,12 @@ public:
 	/**
 	* Get vertex position data for the inactive mesh buffer.
 	*/
-	const Vector3f* GetVertexData(BackBuffer) const;
+	const Vertex* GetVertexData(BackBuffer) const;
 
 	/**
 	* Get vertex position data for the active mesh buffer.
 	*/
-	const Vector3f* GetVertexData(FrontBuffer) const;
+	const Vertex* GetVertexData(FrontBuffer) const;
 
 	/**
 	* Get the vertex count for the inactive mesh buffer.
@@ -133,9 +121,8 @@ private:
 	};
 
 private:
-	VertexRenderDataPtr   mRenderData[2];
-	VertexPositionDataPtr mVertices[2];
-	IndexDataPtr          mIndices[2];
+	VertexDataPtr   mVertices[2];
+	IndexDataPtr    mIndices[2];
 
 	// GL buffers held by this object
 	GLuint mVertexArray;
@@ -144,7 +131,7 @@ private:
 	std::atomic_bool mActiveBuffer;
 };
 
-inline const Vector3f* FChunkMesh::GetVertexData(FChunkMesh::BackBuffer) const
+inline const FChunkMesh::Vertex* FChunkMesh::GetVertexData(FChunkMesh::BackBuffer) const
 {
 	return mVertices[!mActiveBuffer]->data();
 }
@@ -164,7 +151,7 @@ inline uint32_t FChunkMesh::GetIndexCount(FChunkMesh::BackBuffer) const
 	return mIndices[!mActiveBuffer]->size();
 }
 
-inline const Vector3f* FChunkMesh::GetVertexData(FChunkMesh::FrontBuffer) const
+inline const FChunkMesh::Vertex* FChunkMesh::GetVertexData(FChunkMesh::FrontBuffer) const
 {
 	return mVertices[mActiveBuffer]->data();
 }

@@ -1,6 +1,7 @@
 #version 430 core
 
-layout (location = 0) in uint x6_y6_z6_n3_null3_b8;
+layout (location = 0) in vec4 iPosition;
+layout (location = 4) in uint Normal8_Block8;
 
 out VS_OUT 
 {
@@ -33,20 +34,13 @@ const vec3 BlockNormals[6] =
 void main()
 {
 	// Unpack color
-	vs_out.Color = texelFetch(BlockColors, int(x6_y6_z6_n3_null3_b8 & 0xFF), 0).xyz;
+	vs_out.Color = texelFetch(BlockColors, int(Normal8_Block8 & 0xFF), 0).xyz;
 
 	// Unpack normal and lookup with table
-	vec3 WorldNormal = BlockNormals[(x6_y6_z6_n3_null3_b8 & 0x3800) >> 11];
-	vs_out.Normal = mat3(Transforms.View) * mat3(Transforms.Model) * WorldNormal;
-
-	// Unpack world position
-	vec4 Position;
-	Position.x = float((x6_y6_z6_n3_null3_b8 & 0xFC000000) >> 26);
-	Position.y = float((x6_y6_z6_n3_null3_b8 & 0x03F00000) >> 20);
-	Position.z = float((x6_y6_z6_n3_null3_b8 & 0x000FC000) >> 14);
-	Position.w = 1.0;
+	vec3 WorldNormal = BlockNormals[(Normal8_Block8 & 0xFF00) >> 8];
+	vs_out.Normal = mat3(Transforms.View) * WorldNormal;
 
 	vs_out.MaterialID = uint(gl_VertexID);
 
-	gl_Position = Transforms.Projection * Transforms.View * Transforms.Model * Position;
+	gl_Position = Transforms.Projection * Transforms.View * iPosition;
 }

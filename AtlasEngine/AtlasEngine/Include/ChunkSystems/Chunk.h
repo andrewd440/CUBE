@@ -82,7 +82,7 @@ public:
 	* @param BlockData - RLE block layout for this chunk.
 	* @return True if the chunk is not empty, false otherwise.
 	*/
-	bool Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition);
+	bool Load(const std::vector<uint8_t>& BlockData);
 
 	/**
 	* Frees block and mesh data.
@@ -98,7 +98,7 @@ public:
 	/**
 	* Builds/Rebuilds this chunks' mesh.
 	*/
-	void RebuildMesh();
+	void RebuildMesh(const Vector3f& WorldPosition);
 
 	/**
 	* Swaps the currently used mesh for rendering.
@@ -156,7 +156,7 @@ private:
 	* Voxel mesh algorithm to minimize triangle count on chunk meshes.
 	* Algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 	*/
-	void GreedyMesh();
+	void GreedyMesh(const Vector3f WorldPosition);
 
 	/**
 	* Adds a quad from 4 vertices based on if the quad is backfaced, the direction of the surface,
@@ -172,16 +172,15 @@ private:
 	* @param VerticesOut - Location to place vertex data.
 	* @param IndicesOut - Location to place index data.
 	*/
-	void AddQuad(	const Vector3ui& BottomLeft, 
-					const Vector3ui& TopLeft, 
-					const Vector3ui& TopRight, 
-					const Vector3ui& BottomRight,
+	void AddQuad(	const Vector3f& BottomLeft, 
+					const Vector3f& TopLeft, 
+					const Vector3f& TopRight, 
+					const Vector3f& BottomRight,
 					const bool IsBackface, 
 					const uint32_t Side, 
 					const FBlock BlockType,
-					std::vector<Vector3f>& VerticesOut,
-					std::vector<FChunkMesh::RenderData>& RenderDataOut,
-					std::vector<uint32_t>& IndicesOut);
+					FChunkMesh::VertexData& VerticesOut,
+					FChunkMesh::IndexData& IndicesOut);
 
 private:
 	FBlock* mBlocks;

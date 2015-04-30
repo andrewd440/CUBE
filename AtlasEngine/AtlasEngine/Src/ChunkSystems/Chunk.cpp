@@ -57,16 +57,9 @@ FChunk::~FChunk()
 }
 
 
-bool FChunk::Load(const std::vector<uint8_t>& BlockData, const Vector3f& WorldPosition)
+bool FChunk::Load(const std::vector<uint8_t>& BlockData)
 {
 	ASSERT(!mIsLoaded);
-
-	// Set collision data
-	CollisionData& CollisionInfo = *mCollisionData;
-
-	// Set collision transform
-	CollisionInfo.Object.setWorldTransform(btTransform{ btQuaternion{0,0,0},
-				btVector3{ WorldPosition.x, WorldPosition.y, WorldPosition.z } });
 
 	// Current index to access block type
 	int32_t TypeIndex = 0;
@@ -182,9 +175,9 @@ void FChunk::SwapMeshBuffer(FPhysicsSystem& PhysicsSystem)
 	}
 }
 
-void FChunk::RebuildMesh()
+void FChunk::RebuildMesh(const Vector3f& WorldPosition)
 {
-	GreedyMesh();
+	GreedyMesh(WorldPosition);
 
 	int32_t VertexCount = (int)mMesh->GetVertexCount(FChunkMesh::BackBuffer{});
 
@@ -230,14 +223,13 @@ FBlockTypes::BlockID FChunk::DestroyBlock(const Vector3i& Position)
 	return ID;
 }
 
-void FChunk::GreedyMesh()
+void FChunk::GreedyMesh(const Vector3f WorldPosition)
 {
 	// Greedy mesh algorithm by Mikola Lysenko from http://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 	// Java implementation from https://github.com/roboleary/GreedyMesh/blob/master/src/mygame/Main.java
 
 	// Vertex and index data to be sent to the mesh
-	FChunkMesh::VertexRenderDataPtr RenderData{ new FChunkMesh::VertexRenderData{} };
-	FChunkMesh::VertexPositionDataPtr Vertices{ new FChunkMesh::VertexPositionData{} };
+	FChunkMesh::VertexDataPtr Vertices{ new FChunkMesh::VertexData{} };
 	FChunkMesh::IndexDataPtr Indices{ new FChunkMesh::IndexData{} };
 
 	// Variables to be used by the algorithm
@@ -353,16 +345,15 @@ void FChunk::GreedyMesh()
 							dv[2] = 0;
 							dv[v] = Height;
 
-							AddQuad(Vector3ui(x[0], x[1], x[2]),
-								Vector3ui(x[0] + du[0], x[1] + du[1], x[2] + du[2]),
-								Vector3ui(x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]),
-								Vector3ui(x[0] + dv[0], x[1] + dv[1], x[2] + dv[2]),
-								BackFace,
-								Side,
-								Mask[n],
-								*Vertices,
-								*RenderData,
-								*Indices);
+							const Vector3f Corners[4] = 
+							{
+								{ Vector3f{ x[0], x[1], x[2] } + WorldPosition },
+								{ Vector3f{ x[0] + du[0], x[1] + du[1], x[2] + du[2] } + WorldPosition },
+								{ Vector3f{ x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2] } + WorldPosition },
+								{ Vector3f{ x[0] + dv[0], x[1] + dv[1], x[2] + dv[2] } + WorldPosition }
+							};
+
+							AddQuad(Corners[0], Corners[1], Corners[2], Corners[3], BackFace, Side, Mask[n], *Vertices, *Indices);
 
 
 							// Zero the mask
@@ -390,62 +381,46 @@ void FChunk::GreedyMesh()
 	}
 
 	// Add data to mesh
-	mMesh->AddRenderData(std::move(RenderData));
-	mMesh->AddVertexPositions(std::move(Vertices));
-	mMesh->AddIndices(std::move(Indices));
+	mMesh->AddVertexData(std::move(Vertices));
+	mMesh->AddIndexData(std::move(Indices));
 }
 
-void FChunk::AddQuad(	const Vector3ui& BottomLeft,
-						const Vector3ui& TopLeft,
-						const Vector3ui& TopRight,
-						const Vector3ui& BottomRight,
+void FChunk::AddQuad(	const Vector3f& BottomLeft,
+						const Vector3f& TopLeft,
+						const Vector3f& TopRight,
+						const Vector3f& BottomRight,
 						const bool IsBackface,
 						const uint32_t Side,
 						const FBlock FaceInfo,
-						std::vector<Vector3f>& VerticesOut,
-						std::vector<FChunkMesh::RenderData>& RenderDataOut,
-						std::vector<uint32_t>& IndicesOut)
+						FChunkMesh::VertexData& VerticesOut,
+						FChunkMesh::IndexData& IndicesOut)
 {
 	
 	// Get the index offset by checking the size of the vertex list.
 	uint32_t BaseIndex = VerticesOut.size();
 
-
-	// Vertex layout w = x6_y6_z6_n3_null3_b8
-	FChunkMesh::RenderData BottomLeftData;
+	// Add normal index and block type for each vertex
+	FChunkMesh::Vertex BottomLeftData;
+	BottomLeftData.Position = BottomLeft;
 	BottomLeftData.BlockType = FaceInfo.ID;
-	BottomLeftData.x = (BottomLeft.x);
-	BottomLeftData.y = (BottomLeft.y);
-	BottomLeftData.z = (BottomLeft.z);
-	BottomLeftData.NormalIndex = (Side);
+	BottomLeftData.NormalID= Side;
 
-	FChunkMesh::RenderData BottomRightData;
+	FChunkMesh::Vertex BottomRightData;
+	BottomRightData.Position = BottomRight;
 	BottomRightData.BlockType = FaceInfo.ID;
-	BottomRightData.x = (BottomRight.x);
-	BottomRightData.y = (BottomRight.y);
-	BottomRightData.z = (BottomRight.z);
-	BottomRightData.NormalIndex = (Side);
+	BottomRightData.NormalID = Side;
 
-	FChunkMesh::RenderData TopLeftData;
+	FChunkMesh::Vertex TopLeftData;
+	TopLeftData.Position = TopLeft;
 	TopLeftData.BlockType = FaceInfo.ID;
-	TopLeftData.x = (TopLeft.x);
-	TopLeftData.y = (TopLeft.y);
-	TopLeftData.z = (TopLeft.z);
-	TopLeftData.NormalIndex = (Side);
+	TopLeftData.NormalID = Side;
 
-	FChunkMesh::RenderData TopRightData;
+	FChunkMesh::Vertex TopRightData;
+	TopRightData.Position = TopRight;
 	TopRightData.BlockType = FaceInfo.ID;
-	TopRightData.x = (TopRight.x);
-	TopRightData.y = (TopRight.y);
-	TopRightData.z = (TopRight.z);
-	TopRightData.NormalIndex = (Side);
+	TopRightData.NormalID = Side;
 
-	RenderDataOut.insert(RenderDataOut.end(), { BottomLeftData, BottomRightData, TopRightData, TopLeftData });
-
-	VerticesOut.insert(VerticesOut.end(), { Vector3f{ BottomLeft },
-											Vector3f{ BottomRight },
-											Vector3f{ TopRight },
-											Vector3f{ TopLeft } });
+	VerticesOut.insert(VerticesOut.end(), { BottomLeftData, BottomRightData, TopRightData, TopLeftData });
 	
 
 
