@@ -4,18 +4,10 @@
 ////////////////////// Inlined FTransform ////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 
-inline FTransform::FTransform()
-	: mTranslation()
-	, mRotation()
-	, mScale(1.0f, 1.0f, 1.0f)
-	, mParent(nullptr)
-{
-}
-
-inline FTransform::FTransform(const Vector3f& Position)
+inline FTransform::FTransform(const Vector3f& Position, const float Scale)
 	: mTranslation(Position)
 	, mRotation()
-	, mScale(1.0f, 1.0f, 1.0f)
+	, mScale(Scale, Scale, Scale)
 	, mParent(nullptr)
 {
 }

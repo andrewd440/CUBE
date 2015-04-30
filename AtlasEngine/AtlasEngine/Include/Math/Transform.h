@@ -9,17 +9,12 @@
 class FTransform
 {
 public:
-	/**
-	* Ctor
-	* Constructs an identity transform.
-	*/
-	FTransform();
 
 	/**
 	* Ctor
-	* Constructs a transform with a specified origin position.
+	* Constructs a transform with an optional origin position and scale.
 	*/
-	FTransform(const Vector3f& Position);
+	FTransform(const Vector3f& Position = Vector3f{0,0,0}, const float Scale = 1.0f);
 
 	/**
 	* Copy Ctor

@@ -186,7 +186,7 @@ void FChunk::RebuildMesh(const Vector3f& WorldPosition)
 		// Build collision data
 		// Set vertex properties for collision mesh
 		const int32_t IndexStride = 3 * sizeof(uint32_t);
-		const int32_t VertexStride = sizeof(Vector3f);
+		const int32_t VertexStride = sizeof(FChunkMesh::Vertex);
 
 		// Build final collision mesh
 		btIndexedMesh VertexData;

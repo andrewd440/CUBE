@@ -469,23 +469,25 @@ void FChunkManager::UpdateRenderList()
 	// Start with a fresh list
 	mRenderList.clear();
 
-	// The the current view frustum
-	const FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
-	const int32_t ChunkHalfWidth = FChunk::CHUNK_SIZE / 2.0f;
+	// The the current view frustum in chunk coord
+	FMatrix4 ToChunkCoord;
+	ToChunkCoord.Scale(1.0f / (float)FChunk::CHUNK_SIZE);
+	FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
+	ViewFrustum.TransformBy(ToChunkCoord);
 
-	const Vector4i ChunkSizeVector{ FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, FChunk::CHUNK_SIZE, 0};
-	const Vector4i HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 1};
+	const float ChunkHalfWidth = 1.0f / 2.0f;
+	const Vector4f HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 0};
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
 
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		const Vector4i ChunkCenter{ mChunkPositions[i] * ChunkSizeVector + HalfChunkVector };
 		Vector4f CenterFloats;
-		Vector4IntToFloat(&ChunkCenter.x, &CenterFloats.x);
+		Vector4IntToFloat(&mChunkPositions[i].x, &CenterFloats.x);
+		CenterFloats += HalfChunkVector;
 
-		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(CenterFloats, FChunk::CHUNK_SIZE))
+		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(CenterFloats, 1.0f))
 		{
 			mRenderList.push_back(i);
 		}
