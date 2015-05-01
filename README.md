@@ -1,4 +1,4 @@
-<h1>CAVE - Cube Aimed Voxel Engine</h1>
+<h1>CUBE - CUbic Block Engine</h1>
 <h2>Design Overview</h2>
 The main goal for this engine is to give users the ability to create voxel based games such as <a href="https://minecraft.net/">Minecraft</a>, <a href="https://picroma.com/cubeworld">Cube World</a>, <a href="https://www.castlestory.net/">Castle Story</a> or <a href="http://www.vox-game.com/">Vox</a>. Major design goals for the engine include the ability to render a large number of dynamic voxels on screen, the ability to randomly generate infinite worlds, and allow users to implement unique gameplay elements.
 <h2>Feature Overview</h2>
