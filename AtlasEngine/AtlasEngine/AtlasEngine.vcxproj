@@ -22,6 +22,7 @@
     <ProjectGuid>{D9327CC9-EE72-4A32-9D99-CC878E51643A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>AtlasEngine</RootNamespace>
+    <ProjectName>CUBE</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,7 +95,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions); ASSERTIONS_ENABLED;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\;$(ProjectDir)\ThirdParty\GL\include\</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Include/Common.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -137,7 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;_LIB;HAVE_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Include\;$(ProjectDir)\ThirdParty\;$(ProjectDir)\ThirdParty\GL\include\</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -220,7 +221,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\ChunkSystems\WorldGenerator.h" />
     <ClInclude Include="Include\Utils\Event.h" />
-    <ClInclude Include="Include\VoxiGineRoot.h" />
+    <ClInclude Include="Include\CubeRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
     <ClInclude Include="Include\Atlas\Component.h" />
     <ClInclude Include="Include\Atlas\ComponentHandle.h" />
@@ -288,7 +289,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AtlasEngine.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\Atlas\Behavior.cpp" />
     <ClCompile Include="Src\Audio\AudioSystem.cpp" />
     <ClCompile Include="Src\ChunkSystems\BlockTypes.cpp" />
@@ -343,7 +344,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
       <FileType>CppCode</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </None>
-    <ClCompile Include="Src\VoxiGineRoot.cpp" />
+    <ClCompile Include="Src\CubeRoot.cpp" />
     <ClCompile Include="Src\Debugging\ConsoleOutput.cpp" />
     <ClCompile Include="Src\Debugging\DebugText.cpp" />
     <ClCompile Include="Src\Input\MouseAxis.cpp" />
@@ -372,18 +373,10 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <None Include="Include\ResourceHolder.inl">
       <FileType>Document</FileType>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets" Condition="Exists('..\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" />
     <Import Project="..\packages\glew.1.9.0.1\build\native\glew.targets" Condition="Exists('..\packages\glew.1.9.0.1\build\native\glew.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets'))" />
-    <Error Condition="!Exists('..\packages\glew.1.9.0.1\build\native\glew.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glew.1.9.0.1\build\native\glew.targets'))" />
-  </Target>
 </Project>

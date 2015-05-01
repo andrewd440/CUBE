@@ -8,6 +8,7 @@
 #include "Rendering\RenderSystem.h"
 #include "SFML\Window\Context.hpp"
 #include "STime.h"
+#include "GL\glew.h"
 
 static const uint32_t DEFAULT_VIEW_DISTANCE = 14;
 static const uint32_t MESH_SWAPS_PER_FRAME = 25;

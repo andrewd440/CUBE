@@ -57,7 +57,7 @@ public:
 	static int32_t GetWheelDelta();
 
 private:
-	friend class FVoxiGineRoot;
+	friend class FCubeRoot;
 
 	/**
 	* Updates mouse movement for the current frame. Upon a new frame

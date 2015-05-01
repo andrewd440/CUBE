@@ -198,9 +198,6 @@
     <ClInclude Include="Include\Atlas\World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VoxiGineRoot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Rendering\RenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -318,11 +315,11 @@
     <ClInclude Include="Include\Rendering\ImageEffects\IImageEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\CubeRoot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AtlasEngine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Math\Color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -428,9 +425,6 @@
     <ClCompile Include="Src\Atlas\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\VoxiGineRoot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Rendering\RenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -533,9 +527,14 @@
     <ClCompile Include="Src\Rendering\ImageEffects\FogPostProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\CubeRoot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Include\Rendering\VertexTraits.inl">
       <Filter>Header Files</Filter>
     </None>

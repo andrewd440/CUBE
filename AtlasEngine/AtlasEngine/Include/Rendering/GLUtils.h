@@ -26,8 +26,11 @@ namespace GLUtils
 	inline void ErrorCheck(const char* Stmt, const char* Filename, const uint32_t Line)
 	{
 		GLenum Error = glGetError();
-		printf_s("OpenGL error %08x produced\nOperation: %s\nLine: %u\nFile: %s\n", Error, Stmt, Line, Filename);
-		abort();
+		if (Error != GL_NO_ERROR)
+		{
+			printf_s("OpenGL error %08x produced\nOperation: %s\nLine: %u\nFile: %s\n", Error, Stmt, Line, Filename);
+			abort();
+		}
 	}
 
 	/** 
