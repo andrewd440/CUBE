@@ -1,15 +1,6 @@
 #version 430 core
 
-layout (binding = 0) uniform usampler2D GBuffer0;
-layout (binding = 2) uniform sampler2D DepthTexture;
-
-struct FragmentData_t
-{
-	vec3 Color;
-	vec3 Normal;
-	vec3 ViewCoord;
-	uint MaterialID;
-};
+#include "DeferredLightingCommon.frag"
 
 // sizeof = 40
 struct DirectionalLight_t
@@ -19,21 +10,11 @@ struct DirectionalLight_t
 	vec3 Color;            //    16               16             28
 };
 
-layout(std140, binding = 2) uniform TransformBlock
-{
-// Member					Base Align		Aligned Offset		End
-	mat4 Model;				//		16					0			64
-	mat4 View;				//		16					64			128
-	mat4 Projection;		//		16					128			192
-	mat4 InvProjection;     //      16                  192         256
-} Transforms;
-
 layout(std140, binding = 11) uniform DirectionalLightBlock
 {
     DirectionalLight_t DirectionalLight;
 };
 
-void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment);
 vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light);
 
 void main()

@@ -26,7 +26,6 @@ FDirectionalLightSystem::FDirectionalLightSystem(Atlas::FWorld& World, FRenderSy
 	FShader FragShader{ L"Shaders/DeferredDirectionalLighting.frag", GL_FRAGMENT_SHADER };
 
 	mLightShader.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mLightShader.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
 	mLightShader.AttachShader(FragShader);
 	mLightShader.LinkProgram();
 }

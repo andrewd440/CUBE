@@ -1,5 +1,3 @@
-#version 430 core
-
 layout (binding = 0) uniform usampler2D GBuffer0;
 layout (binding = 2) uniform sampler2D DepthTexture;
 

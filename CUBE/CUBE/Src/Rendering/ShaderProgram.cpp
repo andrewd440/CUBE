@@ -55,7 +55,28 @@ std::string FShader::ReadShader(const wchar_t* SourceFile) const
 		std::string ShaderSource;
 		ShaderSource.resize(ShaderSize);
 		ShaderFile->Read((uint8_t*)ShaderSource.data(), ShaderSize);
-		//ShaderSource.append('\0'); // add the null terminator that is missing.
+
+		// Parse #includes and add source data
+		size_t StringHead = 0;
+		size_t FirstChar = ShaderSource.find("#include", StringHead);
+		while (FirstChar != std::string::npos)
+		{
+			// Get the file to include, then delete that line
+			std::size_t FileStart = ShaderSource.find('"', FirstChar);
+			std::size_t FileEnd = ShaderSource.find('"', FileStart + 1);
+			std::string IncludeFile = ShaderSource.substr(FileStart + 1, FileEnd - FileStart - 1);
+			ShaderSource.erase(ShaderSource.begin() + FirstChar, ShaderSource.begin() + FileEnd + 1);
+
+			// Read the included shader and insert it in the #include position
+			std::wstring WIncludeFile{ IncludeFile.begin(), IncludeFile.end() };
+			WIncludeFile.insert(0, L"Shaders/");
+			std::string IncludeSource = ReadShader(WIncludeFile.data());
+			ShaderSource.insert(FirstChar, IncludeSource, 0, std::string::npos);
+
+			// Update string head to past the included file
+			StringHead += FirstChar + IncludeSource.length();
+			FirstChar = ShaderSource.find("#include", StringHead);
+		}
 		return ShaderSource;
 	}
 

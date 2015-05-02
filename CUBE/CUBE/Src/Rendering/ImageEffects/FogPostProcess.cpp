@@ -22,7 +22,6 @@ FFogPostProcess::FFogPostProcess()
 {
 	FShader FragShader{ L"Shaders/FogPass.frag.glsl", GL_FRAGMENT_SHADER };
 	mShaderProgram.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mShaderProgram.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
 	mShaderProgram.AttachShader(FragShader);
 	mShaderProgram.LinkProgram();
 }
