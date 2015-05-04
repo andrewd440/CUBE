@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../ThirdParty/SFMT/SFMT.h"
-#include "../ThirdParty/SFMT/SFMT.c"
+#include "SFMT/SFMT.h"
+#include "SFMT/SFMT.c"
 
 /**
 * Wrapper class for SFMT (SIMD-oriented Fast Mersenne Twister)

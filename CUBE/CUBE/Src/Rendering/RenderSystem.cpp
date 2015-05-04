@@ -84,7 +84,6 @@ void FRenderSystem::LoadShaders()
 {
 	// Load all main rendering shaders
 	SShaderHolder::Load("FullScreenQuad.vert", L"Shaders/FullScreenQuad.vert", GL_VERTEX_SHADER);
-	SShaderHolder::Load("DeferredLightingCommon.frag", L"Shaders/DeferredLightingCommon.frag", GL_FRAGMENT_SHADER);
 	
 	// Load render shaders
 	FShader DeferredVert{ L"Shaders/DeferredRender.vert", GL_VERTEX_SHADER };

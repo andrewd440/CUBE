@@ -36,5 +36,7 @@ namespace GLTextureBindings
 		Depth = 2,
 		TextTexture = 3,
 		BlockInfo = 4,
+		SSAOSamples = 5,
+		SSAONoise = 6
 	};
 }

@@ -23,12 +23,25 @@ layout(std140, binding = 4) uniform ResolutionBlock
 	uvec2 Resolution;
 };
 
+layout(std140, binding = 1) uniform ProjectionInfoBlock
+{
+	float Near;
+	float Far;
+} ProjectionInfo;
+
 vec3 GetViewPosition(sampler2D DepthSampler, ivec2 ScreenCoord, vec2 Resolution)
 {
 	vec2 NDC = ((ScreenCoord * 2.0) / Resolution) - 1.0;
 	float Depth = texelFetch(DepthSampler, ScreenCoord, 0).r * 2.0 - 1.0;
 	vec4 View = Transforms.InvProjection * vec4(NDC, Depth, 1.0);
 	return View.xyz / View.w;
+}
+
+float GetLinearDepth(ivec2 ScreenCoord)
+{
+	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r;
+    float z = Depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * ProjectionInfo.Near) / (ProjectionInfo.Far + ProjectionInfo.Near - z * (ProjectionInfo.Far - ProjectionInfo.Near));	
 }
 
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)

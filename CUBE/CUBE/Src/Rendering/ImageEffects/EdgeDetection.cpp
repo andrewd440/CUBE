@@ -6,7 +6,6 @@ FEdgeDetection::FEdgeDetection()
 {
 	FShader Frag{ L"Shaders/EdgeDetection.frag.glsl", GL_FRAGMENT_SHADER };
 	mShader.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mShader.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
 	mShader.AttachShader(Frag);
 	mShader.LinkProgram();
 }

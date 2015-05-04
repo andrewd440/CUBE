@@ -1,35 +1,6 @@
 #version 430 core
 
-layout (binding = 0) uniform usampler2D GBuffer0;
-layout (binding = 2) uniform sampler2D DepthTexture;
-
-layout(std140, binding = 2) uniform TransformBlock
-{
-// Member					Base Align		Aligned Offset		End
-	mat4 Model;				//		16					0			64
-	mat4 View;				//		16					64			128
-	mat4 Projection;		//		16					128			192
-	mat4 InvProjection;		//      16                  192         256
-} Transforms;
-
-layout(std140, binding = 4) uniform ResolutionBlock
-{
-	uvec2 Resolution;
-};
-
-layout(std140, binding = 1) uniform ProjectionInfoBlock
-{
-	float Near;
-	float Far;
-} ProjectionInfo;
-
-
-float GetLinearDepth(ivec2 ScreenCoord)
-{
-	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r;
-    float z = Depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * ProjectionInfo.Near) / (ProjectionInfo.Far + ProjectionInfo.Near - z * (ProjectionInfo.Far - ProjectionInfo.Near));	
-}
+#include "DeferredLightingCommon.frag"
 
 vec3 GetNormal(ivec2 ScreenCoord)
 {

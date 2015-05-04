@@ -1,5 +1,5 @@
-#include "..\..\Include\Windows\WindowsClock.h"
-#include "..\..\Include\Clock.h"
+#include "Windows\WindowsClock.h"
+#include "Clock.h"
 
 const uint64_t FClock::GetSystemClockFrequency()
 {

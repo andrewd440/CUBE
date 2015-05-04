@@ -71,7 +71,6 @@ FPointLightSystem::FPointLightSystem(Atlas::FWorld& World, FRenderSystem& Render
 	FShader FragShader{ L"Shaders/DeferredPointLighting.frag", GL_FRAGMENT_SHADER };
 
 	mLightShader.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mLightShader.AttachShader(SShaderHolder::Get("DeferredLightingCommon.frag"));
 	mLightShader.AttachShader(FragShader);
 	mLightShader.LinkProgram();
 }

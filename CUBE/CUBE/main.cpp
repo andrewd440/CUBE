@@ -76,8 +76,6 @@ int main()
 	Renderer.AddPostProcess(std::move(EdgeDetection));
 
 	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
-	SSAOPostProcess->SetMaxDistance(2.0f);
-	SSAOPostProcess->SetSampleRadius(Vector2f{ 20.0f, 20.0f } / Vector2f{ Resolution });
 	Renderer.AddPostProcess(std::move(SSAOPostProcess));
 
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
@@ -88,7 +86,7 @@ int main()
 
 	//Renderer.EnablePostProcess(0);
 	Renderer.EnablePostProcess(1);
-	Renderer.EnablePostProcess(2);
+	//Renderer.EnablePostProcess(2);
 
 	auto& ChunkManager = Root.GetChunkManager();
 	ChunkManager.LoadWorld(L"ShortPrettyWorld");

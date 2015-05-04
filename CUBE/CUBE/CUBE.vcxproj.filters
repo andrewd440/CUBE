@@ -318,6 +318,15 @@
     <ClInclude Include="Include\CubeRoot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\LibraryLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Windows\WindowsLibraryLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\SystemResources\SystemLibraryLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Math\Color.cpp">
@@ -531,6 +540,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WindowsLibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -72,7 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <OutDir>$(SolutionDir)$(Configuration)\lib\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -81,7 +81,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);Include/;</IncludePath>
-    <OutDir>$(SolutionDir)\BuidConfigurations\$(Configuration)\lib\</OutDir>
+    <OutDir>$(SolutionDir)\Release\$(Configuration)\bin\</OutDir>
     <ExecutablePath>bin/;$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -112,6 +112,9 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -159,8 +162,8 @@
     </Link>
     <PostBuildEvent>
       <Message>Copy headers and shaders to release folder</Message>
-      <Command>xcopy "$(ProjectDir)Include" "$(TargetDir)..\include\VoxiGine" /y /s
-xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
+      <Command>xcopy "$(ProjectDir)Include" "$(TargetDir)..\include\Cube\" /y /s
+xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders\" /y /s</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -207,6 +210,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="Include\Debugging\GameConsole.h" />
     <ClInclude Include="Include\FileIO\WorldFileSystem.h" />
     <ClInclude Include="Include\Input\TextEntered.h" />
+    <ClInclude Include="Include\LibraryLoader.h" />
     <ClInclude Include="Include\Math\Sphere.h" />
     <ClInclude Include="Include\Physics\PhysicsSystem.h" />
     <ClInclude Include="Include\Rendering\DepthRenderTarget.h" />
@@ -220,6 +224,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="Include\Rendering\ImageEffects\SSAOPostProcess.h" />
     <ClInclude Include="Include\Rendering\Uniform.h" />
     <ClInclude Include="Include\ChunkSystems\WorldGenerator.h" />
+    <ClInclude Include="Include\SystemResources\SystemLibraryLoader.h" />
     <ClInclude Include="Include\Utils\Event.h" />
     <ClInclude Include="Include\CubeRoot.h" />
     <ClInclude Include="Include\Atlas\Bitsize.h" />
@@ -286,6 +291,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClInclude Include="Include\Windows\WindowsFile.h" />
     <ClInclude Include="Include\Rendering\LightSystems.h" />
     <ClInclude Include="Include\FileIO\RegionFile.h" />
+    <ClInclude Include="Include\Windows\WindowsLibraryLoader.h" />
     <ClInclude Include="ThirdParty\LibNoise\include\noise\noisegen.h" />
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +343,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders" /y /s</Command>
     <ClCompile Include="Src\Rendering\Uniform.cpp" />
     <ClCompile Include="Src\ChunkSystems\WorldGenerator.cpp" />
     <ClCompile Include="Src\STime.cpp" />
+    <ClCompile Include="Src\Windows\WindowsLibraryLoader.cpp" />
     <None Include="Include\Atlas\GameObject.inl" />
     <None Include="Include\Math\Transform.inl" />
     <None Include="Include\Math\Vector.inl" />
