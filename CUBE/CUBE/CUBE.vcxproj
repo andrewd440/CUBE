@@ -270,7 +270,6 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders\" /y /s</Command>
     <ClInclude Include="Include\Math\FMath.h" />
     <ClInclude Include="Include\Math\Matrix4.h" />
     <ClInclude Include="Include\Math\Quaternion.h" />
-    <ClInclude Include="Include\Math\Random.h" />
     <ClInclude Include="Include\Math\Ray.h" />
     <ClInclude Include="Include\Math\Vector2.h" />
     <ClInclude Include="Include\Math\Vector3.h" />

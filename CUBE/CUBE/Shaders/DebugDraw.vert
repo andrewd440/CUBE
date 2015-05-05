@@ -3,18 +3,10 @@
 //#pragma optimize(off)
 //#pragma debug(off)
 
+#include "UniformBlocks.glsl"
+
 layout ( location = 0 ) in vec4 vPosition;
 layout( location = 2 ) in vec4 vColor;
-
-layout(std140, binding = 2) uniform TransformBlock
-{
-// Member					Base Align		Aligned Offset		End
-	mat4 Model;				//		16					0			64
-	mat4 View;				//		16					64			128
-	mat4 Projection;		//		16					128			192
-	mat4 InvProjection;     //      16                  192         256
-} Transforms;
-
 
 out vec4 fColor;
 

@@ -1,6 +1,6 @@
 #version 430 core
 
-#include "DeferredLightingCommon.frag"
+#include "DeferredCommon.glsl"
 
 // sizeof = 40
 struct PointLight_t

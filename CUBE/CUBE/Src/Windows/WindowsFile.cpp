@@ -14,6 +14,17 @@ namespace
 
 		LocalFree(Error);
 	}
+
+	void PrintError(const wchar_t* File)
+	{
+		LPTSTR Error = NULL;
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS
+			, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&Error, 0, NULL);
+
+		std::wcerr << Error << L" on file: " << File << std::endl;
+
+		LocalFree(Error);
+	}
 }
 
 FWindowsHandle::FWindowsHandle(HANDLE FileHandle)
@@ -110,7 +121,7 @@ std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenWritable(const wchar_t* Fil
 		return std::make_unique<FWindowsHandle>(FileHandle);
 	}
 
-	PrintError();
+	PrintError(Filename);
 	return nullptr;
 }
 
@@ -126,24 +137,24 @@ std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadable(const wchar_t* Fil
 		return std::make_unique<FWindowsHandle>(FileHandle);
 	}
 
-	PrintError();
+	PrintError(Filename);
 	return nullptr;
 }
 
-std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadWritable(const wchar_t* FileName, const bool AllowShareRead, const bool CreateNew)
+std::unique_ptr<IFileHandle> FWindowsFileSystem::OpenReadWritable(const wchar_t* Filename, const bool AllowShareRead, const bool CreateNew)
 {
 	DWORD Access = GENERIC_WRITE | GENERIC_READ;
 	DWORD ShareMode = AllowShareRead ? FILE_SHARE_READ : 0;
 	DWORD Creation = CreateNew ? CREATE_ALWAYS : OPEN_EXISTING;
 
-	HANDLE FileHandle = CreateFile(FileName, Access, ShareMode, nullptr, Creation, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE FileHandle = CreateFile(Filename, Access, ShareMode, nullptr, Creation, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 	if (FileHandle != INVALID_HANDLE_VALUE)
 	{
 		return std::make_unique<FWindowsHandle>(FileHandle);
 	}
 
-	PrintError();
+	PrintError(Filename);
 	return nullptr;
 }
 
@@ -153,7 +164,7 @@ bool FWindowsFileSystem::DeleteFilename(const wchar_t* Filename)
 		return true;
 	else
 	{
-		PrintError();
+		PrintError(Filename);
 	}
 
 	return false;
@@ -245,7 +256,7 @@ bool FWindowsFileSystem::SetDirectory(const wchar_t* DirectoryName)
 		return true;
 	}
 	
-	PrintError();
+	PrintError(DirectoryName);
 	return false;
 }
 

@@ -48,9 +48,6 @@
     <ClInclude Include="Include\Math\SSEMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Math\Random.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Memory\PoolAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>

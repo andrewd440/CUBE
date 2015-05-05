@@ -1,6 +1,6 @@
 #version 430 core
 
-#include "DeferredLightingCommon.frag"
+#include "DeferredCommon.glsl"
 
 layout (binding = 5) uniform sampler1D KernalSamples;
 layout (binding = 6) uniform sampler2D NoiseSamples;
@@ -10,20 +10,13 @@ uniform uint NoiseSize = 4;
 
 out vec4 AO;
 
-vec3 GetNormal(ivec2 ScreenCoord)
-{
-	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
-	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
-	return normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
-}
-
 void main()
 {
 	ivec2 ScreenCoord = ivec2(gl_FragCoord.xy);
 	ivec2 NoiseCoord = ScreenCoord % int(NoiseSize);
 	vec2 TexCoord = vec2(ScreenCoord) / vec2(Resolution);
 
-	vec3 Position = GetViewPosition(DepthTexture, ScreenCoord, vec2(Resolution));
+	vec3 Position = GetViewPosition(ScreenCoord);
 	vec3 Normal = GetNormal(ScreenCoord);
 
 	// Construct change of basis about the normal
@@ -47,6 +40,6 @@ void main()
 		Occlusion += (SampledDepth <= SampleCoord.z) ? 1.0 : 0.0;
 	}
 
-	Occlusion = Occlusion / KernalSize;
+	Occlusion = 1.0 - Occlusion / KernalSize;
 	AO = vec4(vec3(Occlusion), 1.0);
 }

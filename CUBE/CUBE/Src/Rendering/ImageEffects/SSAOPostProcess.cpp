@@ -96,7 +96,7 @@ void FSSAOPostProcess::OnPostLightingPass()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_DST_COLOR, GL_ONE);
 	glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-	//glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 

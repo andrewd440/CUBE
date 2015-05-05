@@ -1,6 +1,6 @@
 #version 430 core
 
-#include "DeferredLightingCommon.frag"
+#include "DeferredCommon.glsl"
 
 layout(std140, binding = 8) uniform FogParamsBlock
 {
@@ -14,7 +14,7 @@ layout(std140, binding = 8) uniform FogParamsBlock
 void main()
 {
 	// linearize depth and get world units of depth
-	vec3 Position = GetViewPosition(DepthTexture, ivec2(gl_FragCoord.xy), vec2(Resolution));
+	vec3 Position = GetViewPosition(ivec2(gl_FragCoord.xy));
 	float DistanceSquared = Position.x * Position.x + Position.y * Position.y + Position.z * Position.z; // No sqrt since using exp fog
 	float FogFactor = clamp(exp(-FogParams.Density * DistanceSquared), FogParams.Min, FogParams.Max);
 

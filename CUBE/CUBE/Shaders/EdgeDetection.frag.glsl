@@ -1,13 +1,6 @@
 #version 430 core
 
-#include "DeferredLightingCommon.frag"
-
-vec3 GetNormal(ivec2 ScreenCoord)
-{
-	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
-	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
-	return normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
-}
+#include "DeferredCommon.glsl"
 
 const ivec2 Offsets[9] = 
 {
