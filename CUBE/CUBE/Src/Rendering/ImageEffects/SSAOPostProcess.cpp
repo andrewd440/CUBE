@@ -13,19 +13,24 @@ FSSAOPostProcess::FSSAOPostProcess()
 	, mSampleTex(0)
 {
 
-	FShader SSAOFrag{ L"Shaders/SSAOPass.frag.glsl", GL_FRAGMENT_SHADER };
-	mSSAO.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	mSSAO.AttachShader(SSAOFrag);
-	mSSAO.LinkProgram();
-	
+	//FShader SSAOFrag{ L"Shaders/SSAOPass.frag.glsl", GL_FRAGMENT_SHADER };
+	//mSSAO.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
+	//mSSAO.AttachShader(SSAOFrag);
+	//mSSAO.LinkProgram();
+	//
+	//FShader BlurFrag{ L"Shaders/BlurPass.frag.glsl", GL_FRAGMENT_SHADER };
+	//mBlur.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
+	//mBlur.AttachShader(BlurFrag);
+	//mBlur.LinkProgram();
+
 	GenerateNoiseTexture(DEFAULT_NOISE_SIZE);
 	GenerateSampleTexture(DEFAULT_KERNAL_SIZE);
 }
 
-
 FSSAOPostProcess::~FSSAOPostProcess()
 {
-
+	glDeleteTextures(1, &mNoiseTex);
+	glDeleteTextures(1, &mSampleTex);
 }
 
 void FSSAOPostProcess::GenerateNoiseTexture(const uint32_t Size)
@@ -90,17 +95,34 @@ void FSSAOPostProcess::GenerateSampleTexture(const uint32_t KernalSize)
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 }
 
-void FSSAOPostProcess::OnPostLightingPass()
+void FSSAOPostProcess::OnPreLightingPass()
 {
-	mSSAO.Use();
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_DST_COLOR, GL_ONE);
-	glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
+	mSSAO.Use();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	mBlur.Use();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void FSSAOPostProcess::SetRadius(const float Radius)
 {
+	mSSAO.SetUniform("uRadius", Radius);
+}
 
+void FSSAOPostProcess::SetNoiseSize(const uint32_t Size)
+{
+	mSSAO.SetUniform("uNoiseSize", Size);
+	mBlur.SetUniform("uNoiseSize", Size);
+}
+
+void FSSAOPostProcess::SetKernalSize(const uint32_t Size)
+{
+	mSSAO.SetUniform("uKernalSize", Size);
+}
+
+void FSSAOPostProcess::SetPower(const float Power)
+{
+	mSSAO.SetUniform("uPower", Power);
 }

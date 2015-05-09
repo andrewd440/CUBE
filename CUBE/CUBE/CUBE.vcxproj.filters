@@ -434,9 +434,6 @@
     <ClCompile Include="Src\Rendering\RenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Rendering\GBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Rendering\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -540,6 +537,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\WindowsLibraryLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Include\Rendering\GBuffer.inl">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

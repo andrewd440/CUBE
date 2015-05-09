@@ -35,7 +35,7 @@ float GetLinearDepth(ivec2 ScreenCoord)
 
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)
 {
-	uvec4 Data0 = texelFetch(GBuffer0, ivec2(ScreenCoord), 0);
+	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
 
 	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
 	Fragment.Color = vec3(unpackHalf2x16(Data0.x), ColorZNormX.x);

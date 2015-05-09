@@ -85,8 +85,8 @@ int main()
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
 	//Renderer.EnablePostProcess(0);
-	Renderer.EnablePostProcess(1);
-	//Renderer.EnablePostProcess(2);
+	//Renderer.EnablePostProcess(1);
+	Renderer.EnablePostProcess(2);
 
 	auto& ChunkManager = Root.GetChunkManager();
 	ChunkManager.LoadWorld(L"ShortPrettyWorld");
@@ -106,7 +106,7 @@ int main()
 	//////// Directional Light /////////////////////////////////////////////
 	auto& DirectionalLight = GameObjectManager.CreateGameObject();
 	FDirectionalLight& DLight = DirectionalLight.AddComponent<Atlas::EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.7, .7, .7);
+	DLight.Color = Vector3f(.6, .6, .6);
 	DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
 
 

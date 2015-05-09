@@ -335,7 +335,7 @@ xcopy "$(ProjectDir)Shaders" "$(TargetDir)..\Shaders\" /y /s</Command>
     <ClCompile Include="Src\Math\Frustum.cpp" />
     <ClCompile Include="Src\Math\Plane.cpp" />
     <ClCompile Include="Src\Math\Transform.cpp" />
-    <ClCompile Include="Src\Rendering\GBuffer.cpp" />
+    <ClCompile Include="Include\Rendering\GBuffer.inl" />
     <ClCompile Include="Src\Rendering\Light.cpp" />
     <ClCompile Include="Src\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Src\Rendering\ImageEffects\SSAOPostProcess.cpp" />

@@ -71,6 +71,8 @@ public:
 	void DisablePostProcess(const uint32_t ID);
 
 private:
+	void AllocateGBuffer(const Vector2ui& Resolution);
+
 	/**
 	* Load all rendering based shaders to the
 	* shader manager.
@@ -137,13 +139,19 @@ private:
 	FChunkManager&        mChunkManager;
 	FShaderProgram        mDeferredRender;
 	FShaderProgram        mChunkRender;
-	GBuffer               mGBuffer;
 	PostProcessContainer  mPostProcesses;
 	//FBox                  mViewAABB;
+
+	struct GBuffer
+	{
+		GLuint FBO;
+		GLuint DepthTex;
+		GLuint ColorTex[1];
+	} mGBuffer;
 
 	// Shader info blocks and buffers
 	FUniformBlock   mTransformBlock;
 	FUniformBlock   mResolutionBlock;
 	FUniformBlock   mProjectionInfoBlock;
-	GLuint                mBlockInfoBuffer;
+	GLuint          mBlockInfoBuffer;
 };

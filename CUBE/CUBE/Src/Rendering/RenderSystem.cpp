@@ -62,13 +62,17 @@ FRenderSystem::FRenderSystem(Atlas::FWorld& World, sf::Window& GameWindow, FChun
 	, mChunkManager(ChunkManager)
 	, mDeferredRender()
 	, mChunkRender()
-	, mGBuffer(Vector2ui{ GameWindow.getSize().x, GameWindow.getSize().y }, GL_RGBA32UI)
+	, mGBuffer()
 	, mPostProcesses()
 	, mTransformBlock(GLUniformBindings::TransformBlock, TransformBuffer::Size)
 	, mResolutionBlock(GLUniformBindings::ResolutionBlock, ResolutionBlock::Size)
 	, mProjectionInfoBlock(GLUniformBindings::ProjectionInfoBlock, ProjectionInfoBlock::Size)
 	, mBlockInfoBuffer(0)
 {
+	mGBuffer.FBO = 0;
+	mGBuffer.DepthTex = 0;
+	mGBuffer.ColorTex[0] = 0;
+
 	SetResolution(Vector2ui{ GameWindow.getSize().x, GameWindow.getSize().y });
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -107,6 +111,9 @@ void FRenderSystem::LoadSubSystems()
 FRenderSystem::~FRenderSystem()
 {
 	glDeleteBuffers(1, &mBlockInfoBuffer);
+	glDeleteFramebuffers(1, &mGBuffer.FBO);
+	glDeleteTextures(2, mGBuffer.ColorTex);
+	glDeleteTextures(1, &mGBuffer.DepthTex);
 }
 
 void FRenderSystem::Start()
@@ -115,10 +122,10 @@ void FRenderSystem::Start()
 	glActiveTexture(GL_TEXTURE0 + GLTextureBindings::BlockInfo);
 	glGenTextures(1, &mBlockInfoBuffer);
 	glBindTexture(GL_TEXTURE_1D, mBlockInfoBuffer);
-	glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA32F, FBlockTypes::mBlockTypes.size());
-	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, FBlockTypes::mBlockTypes.size(), GL_RGBA, GL_FLOAT, FBlockTypes::mBlockTypes.data());
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA32F, FBlockTypes::mBlockTypes.size());
+		glTexSubImage1D(GL_TEXTURE_1D, 0, 0, FBlockTypes::mBlockTypes.size(), GL_RGBA, GL_FLOAT, FBlockTypes::mBlockTypes.data());
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glActiveTexture(GL_TEXTURE0);
 }
 
@@ -151,10 +158,7 @@ void FRenderSystem::Update()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//UpdateViewBounds();
 	ConstructGBuffer();
-
-	mGBuffer.StartRead();
 
 	for (auto& Record : mPostProcesses)
 	{
@@ -170,41 +174,11 @@ void FRenderSystem::Update()
 			Record.Process->OnPostLightingPass();
 	}
 
-	mGBuffer.EndRead();
-
-	/////////////////////////////
-	// Debugging text ////////////////////////////
-
-	static const vec4 White{ { 1, 1, 1, 1 } };
-	static const vec4 None{{ 1, 1, 1, 0 }};
-	static markup_t TextMarkup{ "Vera.ttf", 16, 0, 0, 0.0f, 0.0f, 2.0f, White, None, 0, White, 0, White, 0, White, 0 };
-
-	// Debug Print
-	const Vector3f CameraPosition = FCamera::Main->Transform.GetWorldPosition();
-	auto& DebugText = FDebug::Text::GetInstance();
-	wchar_t String[250];
-	const Vector3f Direction = FCamera::Main->Transform.GetRotation() * -Vector3f::Forward;
-	swprintf_s(String, L"FPS: %.0f   Position: %.1f %.1f %.1f Direction: %.1f %.1f %.1f", 1.0f / STime::GetDeltaTime(), CameraPosition.x, CameraPosition.y, CameraPosition.z, Direction.x, Direction.y, Direction.z);
-	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 50), TextMarkup);
-
-	swprintf_s(String, L"+");
-	DebugText.AddText(std::wstring{ String }, SScreen::GetResolution() / 2, TextMarkup);
-
-	swprintf_s(String, L"Chunks used: %d", FChunk::ChunkAllocator.Size());
-	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 100), TextMarkup);
-
-	Vector3i ChunkPosition = Vector3i(CameraPosition.x / FChunk::CHUNK_SIZE, CameraPosition.y / FChunk::CHUNK_SIZE, CameraPosition.z / FChunk::CHUNK_SIZE);
-	swprintf_s(String, L"Chunk Position: %d %d %d", ChunkPosition.x, ChunkPosition.y, ChunkPosition.z);
-	DebugText.AddText(std::wstring{ String }, Vector2i(50, SScreen::GetResolution().y - 150), TextMarkup);
-
-	///////////////////////////////////////////////
-	///////////////////////////////
-
 	// Render overlayed facilities
 	glDisable(GL_BLEND);
 	FDebug::Draw::GetInstance().Render();
 	FDebug::GameConsole::GetInstance().Render();
-	DebugText.Render();
+	FDebug::Text::GetInstance().Render();
 
 	// Display renderings
 	mWindow.display();
@@ -214,7 +188,7 @@ void FRenderSystem::SetResolution(const Vector2ui& Resolution)
 {
 	SScreen::SetResolution(Resolution);
 	mWindow.setSize(sf::Vector2u{ Resolution.x, Resolution.y });
-	mGBuffer = GBuffer{ Resolution, GL_RGBA32UI };
+	AllocateGBuffer(Resolution);
 
 	mResolutionBlock.SetData(ResolutionBlock::Resolution, Resolution);
 	OnResolutionChange.Invoke(Resolution);
@@ -255,10 +229,61 @@ void FRenderSystem::TransferViewProjectionData()
 	mProjectionInfoBlock.SetData(ProjectionInfoBlock::Far, Far);
 }
 
+void FRenderSystem::AllocateGBuffer(const Vector2ui& Resolution)
+{
+	// Delete old GBuffer
+	if (mGBuffer.FBO != 0)
+	{
+		glDeleteFramebuffers(1, &mGBuffer.FBO);
+		glDeleteTextures(2, mGBuffer.ColorTex);
+		glDeleteTextures(1, &mGBuffer.DepthTex);
+	}
+
+	// Create targets with input parameters
+	glGenTextures(1, mGBuffer.ColorTex);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.ColorTex[0]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32UI, Resolution.x, Resolution.y);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glActiveTexture(GL_TEXTURE0 + GLTextureBindings::GBuffer0);
+
+	// Depth texture
+	glGenTextures(1, &mGBuffer.DepthTex);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.DepthTex);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Resolution.x, Resolution.y);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	float DepthBorder[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GL_CHECK(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, DepthBorder));
+	glActiveTexture(GL_TEXTURE0);
+
+	glGenFramebuffers(1, &mGBuffer.FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, mGBuffer.FBO);
+
+	// Set attachments
+	GL_CHECK(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mGBuffer.ColorTex[0], 0));
+	GL_CHECK(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mGBuffer.DepthTex, 0));
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void FRenderSystem::ConstructGBuffer()
 {
 	// Open G-Buffer for writing and enable deferred render shader.
-	mGBuffer.StartWrite();
+	const Vector2ui Resolution = SScreen::GetResolution();
+	glBindFramebuffer(GL_FRAMEBUFFER, mGBuffer.FBO);
+	glViewport(0, 0, Resolution.x, Resolution.y);
+	
+	static const GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+	static const GLuint UZeros[] = { 0, 0, 0, 0 };
+	static const GLfloat FOnes[] = { 1, 1, 1, 1 };
+
+	glDrawBuffers(1, DrawBuffers);
+	glClearBufferuiv(GL_COLOR, 0, UZeros);
+	glClearBufferfv(GL_DEPTH, 0, FOnes);
 
 	// Make sure depth testing is enabled
 	glDisable(GL_BLEND);
@@ -268,7 +293,16 @@ void FRenderSystem::ConstructGBuffer()
 	RenderGeometry();
 
 	// Close the G-Buffer
-	mGBuffer.EndWrite();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, Resolution.x, Resolution.y);
+	glDrawBuffer(GL_BACK);
+
+	// Set GBuffers for reading
+	glActiveTexture(GL_TEXTURE0 + GLTextureBindings::GBuffer0);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.ColorTex[0]);
+
+	glActiveTexture(GL_TEXTURE0 + GLTextureBindings::Depth);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.DepthTex);
 }
 
 void FRenderSystem::LightingPass()

@@ -10,6 +10,8 @@ struct DirectionalLight_t
 	vec3 Color;            //    16               16             28
 };
 
+const vec3 Ambient = vec3(.2, .2, .2);
+
 layout(std140, binding = 11) uniform DirectionalLightBlock
 {
     DirectionalLight_t DirectionalLight;
@@ -50,7 +52,7 @@ vec4 ApplyLighting(FragmentData_t Fragment, DirectionalLight_t Light)
 		//else
 		//	Specular = Light.Color * Fragment.Color * pow(NdotH, 4);
 
-		Result += vec4(Diffuse, 0.0);
+		Result += vec4(Diffuse + Ambient * Fragment.Color, 0.0);
 	}
 	return Result;
 }

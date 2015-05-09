@@ -33,6 +33,7 @@ namespace GLTextureBindings
 	enum : uint32_t
 	{
 		GBuffer0 = 0,
+		GBuffer1 = 1,
 		Depth = 2,
 		TextTexture = 3,
 		BlockInfo = 4,
