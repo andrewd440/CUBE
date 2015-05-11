@@ -126,11 +126,30 @@ public:
 
 	template <typename T>
 	/**
+	* Sets data to the currently bound uniform variable.
+	* Non primitive datatypes must specilize this template
+	* function.
+	* @param Data - The data to set.
+	* @param ShaderActive - Supply if this shader is already active.
+	*/
+	void SetUniform(const char* Name, T Data, std::true_type ShaderActive);
+
+	template <typename T>
+	/**
 	* Sets a vector to the currently bound uniform variable.
 	* @param Count - The number of sets of data.
 	* @param Data - The data to set.
 	*/
 	void SetVector(const char* Name, GLsizei Count, const T* Data);
+
+	template <typename T>
+	/**
+	* Sets a vector to the currently bound uniform variable.
+	* @param Count - The number of sets of data.
+	* @param Data - The data to set.
+	* @param ShaderActive - Supply if this shader is already active.
+	*/
+	void SetVector(const char* Name, GLsizei Count, const T* Data, std::true_type ShaderActive);
 
 	template <typename T>
 	/**
@@ -140,6 +159,16 @@ public:
 	* @param Data - The data to set.
 	*/
 	void SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data);
+
+	template <typename T>
+	/**
+	* Sets a matrix to the currently bound uniform variable.
+	* @param Count - The number of sets of data.
+	* @param Transpose - If this matrix should be transposed.
+	* @param Data - The data to set.
+	* @param ShaderActive - Supply if this shader is already active.
+	*/
+	void SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data, std::true_type ShaderActive);
 
 private:
 
@@ -161,23 +190,44 @@ private:
 template <typename T>
 inline void FShaderProgram::SetUniform(const char* Name, T Data)
 {
-	FUniform& Uniform = GetUniform(Name);
 	Use();
-	Uniform.SetUniform(Data);
+	SetUniform(Name, Data, std::true_type{});
 }
 
 template <typename T>
 inline void FShaderProgram::SetVector(const char* Name, GLsizei Count, const T* Data)
 {
-	FUniform& Uniform = GetUniform(Name);
 	Use();
-	Uniform.SetVector(Count, Data);
+	SetVector(Name, Count, Data, std::true_type{});
 }
 
 template <typename T>
 inline void FShaderProgram::SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data)
 {
-	FUniform& Uniform = GetUniform(Name);
 	Use();
+	SetMatrix(Name, Count, Transpose, Data, std::true_type{});
+}
+
+template <typename T>
+inline void FShaderProgram::SetUniform(const char* Name, T Data, std::true_type ShaderActive)
+{
+	ShaderActive; // compiler suppress
+	FUniform& Uniform = GetUniform(Name);
+	Uniform.SetUniform(Data);
+}
+
+template <typename T>
+inline void FShaderProgram::SetVector(const char* Name, GLsizei Count, const T* Data, std::true_type ShaderActive)
+{
+	ShaderActive; // compiler suppress
+	FUniform& Uniform = GetUniform(Name);
+	Uniform.SetVector(Count, Data);
+}
+
+template <typename T>
+inline void FShaderProgram::SetMatrix(const char* Name, GLsizei Count, GLboolean Transpose, const T* Data, std::true_type ShaderActive)
+{
+	ShaderActive; // compiler suppress
+	FUniform& Uniform = GetUniform(Name);
 	Uniform.SetMatrix(Count, Transpose, Data);
 }

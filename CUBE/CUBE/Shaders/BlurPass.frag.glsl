@@ -2,10 +2,12 @@
 
 #include "DeferredCommon.glsl"
 
-uniform uint uBlurSize = 4;
+layout (binding = 7) uniform sampler2D AOTex;
 
-layout (location = 0) out uvec4 Color0;
-layout (location = 1) out vec4 Color1;
+uniform uint uBlurSize = 4;
+uniform vec3 uAmbient = vec3(.3, .3, .3);
+
+out vec4 oColor;
 
 void main()
 {
@@ -15,12 +17,11 @@ void main()
 	{
 		for(uint x = 0; x < uBlurSize; ++x)
 		{
-			Sum += GetAO(ScreenCoord + ivec2(x, y));
+			Sum += texelFetch(AOTex, ScreenCoord + ivec2(x, y), 0).r;
 		}
 	}
 
 	Sum /= (uBlurSize * uBlurSize);
-	Color0 = texelFetch(GBuffer0, ScreenCoord, 0);
-	Color1.r = Sum;
+	oColor = vec4(Sum * uAmbient * GetColor(ScreenCoord), 1);
 }
 

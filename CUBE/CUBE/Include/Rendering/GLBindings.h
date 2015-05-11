@@ -38,6 +38,7 @@ namespace GLTextureBindings
 		TextTexture = 3,
 		BlockInfo = 4,
 		SSAOSamples = 5,
-		SSAONoise = 6
+		SSAONoise = 6,
+		SSAOTexture = 7,
 	};
 }

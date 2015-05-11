@@ -75,8 +75,13 @@ int main()
 	std::unique_ptr<FEdgeDetection> EdgeDetection{ new FEdgeDetection{} };
 	Renderer.AddPostProcess(std::move(EdgeDetection));
 
-	std::unique_ptr<FSSAOPostProcess> SSAOPostProcess{ new FSSAOPostProcess{} };
-	Renderer.AddPostProcess(std::move(SSAOPostProcess));
+	std::unique_ptr<FSSAOPostProcess> SSAO{ new FSSAOPostProcess{} };
+	SSAO->SetGlobalAmbient(Vector3f{ .3f, .3f, .3f });
+	SSAO->SetKernalSize(16);
+	SSAO->SetNoiseSize(4);
+	SSAO->SetPower(1.25f);
+	SSAO->SetRadius(1.25f);
+	Renderer.AddPostProcess(std::move(SSAO));
 
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
@@ -85,7 +90,7 @@ int main()
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
 	//Renderer.EnablePostProcess(0);
-	//Renderer.EnablePostProcess(1);
+	Renderer.EnablePostProcess(1);
 	Renderer.EnablePostProcess(2);
 
 	auto& ChunkManager = Root.GetChunkManager();

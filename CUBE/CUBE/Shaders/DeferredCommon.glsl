@@ -26,11 +26,18 @@ vec3 GetNormal(ivec2 ScreenCoord)
 	return normalize(vec3(ColorZNormX.y, unpackHalf2x16(Data0.z)));
 }
 
+vec3 GetColor(ivec2 ScreenCoord)
+{
+	uvec4 Data0 = texelFetch(GBuffer0, ScreenCoord, 0);
+	vec2 ColorZNormX = unpackHalf2x16(Data0.y);
+	return vec3(unpackHalf2x16(Data0.x), ColorZNormX.x);
+}
+
 float GetLinearDepth(ivec2 ScreenCoord)
 {
 	float Depth = texelFetch(DepthTexture, ScreenCoord, 0).r;
     float z = Depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * ProjectionInfo.Near) / (ProjectionInfo.Far + ProjectionInfo.Near - z * (ProjectionInfo.Far - ProjectionInfo.Near));	
+    return (2.0 * ProjectionInfo.Near * ProjectionInfo.Far) / (ProjectionInfo.Far + ProjectionInfo.Near - z * (ProjectionInfo.Far - ProjectionInfo.Near));	
 }
 
 void UnpackGBuffer(ivec2 ScreenCoord, out FragmentData_t Fragment)

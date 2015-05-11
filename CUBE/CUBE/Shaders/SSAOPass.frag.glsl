@@ -10,8 +10,12 @@ uniform uint uNoiseSize = 4;
 uniform float uRadius = 1.25;
 uniform float uPower = 1.5;
 
-layout (location = 0) out uvec4 Color0;
-layout (location = 1) out vec4 Color1;
+out float oOcclusion;
+
+float LDepth(float Depth)
+{
+    return (2.0 * ProjectionInfo.Near) / (ProjectionInfo.Far + ProjectionInfo.Near - Depth * (ProjectionInfo.Far - ProjectionInfo.Near));	
+}
 
 void main()
 {
@@ -40,10 +44,10 @@ void main()
 		SampleCoord.xy = SampleCoord.xy * 0.5 + 0.5;
 
 		float SampledDepth = texture(DepthTexture, SampleCoord.xy).r * 2.0 - 1.0;
-		Occlusion += (SampledDepth <= SampleCoord.z) ? 1.0 : 0.0;
+		float RangeCheck = ((abs(LDepth(SampleCoord.z) - LDepth(SampledDepth)) * ProjectionInfo.Far) > uRadius) ? 0.0 : 1.0;
+		Occlusion += RangeCheck * ((SampledDepth <= SampleCoord.z) ? 1.0 : 0.0);
 	}
 
 	Occlusion = 1.0 - Occlusion / uKernalSize;
-	Color1.r = pow(Occlusion, uPower);
-	Color0 = texelFetch(GBuffer0, ScreenCoord, 0);
+	oOcclusion = pow(Occlusion, uPower);
 }

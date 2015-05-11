@@ -4,6 +4,8 @@
 #include "Math\FMath.h"
 #include "Rendering\GLUtils.h"
 #include "Rendering\GLBindings.h"
+#include "Rendering\RenderSystem.h"
+#include "Rendering\Screen.h"
 #include <random>
 
 FSSAOPostProcess::FSSAOPostProcess()
@@ -12,19 +14,24 @@ FSSAOPostProcess::FSSAOPostProcess()
 	, mNoiseTex(0)
 	, mSampleTex(0)
 {
+	mSSAOBuffer.FBO = 0;
+	mSSAOBuffer.mSSAOTex = 0;
 
-	//FShader SSAOFrag{ L"Shaders/SSAOPass.frag.glsl", GL_FRAGMENT_SHADER };
-	//mSSAO.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	//mSSAO.AttachShader(SSAOFrag);
-	//mSSAO.LinkProgram();
-	//
-	//FShader BlurFrag{ L"Shaders/BlurPass.frag.glsl", GL_FRAGMENT_SHADER };
-	//mBlur.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
-	//mBlur.AttachShader(BlurFrag);
-	//mBlur.LinkProgram();
+	FRenderSystem::OnResolutionChange.AddListener<FSSAOPostProcess, &FSSAOPostProcess::ResizeRenderTarget>(this);
+
+	FShader SSAOFrag{ L"Shaders/SSAOPass.frag.glsl", GL_FRAGMENT_SHADER };
+	mSSAO.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
+	mSSAO.AttachShader(SSAOFrag);
+	mSSAO.LinkProgram();
+	
+	FShader BlurFrag{ L"Shaders/BlurPass.frag.glsl", GL_FRAGMENT_SHADER };
+	mBlur.AttachShader(SShaderHolder::Get("FullScreenQuad.vert"));
+	mBlur.AttachShader(BlurFrag);
+	mBlur.LinkProgram();
 
 	GenerateNoiseTexture(DEFAULT_NOISE_SIZE);
 	GenerateSampleTexture(DEFAULT_KERNAL_SIZE);
+	ResizeRenderTarget(SScreen::GetResolution());
 }
 
 FSSAOPostProcess::~FSSAOPostProcess()
@@ -95,13 +102,20 @@ void FSSAOPostProcess::GenerateSampleTexture(const uint32_t KernalSize)
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 }
 
-void FSSAOPostProcess::OnPreLightingPass()
+void FSSAOPostProcess::OnPostLightingPass()
 {
-	glDisable(GL_DEPTH_TEST);
+	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, mSSAOBuffer.FBO));
+
 	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
 	mSSAO.Use();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
 	mBlur.Use();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -113,16 +127,46 @@ void FSSAOPostProcess::SetRadius(const float Radius)
 
 void FSSAOPostProcess::SetNoiseSize(const uint32_t Size)
 {
+	GenerateNoiseTexture(Size);
 	mSSAO.SetUniform("uNoiseSize", Size);
 	mBlur.SetUniform("uNoiseSize", Size);
 }
 
 void FSSAOPostProcess::SetKernalSize(const uint32_t Size)
 {
+	GenerateSampleTexture(Size);
 	mSSAO.SetUniform("uKernalSize", Size);
 }
 
 void FSSAOPostProcess::SetPower(const float Power)
 {
 	mSSAO.SetUniform("uPower", Power);
+}
+
+void FSSAOPostProcess::SetGlobalAmbient(const Vector3f& Ambient)
+{
+	mBlur.SetVector("uAmbient", 1, &Ambient);
+}
+
+void FSSAOPostProcess::ResizeRenderTarget(const Vector2ui Size)
+{
+	if (mSSAOBuffer.FBO != 0)
+	{
+		// Using buffer immutable textures, so just reallocate
+		glDeleteFramebuffers(1, &mSSAOBuffer.FBO);
+		glDeleteTextures(1, &mSSAOBuffer.mSSAOTex);
+	}
+
+	GL_CHECK(glGenFramebuffers(1, &mSSAOBuffer.FBO));
+	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, mSSAOBuffer.FBO));
+	GL_CHECK(glViewport(0, 0, Size.x, Size.y));
+		GL_CHECK(glGenTextures(1, &mSSAOBuffer.mSSAOTex));
+		GL_CHECK(glActiveTexture(GL_TEXTURE0 + GLTextureBindings::SSAOTexture));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, mSSAOBuffer.mSSAOTex));
+			GL_CHECK(glTexStorage2D(GL_TEXTURE_2D, 1, GL_R16F, Size.x, Size.y));
+			GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+			GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GL_CHECK(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mSSAOBuffer.mSSAOTex, 0));
+		GL_CHECK(glDrawBuffer(GL_COLOR_ATTACHMENT0));
+	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
