@@ -26,6 +26,13 @@ public:
 		Bottom
 	};
 
+	enum class Intersection
+	{
+		Outside,
+		Staddle,
+		Inside
+	};
+
 public:
 	FFrustum() = default;
 	~FFrustum() = default;
@@ -60,6 +67,14 @@ public:
 	* @param Sphere - The sphere to check.
 	*/
 	bool IsSphereVisible(const FSphere& Sphere) const;
+
+	/**
+	* Tests an aabb against this frustum.
+	* @param CenterPoint - The center of the box.
+	* @param Box - The AABB to check.
+	* @return -1 if the aabb is completely outside the 
+	*/
+	Intersection TestAABB(const Vector4f& CenterPoint, const float BoxWidth) const;
 
 private:
 	FPlane mPlanes[6];

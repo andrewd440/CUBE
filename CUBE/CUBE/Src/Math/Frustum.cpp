@@ -40,6 +40,11 @@ bool FFrustum::IsSphereVisible(const FSphere& Sphere) const
 	return true;
 }
 
+FFrustum::Intersection FFrustum::TestAABB(const Vector4f& CenterPoint, const float BoxWidth) const
+{
+
+}
+
 void FFrustum::TransformBy(const FMatrix4& Transform)
 {
 	for (int32_t i = 0; i < 6; i++)

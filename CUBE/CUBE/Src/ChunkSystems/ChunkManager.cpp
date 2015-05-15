@@ -473,11 +473,10 @@ void FChunkManager::UpdateRenderList()
 	// The the current view frustum in chunk coord
 	FMatrix4 ToChunkCoord;
 	ToChunkCoord.Scale(1.0f / (float)FChunk::CHUNK_SIZE);
+	ToChunkCoord.SetOrigin(-Vector3f{ 0.5f, 0.5f, 0.5f }); // align with center of chunks
+
 	FFrustum ViewFrustum = FCamera::Main->GetWorldViewFrustum();
 	ViewFrustum.TransformBy(ToChunkCoord);
-
-	const float ChunkHalfWidth = 1.0f / 2.0f;
-	const Vector4f HalfChunkVector{ ChunkHalfWidth, ChunkHalfWidth, ChunkHalfWidth, 0};
 
 	// Check each visible chunk against the frustum
 	const uint32_t ListSize = ChunkCount();
@@ -486,7 +485,6 @@ void FChunkManager::UpdateRenderList()
 	{
 		Vector4f CenterFloats;
 		Vector4IntToFloat(&mChunkPositions[i].x, &CenterFloats.x);
-		CenterFloats += HalfChunkVector;
 
 		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(CenterFloats, 1.0f))
 		{

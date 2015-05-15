@@ -21,7 +21,6 @@
 #include "Components\SoundListener.h"
 #include "Components\SoundEmitter.h"
 
-
 #include "FileIO\RegionFile.h"
 
 #include "LibNoise\noise.h"
@@ -37,6 +36,7 @@ int main()
 {
 	const Vector2ui Resolution{ 1920, 1080 };
 	FCubeRoot Root{ L"CUBE", Resolution, sf::Style::Default };
+	Root.GetChunkManager().SetViewDistance(16);
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
 	SMouseAxis::SetMouseVisible(false);
@@ -67,9 +67,9 @@ int main()
 	}
 
 	FCamera Camera;
-	const Vector3f CameraPosition = Vector3f{ 260.0f, 220.0f, 260.0f };
+	const Vector3f CameraPosition = Vector3f{ 260.0f, 320.0f, 260.0f };
 	Camera.Transform.SetLocalPosition(CameraPosition);
-	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 600.0f });
+	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 590.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
 	std::unique_ptr<FEdgeDetection> EdgeDetection{ new FEdgeDetection{} };
@@ -85,8 +85,8 @@ int main()
 
 	std::unique_ptr<FFogPostProcess> FogPostProcess{ new FFogPostProcess{} };
 	FogPostProcess->SetBounds(0, 1);
-	FogPostProcess->SetColor(Vector3f{ .5f, .5f, .5f });
-	FogPostProcess->SetDensity(0.00001f);
+	FogPostProcess->SetColor(Vector3f{ .6f, .6f, .6f });
+	FogPostProcess->SetDensity(0.000009f);
 	Renderer.AddPostProcess(std::move(FogPostProcess));
 
 	//Renderer.EnablePostProcess(0);
@@ -94,7 +94,7 @@ int main()
 	Renderer.EnablePostProcess(2);
 
 	auto& ChunkManager = Root.GetChunkManager();
-	ChunkManager.LoadWorld(L"ShortPrettyWorld");
+	ChunkManager.LoadWorld(L"NewWorld");
 
 
 	auto& GameObjectManager = Root.GetGameObjectManager();
@@ -104,14 +104,14 @@ int main()
 	PlayerController.AddBehavior<CFlyingCamera>();
 	PlayerController.AddBehavior<CBlockPlacer>();
 	//PlayerController.AddBehavior<CTimeBombShooter>();
-	//PlayerController.AddBehavior<CBoxShooter>();
+	PlayerController.AddBehavior<CBoxShooter>();
 	PlayerController.AddComponent<EComponent::SoundListener>();
 
 	////////////////////////////////////////////////////////////////////////
 	//////// Directional Light /////////////////////////////////////////////
 	auto& DirectionalLight = GameObjectManager.CreateGameObject();
 	FDirectionalLight& DLight = DirectionalLight.AddComponent<Atlas::EComponent::DirectionalLight>();
-	DLight.Color = Vector3f(.6, .6, .6);
+	DLight.Color = Vector3f(.6f, .6f, .6f);
 	DirectionalLight.Transform.SetRotation(FQuaternion{ -130, -20, 0 });
 
 
@@ -145,15 +145,24 @@ int main()
 //////////////////////////////////////
 // World Generation //////////////////
 //////////////////////////////////////
-
+//
 //int main()
 //{
 //	IFileSystem* FileSys = new FFileSystem;
 //
 //	module::RidgedMulti mountainTerrain;
+//	mountainTerrain.SetFrequency(0.5);
+//	mountainTerrain.SetOctaveCount(1);
+//	mountainTerrain.SetLacunarity(1.0);
+//
+//	module::Terrace Terrance;
+//	Terrance.AddControlPoint(2.3);
+//	Terrance.AddControlPoint(3.0);
+//	Terrance.SetSourceModule(0, mountainTerrain);
 //
 //	module::Billow baseFlatTerrain;
-//	baseFlatTerrain.SetFrequency(2.0);
+//	baseFlatTerrain.SetFrequency(0.5);
+//	baseFlatTerrain.SetPersistence(0.5);
 //
 //	module::ScaleBias flatTerrain;
 //	flatTerrain.SetSourceModule(0, baseFlatTerrain);
@@ -161,7 +170,7 @@ int main()
 //	flatTerrain.SetBias(-0.75);
 //
 //	module::Perlin terrainType;
-//	terrainType.SetFrequency(0.4);
+//	terrainType.SetFrequency(1.0);
 //	terrainType.SetPersistence(0.125);
 //
 //	module::Select terrainSelector;
@@ -173,14 +182,14 @@ int main()
 //
 //	module::Turbulence finalTerrain;
 //	finalTerrain.SetSourceModule(0, terrainSelector);
-//	finalTerrain.SetFrequency(4.0);
+//	finalTerrain.SetFrequency(1.0);
 //	finalTerrain.SetPower(0.125);
 //
 //	FWorldGenerator Generator;
 //	Generator.SetBounds(Vector2f{ 1.0f, 1.0f }, Vector2f{ 10.0f, 10.0f });
 //	Generator.SetWorldSizeInChunks(32);
-//	Generator.SetMaxHeight(230);
-//	Generator.SetMinHeight(180);
+//	Generator.SetMaxHeight(300);
+//	Generator.SetMinHeight(160);
 //
 //	enum Type : uint8_t
 //	{
@@ -193,10 +202,10 @@ int main()
 //
 //	Generator.AddTerrainLevel(0, Brick);
 //	Generator.AddTerrainLevel(180, Grass);
-//	Generator.AddTerrainLevel(220, Dirt);
-//	Generator.AddTerrainLevel(250, Snow);
+//	//Generator.AddTerrainLevel(220, Dirt);
+//	//Generator.AddTerrainLevel(250, Snow);
 //
-//	Generator.Build(finalTerrain, L"ShortPrettyWorld");
+//	Generator.Build(finalTerrain, L"NewWorld");
 //
 //	delete FileSys;
 //

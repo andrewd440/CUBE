@@ -70,6 +70,14 @@ struct FPlane
 	float DistanceFromPoint(const Vector3f& Point) const;
 
 	/**
+	* Tests a point for intersection with this plane.
+ 	* @return If 0, the plane intersects the point. If positive,
+	*         the point is in front of the plane. If negative, the point
+	*         is behind the plane.
+	*/
+	float IntersectsPoint(const Vector4f& Point) const;
+
+	/**
 	* Transforms this plane by a matrix.
 	*/
 	void TransformBy(const FMatrix4& Transform);
@@ -130,6 +138,11 @@ inline float FPlane::DistanceFromPoint(const Vector3f& Point) const
 {
 	const Vector3f Normal{ NormalwDistance.x, NormalwDistance.y, NormalwDistance.z };
 	return (Vector3f::Dot(Point, Normal) - NormalwDistance.w) / Vector3f::Dot(Normal, Normal);
+}
+
+inline float FPlane::IntersectsPoint(const Vector4f& Point) const
+{
+	return Vector4f::Dot4(NormalwDistance, Point);
 }
 
 inline bool operator==(const FPlane& Lhs, const FPlane& Rhs)
