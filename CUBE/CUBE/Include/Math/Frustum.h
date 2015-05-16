@@ -29,7 +29,7 @@ public:
 	enum class Intersection
 	{
 		Outside,
-		Staddle,
+		Straddle,
 		Inside
 	};
 
@@ -74,7 +74,7 @@ public:
 	* @param Box - The AABB to check.
 	* @return -1 if the aabb is completely outside the 
 	*/
-	Intersection TestAABB(const Vector4f& CenterPoint, const float BoxWidth) const;
+	Intersection IntersectsAABB(const Vector4f& CenterPoint, const Vector3f& Diminsions) const;
 
 private:
 	FPlane mPlanes[6];

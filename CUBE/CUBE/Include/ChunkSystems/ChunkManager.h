@@ -14,6 +14,7 @@
 #include "FileIO\WorldFileSystem.h"
 #include "BlockTypes.h"
 #include "Utils\Event.h"
+#include "Math\Frustum.h"
 
 class FPhysicsSystem;
 class FRenderSystem;
@@ -197,11 +198,11 @@ inline int32_t FChunkManager::ChunkIndex(Vector3i Position) const
 	// Normalize the position
 	const int32_t HorizontalBounds = 2 * mViewDistance + 1;
 	const int32_t VerticalBounds = mViewDistance + 1;
+	const Vector3i PositionToIndex{ HorizontalBounds, HorizontalBounds * HorizontalBounds, 1 };
 
 	// Bit shift for mod operation
 	Position = Vector3i{ Position.x % HorizontalBounds, Position.y % VerticalBounds, Position.z % HorizontalBounds };
 
-	const Vector3i PositionToIndex{ HorizontalBounds, HorizontalBounds * HorizontalBounds, 1 };
 	return Vector3i::Dot(Position, PositionToIndex);
 }
 

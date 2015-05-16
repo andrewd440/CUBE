@@ -33,6 +33,20 @@ inline TVector4<T>::TVector4(const TVector4<U>& Other)
 {
 }
 
+template <>
+template <>
+inline TVector4<float>::TVector4(const TVector4<int32_t>& Other)
+{
+	Vector4IntToFloat(&Other.x, &x);
+}
+
+template <>
+template <>
+inline TVector4<int32_t>::TVector4(const TVector4<float>& Other)
+{
+	Vector4FloatToInt(&Other.x, &x);
+}
+
 template <typename T>
 template <typename U>
 inline TVector4<T>& TVector4<T>::operator=(const TVector4<U>& Other)
@@ -41,6 +55,22 @@ inline TVector4<T>& TVector4<T>::operator=(const TVector4<U>& Other)
 	y = (T)Other.y;
 	z = (T)Other.z;
 	w = (T)Other.w;
+	return *this;
+}
+
+template <>
+template <>
+inline TVector4<float>& TVector4<float>::operator=(const TVector4<int32_t>& Other)
+{
+	Vector4IntToFloat(&Other.x, &x);
+	return *this;
+}
+
+template <>
+template <>
+inline TVector4<int32_t>& TVector4<int32_t>::operator=(const TVector4<float>& Other)
+{
+	Vector4FloatToInt(&Other.x, &x);
 	return *this;
 }
 

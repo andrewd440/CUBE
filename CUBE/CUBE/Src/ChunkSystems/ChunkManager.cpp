@@ -9,6 +9,7 @@
 #include "SFML\Window\Context.hpp"
 #include "STime.h"
 #include "GL\glew.h"
+#include <algorithm>
 
 static const uint32_t DEFAULT_VIEW_DISTANCE = 14;
 static const uint32_t MESH_SWAPS_PER_FRAME = 25;
@@ -483,8 +484,7 @@ void FChunkManager::UpdateRenderList()
 
 	for (uint32_t i = 0; i < ListSize; i++)
 	{
-		Vector4f CenterFloats;
-		Vector4IntToFloat(&mChunkPositions[i].x, &CenterFloats.x);
+		Vector4f CenterFloats{mChunkPositions[i]};
 
 		if (!mChunks[i].IsEmpty() && ViewFrustum.IsUniformAABBVisible(CenterFloats, 1.0f))
 		{

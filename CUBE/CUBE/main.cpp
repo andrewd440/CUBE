@@ -36,7 +36,7 @@ int main()
 {
 	const Vector2ui Resolution{ 1920, 1080 };
 	FCubeRoot Root{ L"CUBE", Resolution, sf::Style::Default };
-	Root.GetChunkManager().SetViewDistance(16);
+	Root.GetChunkManager().SetViewDistance(14);
 
 	SMouseAxis::SetDefaultMousePosition(Resolution / 2);
 	SMouseAxis::SetMouseVisible(false);
@@ -67,9 +67,9 @@ int main()
 	}
 
 	FCamera Camera;
-	const Vector3f CameraPosition = Vector3f{ 260.0f, 320.0f, 260.0f };
+	const Vector3f CameraPosition = Vector3f{ 560.0f, 320.0f, 560.0f };
 	Camera.Transform.SetLocalPosition(CameraPosition);
-	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 590.0f });
+	Camera.SetProjection(FPerspectiveMatrix{ (float)Resolution.x / (float)Resolution.y, 35.0f, 0.1f, 600.0f });
 
 	auto& Renderer = Root.GetRenderSystem();
 	std::unique_ptr<FEdgeDetection> EdgeDetection{ new FEdgeDetection{} };
